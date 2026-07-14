@@ -273,8 +273,7 @@ tr.tr-done td{color:var(--text3)}
     <button class="nav-btn" onclick="showPage('cardio')" id="nav-cardio" data-label="Кардио">🚴</button>
     <button class="nav-btn" onclick="showPage('weight')" id="nav-weight" data-label="Вес">⚖️</button>
     <button class="nav-btn" onclick="showPage('stats')" id="nav-stats" data-label="Итоги">📊</button>
-    <button class="nav-btn" onclick="showPage('trash')" id="nav-trash" data-label="Корзина">🗑️</button>
-    <button class="nav-btn" onclick="showPage('export')" id="nav-export" data-label="Данные">💾</button>
+    <button class="nav-btn" onclick="showPage('settings')" id="nav-settings" data-label="Ещё">⚙️</button>
   </div>
 
   <div class="page active" id="page-diary">
@@ -357,17 +356,15 @@ tr.tr-done td{color:var(--text3)}
   <div class="page" id="page-stats">
     <div class="chart-wrap" id="stats-content"></div>
   </div>
-  <div class="page" id="page-trash">
-    <div class="chart-wrap">
-      <div class="chart-card">
+  <div class="page" id="page-trash" style="display:none!important"></div>
+  <div class="page" id="page-export" style="display:none!important"></div>
+  <div class="page" id="page-settings">
+    <div class="export-wrap">
+      <div class="export-card">
         <h3>🗑️ Корзина</h3>
-        <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Удалённые тренировки хранятся 30 дней</p>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Удалённые тренировки хранятся 30 дней</p>
         <div id="trash-list"></div>
       </div>
-    </div>
-  </div>
-  <div class="page" id="page-export">
-    <div class="export-wrap">
       <div class="export-card">
         <h3>☁️ Облачное хранилище</h3>
         <p>Данные автоматически сохраняются в Firebase. Доступны с любого устройства после входа.</p>
@@ -635,7 +632,7 @@ window.toggleDark=function(){state.dark=!state.dark;document.body.classList.togg
 function updateDarkBtn(){const b=document.getElementById('dark-btn');if(b)b.textContent=state.dark?'☀️':'🌙';}
 
 window.showPage=function(p){
-  ['diary','chart','cardio','weight','stats','trash','export'].forEach(id=>{
+  ['diary','chart','cardio','weight','stats','settings'].forEach(id=>{
     document.getElementById('page-'+id)?.classList.toggle('active',id===p);
     document.getElementById('nav-'+id)?.classList.toggle('active',id===p);
   });
@@ -643,8 +640,7 @@ window.showPage=function(p){
   if(p==='cardio')renderCardio();
   if(p==='weight')renderWeight();
   if(p==='stats')renderStats();
-  if(p==='trash')renderTrash();
-  if(p==='export')renderExport();
+  if(p==='settings'){renderTrash();renderExport();}
 };
 
 window.setPreset=function(s){timer.preset=s;timer.rem=s;if(!timer.running)renderTimerUI();[60,75,90,180].forEach(t=>{const b=document.getElementById('tp'+t);if(b)b.className='tp-btn'+(t===s?' sel':'');});};
@@ -897,7 +893,7 @@ window.deleteFromTrash=function(idx){
   scheduleSave();renderTrash();
 };
 window.doSave=async function(wn){await saveToFirebase();const el=document.getElementById('smsg');if(el){el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}updateSummary();};
-window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date)w.date=fmtDate(new Date());scheduleSave();updateSummary();renderTabs();renderDiary();}};
+window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date)w.date=fmtDate(new Date());scheduleSave();updateSummary();renderTabs();renderDiary();if(document.getElementById('page-stats')?.classList.contains('active'))renderStats();}};
 window.forceSave=async function(){await saveToFirebase();const m=document.getElementById('force-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
 
 // Finish workout modal
