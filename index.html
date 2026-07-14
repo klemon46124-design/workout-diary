@@ -260,7 +260,7 @@ tr.tr-done td{color:var(--text3)}
     <button class="btn-logout" onclick="doSignOut()">Выйти</button>
   </div>
   <div class="summary" style="grid-template-columns:repeat(4,1fr)">
-    <div class="stat"><div class="stat-val" id="s-done">0</div><div class="stat-label">Завершено</div></div>
+    <div class="stat"><div class="stat-val" id="s-done">0</div><div class="stat-label">Тренировок</div></div>
     <div class="stat"><div class="stat-val" id="s-streak">0🔥</div><div class="stat-label">Стрик</div></div>
     <div class="stat"><div class="stat-val" id="s-weeks">0</div><div class="stat-label">Недель</div></div>
     <div class="stat"><div class="stat-val" id="s-pr">0</div><div class="stat-label">Рекордов</div></div>
@@ -675,11 +675,20 @@ function updateSummary(){
   const done=state.weeks.filter(w=>w.done).length;
   const streak=calcStreak();
   const completedWeeks=Math.floor(done/3);
+  // Progress bar — текущая неделя (X из 3)
+  let weekStart=0;
+  for(let i=0;i<state.weeks.length;i+=3){
+    const group=state.weeks.slice(i,i+3);
+    if(group.some(w=>!w.done)){weekStart=i;break;}
+    weekStart=i+3;
+  }
+  const thisWeekDone=state.weeks.slice(weekStart,weekStart+3).filter(w=>w.done).length;
+  const weekPct=Math.round(thisWeekDone/3*100);
   document.getElementById('s-done').textContent=done;
   document.getElementById('s-streak').textContent=streak+(streak>0?'🔥':'');
   document.getElementById('s-weeks').textContent=completedWeeks;
   document.getElementById('s-pr').textContent=countPRs();
-  document.getElementById('prog').style.width=Math.round(done/Math.max(state.weeks.length,1)*100)+'%';
+  document.getElementById('prog').style.width=weekPct+'%';
 }
 
 function renderTabs(){
@@ -801,15 +810,10 @@ function renderDiary(){
         <textarea rows="2" placeholder="Самочувствие, техника..." onchange="updateNote(${w.n},this.value)">${w.note||''}</textarea>
       </div>
       <div class="btn-row">
-        <button class="btn btn-red" onclick="doSave(${w.n})">Сохранить</button>
-        <button class="btn ${isDone?'btn-green':''}" onclick="toggleDone(${w.n})">${isDone?'Выполнена ✓':'Отметить выполненной'}</button>
+        <button class="btn btn-outline" onclick="doSave(${w.n})">Синхронизировать ☁️</button>
         <span class="saved" id="smsg">Сохранено ✓</span>
       </div>
       <div style="margin-top:10px">${finishBtn}${tmplBtn}</div>
-    </div>
-    <div class="card plan-card">
-      <h3>Прогрессия базовых весов</h3>
-      <table><tr><th>Тр.</th><th>Присед</th><th>Становая</th><th>Жим</th></tr>${planRows}</table>
     </div>`;
 }
 
