@@ -1023,6 +1023,13 @@ function renderStats(){
     totalVol+=kg*sets*reps;
   }));
 
+  // Прогресс текущей недели (последние 3 тренировки)
+  const total=state.weeks.length;
+  const weekStart=Math.floor((total-1)/3)*3;
+  const thisWeekDone=state.weeks.slice(weekStart).filter(w=>w.done).length;
+  const thisWeekTotal=Math.min(3,state.weeks.slice(weekStart).length);
+  const weekPct=Math.round(thisWeekDone/3*100);
+
   // Goal progress for base exercises
   const goals={'Присед со штангой':{goal:120},'Становая тяга':{goal:150},'Жим лёжа':{goal:105}};
   const goalBars=Object.entries(goals).map(([name,{goal}])=>{
@@ -1041,7 +1048,7 @@ function renderStats(){
   const topEx=Object.entries(prCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const topExHtml=topEx.length?topEx.map(([n,c])=>`<div class="finish-ex-item"><span class="finish-ex-name">${n}</span><span class="finish-ex-val">${c} ПР</span></div>`).join(''):'<p style="color:var(--text3);font-size:13px">Данных пока нет</p>';
 
-  // Weekly volume for mini chart
+  // Weekly volume for chart
   const weekVols=state.weeks.map(w=>{
     let vol=0;
     w.exercises.forEach(ex=>{
@@ -1053,7 +1060,50 @@ function renderStats(){
     return{n:w.n,vol:Math.round(vol)};
   });
 
+  // История тренировок
+  const historyHtml=[...done].reverse().slice(0,10).map(w=>{
+    const vol=w.exercises.reduce((s,ex)=>{
+      const kg=parseFloat(ex.kg)||0;
+      const sets=(ex.setsDone||[]).length;
+      const reps=parseInt((ex.sets||'5×5').split('×')[1])||5;
+      return s+kg*sets*reps;
+    },0);
+    const typeLabel=w.type?` · ${w.type}`:'';
+    return `<div class="cardio-history-item">
+      <div class="cardio-history-left">
+        <div class="cardio-history-type">Тр.${w.n}${typeLabel} · ${weekDay(w)}</div>
+        <div class="cardio-history-date">${w.date||''}${w.duration?' · '+w.duration+'м':''}</div>
+      </div>
+      <div class="cardio-history-right">
+        ${w.pulse?`<div class="cardio-history-stat">♥ ${w.pulse} BPM</div>`:''}
+        ${w.kcal?`<div class="cardio-history-stat">${w.kcal} ккал</div>`:''}
+        ${vol>0?`<div class="cardio-history-kcal">${Math.round(vol)} кг</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
   el.innerHTML=`
+    <div class="stat-big">
+      <h3>📅 Прогресс текущей недели</h3>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <div style="font-size:28px;font-weight:700;color:var(--red)">${thisWeekDone}/3</div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">тренировок выполнено</div>
+          <div class="goal-bar"><div class="goal-bar-fill" style="width:${weekPct}%"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        ${['Пн A','Ср B','Пт C'].map((label,i)=>{
+          const w=state.weeks[weekStart+i];
+          const color=w?(w.done?'var(--green)':'var(--red)'):'var(--border)';
+          const bg=w?(w.done?'var(--green-bg)':'#ffeaea'):'var(--input-bg)';
+          return `<div style="flex:1;text-align:center;padding:8px;border-radius:8px;background:${bg};border:1px solid ${color}">
+            <div style="font-size:11px;font-weight:600;color:${color}">${label}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">${w?(w.done?'✓ '+w.date:'Ожидает'):'—'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
     <div class="stat-big">
       <h3>📊 Общая статистика</h3>
       <div class="stat-grid">
@@ -1074,8 +1124,12 @@ function renderStats(){
       <div class="finish-ex-list">${topExHtml}</div>
     </div>
     <div class="stat-big">
-      <h3>📦 Объём по неделям</h3>
+      <h3>📦 Объём по тренировкам</h3>
       <canvas id="statsVolChart" height="160"></canvas>
+    </div>
+    <div class="stat-big">
+      <h3>📋 История тренировок</h3>
+      ${done.length?historyHtml:'<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Нет завершённых тренировок</p>'}
     </div>`;
 
   setTimeout(()=>{
