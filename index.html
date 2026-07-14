@@ -50,8 +50,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .progress-fill{height:100%;background:var(--red);transition:width .4s}
 
 .nav{display:flex;background:var(--tab-bg);border-bottom:1px solid var(--tab-border)}
-.nav-btn{flex:1;padding:10px;font-size:12px;font-weight:500;color:var(--text3);border:none;background:none;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent}
+.nav-btn{flex:1;padding:10px;font-size:20px;color:var(--text3);border:none;background:none;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;position:relative}
 .nav-btn.active{color:var(--red);border-bottom-color:var(--red)}
+.nav-btn::after{content:attr(data-label);position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text3);white-space:nowrap;display:none}
+.nav-btn.active::after{display:block;color:var(--red)}
 
 .tabs{display:flex;overflow-x:auto;background:var(--tab-bg);border-bottom:1px solid var(--tab-border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
@@ -171,7 +173,28 @@ tr.tr-done td{color:var(--text3)}
 .finish-ex-pr{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:1px 6px;border-radius:8px;margin-left:6px}
 .btn-finish{width:100%;padding:13px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px}
 .btn-finish-cancel{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit}
-.plan-hint{font-size:10px;color:var(--text3);margin-top:2px;font-style:italic}
+.ex-alt-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:0.7}
+.ex-alt-btn:active{opacity:1}
+.alt-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;z-index:150}
+.alt-modal-bg.show{display:flex}
+.alt-modal{background:var(--modal);border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:60vh;overflow-y:auto}
+.alt-modal h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.alt-modal .alt-current{font-size:12px;color:var(--text3);margin-bottom:14px}
+.alt-list{display:flex;flex-direction:column;gap:8px}
+.alt-item{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;background:var(--input-bg);border-radius:10px;border:1px solid var(--border);cursor:pointer}
+.alt-item:active{border-color:var(--red)}
+.alt-item-name{font-size:13px;font-weight:500;color:var(--text)}
+.alt-item-sets{font-size:11px;color:var(--text3)}
+
+.cardio-type-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
+.cardio-type-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+.cardio-history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--input-bg);border-radius:10px;margin-bottom:6px}
+.cardio-history-left{display:flex;flex-direction:column;gap:2px}
+.cardio-history-type{font-size:13px;font-weight:600;color:var(--text)}
+.cardio-history-date{font-size:11px;color:var(--text3)}
+.cardio-history-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.cardio-history-stat{font-size:12px;color:var(--text2)}
+.cardio-history-kcal{font-size:13px;font-weight:600;color:var(--red)}
 
 /* Stats */
 .stat-big{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:0}
@@ -237,11 +260,12 @@ tr.tr-done td{color:var(--text3)}
   <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
 
   <div class="nav">
-    <button class="nav-btn active" onclick="showPage('diary')" id="nav-diary">📋 Дневник</button>
-    <button class="nav-btn" onclick="showPage('chart')" id="nav-chart">📈 Прогресс</button>
-    <button class="nav-btn" onclick="showPage('weight')" id="nav-weight">⚖️ Вес</button>
-    <button class="nav-btn" onclick="showPage('stats')" id="nav-stats">📊 Итоги</button>
-    <button class="nav-btn" onclick="showPage('export')" id="nav-export">💾 Данные</button>
+    <button class="nav-btn active" onclick="showPage('diary')" id="nav-diary" data-label="Дневник">📋</button>
+    <button class="nav-btn" onclick="showPage('chart')" id="nav-chart" data-label="Прогресс">📈</button>
+    <button class="nav-btn" onclick="showPage('cardio')" id="nav-cardio" data-label="Кардио">🚴</button>
+    <button class="nav-btn" onclick="showPage('weight')" id="nav-weight" data-label="Вес">⚖️</button>
+    <button class="nav-btn" onclick="showPage('stats')" id="nav-stats" data-label="Итоги">📊</button>
+    <button class="nav-btn" onclick="showPage('export')" id="nav-export" data-label="Данные">💾</button>
   </div>
 
   <div class="page active" id="page-diary">
@@ -253,6 +277,51 @@ tr.tr-done td{color:var(--text3)}
       <div class="chart-card"><h3>Прогресс весов</h3><div class="chart-sel" id="chart-sel"></div><canvas id="myChart" height="220"></canvas></div>
       <div class="chart-card"><h3>Объём по тренировкам (кг)</h3><canvas id="volChart" height="180"></canvas></div>
       <div class="chart-card"><h3>🏆 Личные рекорды</h3><div class="pr-list" id="pr-list"></div></div>
+    </div>
+  </div>
+  <div class="page" id="page-cardio">
+    <div class="chart-wrap">
+      <div class="chart-card">
+        <h3>🚴 Добавить кардио</h3>
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button class="cardio-type-btn active" id="ct-bike" onclick="setCardioType('bike',this)">🚴 Велосипед</button>
+          <button class="cardio-type-btn" id="ct-run" onclick="setCardioType('run',this)">🏃 Бег</button>
+          <button class="cardio-type-btn" id="ct-walk" onclick="setCardioType('walk',this)">🚶 Ходьба</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div>
+            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Длительность (мин)</label>
+            <input type="number" id="cardio-duration" inputmode="numeric" placeholder="74"
+              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
+            <input type="number" id="cardio-pulse" inputmode="numeric" placeholder="112"
+              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
+            <input type="number" id="cardio-kcal" inputmode="numeric" placeholder="800"
+              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Дистанция (км)</label>
+            <input type="number" id="cardio-dist" inputmode="decimal" step="0.1" placeholder="13"
+              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+          </div>
+        </div>
+        <button class="btn btn-red" style="width:100%" onclick="addCardio()">Добавить</button>
+        <span class="saved" id="cardio-msg" style="display:block;text-align:center;margin-top:8px">Добавлено ✓</span>
+      </div>
+      <div class="chart-card">
+        <h3>Статистика кардио</h3>
+        <div class="stat-grid" id="cardio-stats" style="margin-bottom:12px"></div>
+        <canvas id="cardioChart" height="180"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>История</h3>
+        <div id="cardio-history"></div>
+      </div>
     </div>
   </div>
   <div class="page" id="page-weight">
@@ -307,12 +376,33 @@ tr.tr-done td{color:var(--text3)}
     <h2 id="finish-title">🏆 Тренировка завершена!</h2>
     <div class="finish-sub" id="finish-sub"></div>
     <div class="finish-stats" id="finish-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div>
+        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
+        <input type="number" id="finish-pulse" inputmode="numeric" placeholder="112"
+          style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
+        <input type="number" id="finish-kcal" inputmode="numeric" placeholder="800"
+          style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
+      </div>
+    </div>
     <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">Упражнения:</div>
     <div class="finish-ex-list" id="finish-ex-list"></div>
     <button class="btn-finish" onclick="confirmFinish()">Сохранить и завершить</button>
     <button class="btn-finish-cancel" onclick="closeFinishModal()">Отмена</button>
   </div>
 </div>
+<div class="alt-modal-bg" id="alt-modal-bg" onclick="closeAltModal(event)">
+  <div class="alt-modal">
+    <button class="modal-close" onclick="closeAltModal()" style="float:right;background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer">×</button>
+    <h3>🔄 Аналоги упражнения</h3>
+    <div class="alt-current" id="alt-current"></div>
+    <div class="alt-list" id="alt-list"></div>
+  </div>
+</div>
+
 <div class="tmpl-modal-bg" id="tmpl-modal-bg" onclick="closeTmplModal(event)">
   <div class="tmpl-modal">
     <button class="modal-close" onclick="closeTmplModal()" style="float:right;background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer">×</button>
@@ -371,6 +461,52 @@ const setsMap={
   'Отжимания на брусьях':'4×15','Разводка гантелей лёжа':'3×15',
   'Тяга нижнего блока':'3×15','Тяга к подбородку':'3×15',
   'Фермерская прогулка':'3×40м','Жим ногами':'3×15','Ягодичный мостик':'3×15',
+  // Аналоги
+  'Присед в Смите':'5×5','Присед с гантелями':'5×5','Фронтальный присед':'5×5',
+  'Жим гантелей лёжа':'5×5','Жим в Смите':'5×5','Отжимания с весом':'5×5',
+  'Тяга гантелей в наклоне':'4×15','Тяга в хаммере':'4×15','Тяга Т-грифа':'4×15',
+  'Подъём гантелей через стороны':'3×15','Разводка на блоке стоя':'3×15',
+  'Подъём гантелей на бицепс':'3×15','Молотки':'3×15','Подъём на блоке':'3×15',
+  'Планка на локтях':'3×60с','Боковая планка':'3×60с','Планка с подъёмом ног':'3×60с',
+  'Становая в Смите':'5×5','Становая с гантелями':'5×5','Трэп-гриф становая':'5×5',
+  'Подтягивания':'4×15','Тяга гантелей за голову':'4×15',
+  'Тяга нижнего блока одной рукой':'3×15','Тяга гантели к поясу':'3×15',
+  'Разводка гантелей в наклоне':'3×15','Обратные разведения на блоке':'3×15',
+  'Румынская тяга с гантелями на одной ноге':'3×15','Мёртвая тяга с гантелями':'3×15',
+  'Французский жим с гантелями':'3×15','Разгибания с гантелью':'3×15',
+  'Скручивания':'3×15','Велосипед':'3×15','Подъём ног в висе':'3×15',
+  'Румынская с гантелями':'4×15','Становая на прямых ногах с гантелями':'4×15',
+  'Приседания с паузой':'2×15','Приседания с гантелями':'2×15',
+  'Жим гантелей узким хватом':'4×15','Французский жим':'4×15',
+  'Кроссовер на блоке':'3×15','Разводка гантелей на наклонной':'3×15',
+  'Тяга гантелей к поясу':'3×15',
+  'Тяга гантелей к подбородку':'3×15',
+  'Удержание гантелей стоя':'3×40м','Прогулка с гантелями':'3×40м',
+};
+
+// Аналоги упражнений
+const alternativesMap={
+  'Присед со штангой':['Присед в Смите','Присед с гантелями','Фронтальный присед'],
+  'Жим лёжа':['Жим гантелей лёжа','Жим в Смите','Отжимания с весом'],
+  'Тяга штанги в наклоне':['Тяга гантелей в наклоне','Тяга в хаммере','Тяга Т-грифа'],
+  'Разводка гантелей стоя':['Подъём гантелей через стороны','Разводка на блоке стоя'],
+  'Подъём на бицепс со штангой':['Подъём гантелей на бицепс','Молотки','Подъём на блоке'],
+  'Планка':['Планка на локтях','Боковая планка','Планка с подъёмом ног'],
+  'Становая тяга':['Становая в Смите','Становая с гантелями','Трэп-гриф становая'],
+  'Тяга верхнего блока':['Подтягивания','Тяга гантелей за голову','Тяга в хаммере'],
+  'Тяга гантели одной рукой':['Тяга нижнего блока одной рукой','Тяга гантели к поясу'],
+  'Разводка в наклоне':['Разводка гантелей в наклоне','Обратные разведения на блоке'],
+  'Сгибания ног':['Румынская тяга с гантелями на одной ноге','Мёртвая тяга с гантелями'],
+  'Разгибания на трицепс':['Французский жим с гантелями','Разгибания с гантелью','Отжимания на брусьях'],
+  'Подъём ног лёжа':['Скручивания','Велосипед','Подъём ног в висе'],
+  'Румынская тяга':['Румынская с гантелями','Становая на прямых ногах с гантелями'],
+  'Разгибания ног':['Приседания с паузой','Приседания с гантелями'],
+  'Сгибания ног':['Румынская тяга с гантелями на одной ноге'],
+  'Отжимания на брусьях':['Жим гантелей узким хватом','Французский жим с гантелями'],
+  'Разводка гантелей лёжа':['Кроссовер на блоке','Разводка гантелей на наклонной'],
+  'Тяга нижнего блока':['Тяга гантелей в наклоне','Тяга гантели к поясу'],
+  'Тяга к подбородку':['Подъём гантелей через стороны','Тяга гантелей к подбородку'],
+  'Фермерская прогулка':['Удержание гантелей стоя','Прогулка с гантелями'],
 };
 const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Жим гантелей сидя","Тяга штанги в наклоне","Тяга верхнего блока","Тяга гантели одной рукой","Тяга нижнего блока","Румынская тяга","Жим ногами","Ягодичный мостик","Разгибания ног","Сгибания ног","Разводка гантелей стоя","Разводка в наклоне","Тяга к подбородку","Отжимания на брусьях","Разводка гантелей лёжа","Подъём на бицепс","Молотки на бицепс","Разгибания на трицепс","Французский жим","Планка","Подъём ног лёжа","Скручивания","Фермерская прогулка","Подтягивания","Приседания с гирей"];
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Жим гантелей сидя","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Тяга гантели одной рукой","Разводка в наклоне","Сгибания ног","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Сгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга нижнего блока","Тяга к подбородку","Фермерская прогулка"]];
@@ -481,11 +617,12 @@ window.toggleDark=function(){state.dark=!state.dark;document.body.classList.togg
 function updateDarkBtn(){const b=document.getElementById('dark-btn');if(b)b.textContent=state.dark?'☀️':'🌙';}
 
 window.showPage=function(p){
-  ['diary','chart','weight','stats','export'].forEach(id=>{
+  ['diary','chart','cardio','weight','stats','export'].forEach(id=>{
     document.getElementById('page-'+id)?.classList.toggle('active',id===p);
     document.getElementById('nav-'+id)?.classList.toggle('active',id===p);
   });
   if(p==='chart')renderChart();
+  if(p==='cardio')renderCardio();
   if(p==='weight')renderWeight();
   if(p==='stats')renderStats();
   if(p==='export')renderExport();
@@ -560,15 +697,29 @@ function renderDiary(){
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
     const setsBtns=Array.from({length:5},(_,si)=>`<button class="set-btn${(ex.setsDone||[]).includes(si)?' done':''}" onclick="toggleSet(${w.n},${i},${si})">${si+1}</button>`).join('');
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n!==w.n).pop();
-    // Плановый вес — из таблицы для базовых, иначе последний использованный
     const planKg=planMap[ex.name]||'';
     const planSets=setsMap[ex.name]||'3×15';
     const kgPlaceholder=planKg?planKg.replace(' кг',''):'кг';
-    const setsPlaceholder=ex.sets||planSets;
+
+    // Сравнение с прошлой тренировкой
+    let compareHtml='';
+    if(lastH&&ex.kg){
+      const diff=Math.round((parseFloat(ex.kg)-lastH.kg)*10)/10;
+      const diffStr=diff>0?`▲ +${diff} кг`:diff<0?`▼ ${diff} кг`:'= без изм.';
+      const diffColor=diff>0?'var(--green)':diff<0?'var(--red)':'var(--text3)';
+      compareHtml=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:11px">
+        <span style="color:var(--text3)">Прошлый: ${lastH.kg} кг</span>
+        <span style="color:${diffColor};font-weight:600">${diffStr}</span>
+      </div>`;
+    }else if(lastH){
+      compareHtml=`<div style="padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:11px;color:var(--text3)">Прошлый раз: ${lastH.kg} кг</div>`;
+    }
+
     return `<div class="ex-row">
       <div class="ex-top">
         <input type="text" class="ex-name-input" value="${ex.name}" onchange="updateEx(${w.n},${i},'name',this.value)" placeholder="Упражнение">
         ${pr?'<span class="ex-pr">🏆 ПР</span>':''}
+        ${alternativesMap[ex.name]?`<button class="ex-alt-btn" onclick="openAltModal(${w.n},${i})" title="Аналоги">🔄</button>`:''}
         <button class="ex-del" onclick="delEx(${w.n},${i})">✕</button>
       </div>
       <div class="sets-wrap"><span class="sets-label">Подходы:</span><div class="sets-btns">${setsBtns}</div></div>
@@ -580,7 +731,7 @@ function renderDiary(){
             <input class="num-input" type="number" inputmode="decimal" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
-          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:(lastH?`<div class="hist-hint">прошлый: ${lastH.kg} кг</div>`:'')}
+          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}
         </div>
         <div class="field">
           <label>Повторы</label>
@@ -592,6 +743,7 @@ function renderDiary(){
           ${!ex.sets?`<div class="plan-hint">план: ${planSets}</div>`:''}
         </div>
       </div>
+      ${compareHtml}
     </div>`;
   }).join('');
 
@@ -601,12 +753,15 @@ function renderDiary(){
   const finishBtn=isDone?'':`<button class="btn" style="background:var(--green);color:#fff;border-color:var(--green);width:100%;margin-bottom:8px;font-size:14px" onclick="openFinishModal(${w.n})">🏁 Завершить тренировку</button>`;
   const tmplBtn=`<button class="btn btn-outline" style="width:100%;font-size:13px" onclick="saveAsTemplate(${w.n})">⭐ Сохранить как шаблон</button>`;
 
+  const extraInfo=isDone&&(w.pulse||w.kcal)?
+    `${w.pulse?'♥ '+w.pulse+' BPM':''} ${w.kcal?'· '+w.kcal+' ккал':''}`.trim():'';
+
   document.getElementById('diary-content').innerHTML=`
     <div class="card">
       <div class="week-header">
         <div class="week-meta">
           <div class="week-title">Тренировка ${w.n} · ${weekDay(w)}</div>
-          <div class="week-date">${w.date||''}</div>
+          <div class="week-date">${w.date||''}${extraInfo?' · '+extraInfo:''}</div>
         </div>
         <span class="badge ${badgeCls}">${badgeTxt}</span>
       </div>
@@ -677,6 +832,10 @@ window.openFinishModal=function(wn){
     <div class="finish-stat"><div class="finish-stat-val">${exDone}</div><div class="finish-stat-label">Упражнений</div></div>
     <div class="finish-stat"><div class="finish-stat-val">${totalVol>0?Math.round(totalVol)+'кг':'—'}</div><div class="finish-stat-label">Объём</div></div>`;
 
+  // Clear pulse/kcal fields
+  document.getElementById('finish-pulse').value='';
+  document.getElementById('finish-kcal').value='';
+
   const exList=w.exercises.map((ex,i)=>{
     const sets=(ex.setsDone||[]).length;
     const isPR=checkPR(wn,i)&&ex.kg;
@@ -705,7 +864,10 @@ window.confirmFinish=async function(){
     w.date=fmtDate(new Date());
     w.finishedAt=new Date().toISOString();
     w.duration=workoutStartTime?Math.round((new Date()-workoutStartTime)/60000):0;
-    workoutStartTime=new Date(); // reset for next workout
+    w.pulse=parseInt(document.getElementById('finish-pulse').value)||0;
+    w.kcal=parseInt(document.getElementById('finish-kcal').value)||0;
+    workoutStartTime=new Date();
+  }
   }
   await saveToFirebase();
   document.getElementById('finish-modal-bg').classList.remove('show');
@@ -713,6 +875,32 @@ window.confirmFinish=async function(){
   stopTimer();
 };
 window.openModal=function(wn){modalWeek=wn;const used=getWeek(wn)?.exercises.map(e=>e.name)||[];document.getElementById('ex-chips').innerHTML=PRESET_EX.filter(p=>!used.includes(p)).map(p=>`<button class="chip" onclick="addPresetEx('${p.replace(/'/g,"\\'")}')">${p}</button>`).join('');document.getElementById('custom-ex').value='';document.getElementById('modal-bg').classList.add('show');};
+
+// Alternatives modal
+let altWeekN=null, altExIdx=null;
+window.openAltModal=function(wn,i){
+  altWeekN=wn; altExIdx=i;
+  const w=getWeek(wn);if(!w)return;
+  const ex=w.exercises[i];
+  const alts=alternativesMap[ex.name]||[];
+  document.getElementById('alt-current').textContent='Текущее: '+ex.name;
+  document.getElementById('alt-list').innerHTML=alts.map(name=>`
+    <div class="alt-item" onclick="applyAlt('${name.replace(/'/g,"\\'")}')">
+      <span class="alt-item-name">${name}</span>
+      <span class="alt-item-sets">${setsMap[name]||'3×15'}</span>
+    </div>`).join('');
+  document.getElementById('alt-modal-bg').classList.add('show');
+};
+window.closeAltModal=function(e){if(!e||e.target===document.getElementById('alt-modal-bg'))document.getElementById('alt-modal-bg').classList.remove('show');};
+window.applyAlt=function(name){
+  const w=getWeek(altWeekN);if(!w)return;
+  const ex=w.exercises[altExIdx];if(!ex)return;
+  ex.name=name;
+  ex.sets=setsMap[name]||ex.sets;
+  ex.setsDone=[];
+  scheduleSave();renderDiary();
+  document.getElementById('alt-modal-bg').classList.remove('show');
+};
 window.closeModal=function(e){if(!e||e.target===document.getElementById('modal-bg'))document.getElementById('modal-bg').classList.remove('show');};
 window.addPresetEx=function(name){const w=getWeek(modalWeek);if(w){w.exercises.push({name,kg:'',sets:'',setsDone:[],pr:false});scheduleSave();renderDiary();}document.getElementById('modal-bg').classList.remove('show');};
 window.addCustomEx=function(){const v=document.getElementById('custom-ex').value.trim();if(!v)return;const w=getWeek(modalWeek);if(w){w.exercises.push({name:v,kg:'',sets:'',setsDone:[],pr:false});scheduleSave();renderDiary();}document.getElementById('modal-bg').classList.remove('show');};
@@ -725,6 +913,8 @@ function renderStats(){
   const done=state.weeks.filter(w=>w.done);
   const totalMin=done.reduce((s,w)=>s+(w.duration||0),0);
   const avgMin=done.length?Math.round(totalMin/done.length):0;
+  const avgPulse=done.filter(w=>w.pulse).length?Math.round(done.filter(w=>w.pulse).reduce((s,w)=>s+w.pulse,0)/done.filter(w=>w.pulse).length):0;
+  const totalKcalStr=done.filter(w=>w.kcal).reduce((s,w)=>s+w.kcal,0);
   let totalVol=0;
   state.weeks.forEach(w=>w.exercises.forEach(ex=>{
     const kg=parseFloat(ex.kg)||0;
@@ -769,6 +959,8 @@ function renderStats(){
       <div class="stat-grid">
         <div class="stat-box"><div class="stat-box-val">${done.length}</div><div class="stat-box-label">Тренировок</div></div>
         <div class="stat-box"><div class="stat-box-val">${avgMin?avgMin+'м':'—'}</div><div class="stat-box-label">Среднее время</div></div>
+        <div class="stat-box"><div class="stat-box-val">${avgPulse?avgPulse+' BPM':'—'}</div><div class="stat-box-label">Средний пульс</div></div>
+        <div class="stat-box"><div class="stat-box-val">${totalKcalStr?totalKcalStr+' кк':'—'}</div><div class="stat-box-label">Ккал сожжено</div></div>
         <div class="stat-box"><div class="stat-box-val">${totalVol>0?Math.round(totalVol/1000)+'т':'—'}</div><div class="stat-box-label">Общий объём</div></div>
         <div class="stat-box"><div class="stat-box-val">${countPRs()}</div><div class="stat-box-label">Рекордов</div></div>
       </div>
@@ -865,6 +1057,102 @@ function renderChart(){
   if(prList)prList.innerHTML=prs.length?prs.map(p=>`<div class="pr-item"><span class="pr-item-name">${p.name}</span><span class="pr-item-val">${p.best} кг · Тр.${p.bestW}</span></div>`).join(''):'<p style="color:var(--text3);font-size:13px">Данных пока нет</p>';
 }
 window.selectChartEx=function(name){chartEx=name;renderChart();};
+
+// CARDIO
+let cardioType='bike';
+let cardioChartInst=null;
+const CARDIO_LABELS={'bike':'🚴 Велосипед','run':'🏃 Бег','walk':'🚶 Ходьба'};
+
+window.setCardioType=function(type,btn){
+  cardioType=type;
+  document.querySelectorAll('.cardio-type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+};
+
+window.addCardio=function(){
+  const duration=parseInt(document.getElementById('cardio-duration').value)||0;
+  const pulse=parseInt(document.getElementById('cardio-pulse').value)||0;
+  const kcal=parseInt(document.getElementById('cardio-kcal').value)||0;
+  const dist=parseFloat(document.getElementById('cardio-dist').value)||0;
+  if(!duration){alert('Введи длительность');return;}
+  if(!state.cardioLog)state.cardioLog=[];
+  state.cardioLog.push({date:new Date().toISOString(),type:cardioType,duration,pulse,kcal,dist});
+  document.getElementById('cardio-duration').value='';
+  document.getElementById('cardio-pulse').value='';
+  document.getElementById('cardio-kcal').value='';
+  document.getElementById('cardio-dist').value='';
+  scheduleSave();
+  const msg=document.getElementById('cardio-msg');
+  if(msg){msg.classList.add('show');setTimeout(()=>msg.classList.remove('show'),2000);}
+  renderCardio();
+};
+
+function renderCardio(){
+  if(!state.cardioLog||!state.cardioLog.length){
+    const ch=document.getElementById('cardio-history');
+    if(ch)ch.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Ещё нет записей.<br>Добавь первое кардио выше.</p>';
+    const cs=document.getElementById('cardio-stats');
+    if(cs)cs.innerHTML='';
+    return;
+  }
+
+  const log=[...state.cardioLog].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const totalMin=log.reduce((s,e)=>s+e.duration,0);
+  const totalKcal=log.reduce((s,e)=>s+e.kcal,0);
+  const totalDist=Math.round(log.reduce((s,e)=>s+e.dist,0)*10)/10;
+  const avgPulse=Math.round(log.filter(e=>e.pulse).reduce((s,e)=>s+e.pulse,0)/log.filter(e=>e.pulse).length)||0;
+
+  const cs=document.getElementById('cardio-stats');
+  if(cs)cs.innerHTML=`
+    <div class="stat-box"><div class="stat-box-val">${log.length}</div><div class="stat-box-label">Активностей</div></div>
+    <div class="stat-box"><div class="stat-box-val">${Math.round(totalMin/60*10)/10}ч</div><div class="stat-box-label">Всего времени</div></div>
+    <div class="stat-box"><div class="stat-box-val">${totalDist}км</div><div class="stat-box-label">Дистанция</div></div>
+    <div class="stat-box"><div class="stat-box-val">${totalKcal}</div><div class="stat-box-label">Ккал сожжено</div></div>`;
+
+  // Chart — калории по активностям
+  const ctx=document.getElementById('cardioChart')?.getContext('2d');
+  if(ctx){
+    if(cardioChartInst)cardioChartInst.destroy();
+    const colors={'bike':'rgba(233,69,96,.7)','run':'rgba(39,174,96,.7)','walk':'rgba(52,152,219,.7)'};
+    cardioChartInst=new window.Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:log.map(e=>new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})),
+        datasets:[{
+          data:log.map(e=>e.duration),
+          backgroundColor:log.map(e=>colors[e.type]||colors.bike),
+          borderRadius:5
+        }]
+      },
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'м'}},x:{}}}
+    });
+  }
+
+  // History
+  const ch=document.getElementById('cardio-history');
+  if(ch){
+    ch.innerHTML=[...log].reverse().map((e,i)=>`
+      <div class="cardio-history-item">
+        <div class="cardio-history-left">
+          <div class="cardio-history-type">${CARDIO_LABELS[e.type]||e.type}</div>
+          <div class="cardio-history-date">${new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div class="cardio-history-right">
+          <div class="cardio-history-stat">${e.duration} мин${e.dist?' · '+e.dist+' км':''}</div>
+          ${e.pulse?`<div class="cardio-history-stat">♥ ${e.pulse} BPM</div>`:''}
+          ${e.kcal?`<div class="cardio-history-kcal">${e.kcal} ккал</div>`:''}
+        </div>
+      </div>`).join('');
+  }
+}
+
+window.deleteCardio=function(idx){
+  if(!state.cardioLog)return;
+  const sorted=[...state.cardioLog].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const item=sorted[idx];
+  state.cardioLog=state.cardioLog.filter(e=>e.date!==item.date);
+  scheduleSave();renderCardio();
+};
 
 function renderExport(){const el=document.getElementById('export-text');if(el)el.value=JSON.stringify(state,null,2);}
 
