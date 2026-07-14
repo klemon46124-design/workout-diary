@@ -471,7 +471,7 @@ function renderTabs(){
   state.weeks.forEach((w,idx)=>{
     if(idx%3===0){
       const weekNum=Math.floor(idx/3)+1;
-      html+=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 6px 0 ${idx===0?'6':'12'}px;flex-shrink:0"><span style="font-size:9px;color:var(--text3);white-space:nowrap;padding-bottom:2px">Нед.${weekNum}</span><div style="height:16px;width:1px;background:${idx===0?'transparent':'var(--border)}"></div></div>`;
+      html+=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 6px 0 ${idx===0?'6':'12'}px;flex-shrink:0"><span style="font-size:9px;color:var(--text3);white-space:nowrap;padding-bottom:2px">Нед.${weekNum}</span><div style="height:16px;width:1px;background:${idx===0?'transparent':'var(--border)'}"></div></div>`;
     }
     html+=`<button class="tab${w.n===state.active?' active':''}" onclick="setTab(${w.n})">${weekDay(w)}${w.type?' '+w.type:''}<br>Тр.${w.n}${w.done?'<span class="done-dot"></span>':''}</button>`;
   });
