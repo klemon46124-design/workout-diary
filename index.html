@@ -659,16 +659,20 @@ function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.
 function getHistory(name){const h=[];state.weeks.forEach(w=>{const ex=w.exercises.find(e=>e.name===name);if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0});});return h;}
 
 function calcStreak(){
-  // Count consecutive completed weeks (groups of 3 trainings)
-  const done=state.weeks.filter(w=>w.done);
-  if(!done.length)return 0;
-  // Count consecutive completed trainings from the end
-  let streak=0;
+  if(!state.weeks.length)return 0;
+  // Найти последнюю выполненную тренировку
+  let lastDoneIdx=-1;
   for(let i=state.weeks.length-1;i>=0;i--){
+    if(state.weeks[i].done){lastDoneIdx=i;break;}
+  }
+  if(lastDoneIdx===-1)return 0;
+  // Считать подряд выполненные назад от последней
+  let streak=0;
+  for(let i=lastDoneIdx;i>=0;i--){
     if(state.weeks[i].done)streak++;
     else break;
   }
-  return Math.floor(streak); // trainings streak
+  return streak;
 }
 
 function updateSummary(){
