@@ -714,7 +714,9 @@ function renderDiary(){
 
   const exHtml=w.exercises.map((ex,i)=>{
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
-    const setsBtns=Array.from({length:5},(_,si)=>`<button class="set-btn${(ex.setsDone||[]).includes(si)?' done':''}" onclick="toggleSet(${w.n},${i},${si})">${si+1}</button>`).join('');
+    const totalSets=Math.max(5,(ex.setsDone||[]).length+1,(ex.extraSets||0)+5);
+    const setsBtns=Array.from({length:totalSets},(_,si)=>`<button class="set-btn${(ex.setsDone||[]).includes(si)?' done':''}" onclick="toggleSet(${w.n},${i},${si})">${si+1}</button>`).join('');
+    const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n!==w.n).pop();
     const planKg=planMap[ex.name]||'';
     const planSets=setsMap[ex.name]||'3×15';
@@ -745,7 +747,7 @@ function renderDiary(){
         ${alternativesMap[ex.name]?`<button class="ex-alt-btn" onclick="openAltModal(${w.n},${i})" title="Аналоги">🔄</button>`:''}
         <button class="ex-del" onclick="delEx(${w.n},${i})">✕</button>
       </div>
-      <div class="sets-wrap"><span class="sets-label">Подходы:</span><div class="sets-btns">${setsBtns}</div></div>
+      <div class="sets-wrap"><span class="sets-label">Подходы:</span><div class="sets-btns">${setsBtns}${addSetBtn}</div></div>
       <div class="ex-inputs">
         <div class="field">
           <label>Вес (кг)</label>
@@ -817,6 +819,14 @@ window.recheckPR=function(wn,i){const w=getWeek(wn);if(!w)return;const ex=w.exer
 window.updateEx=function(wn,i,f,v){const w=getWeek(wn);if(w&&w.exercises[i])w.exercises[i][f]=v;scheduleSave();};
 window.updateNote=function(wn,v){const w=getWeek(wn);if(w)w.note=v;scheduleSave();};
 window.delEx=function(wn,i){const w=getWeek(wn);if(w){w.exercises.splice(i,1);scheduleSave();renderDiary();}};
+
+// Add extra set
+window.addSet=function(wn,i){
+  const w=getWeek(wn);if(!w)return;
+  const ex=w.exercises[i];if(!ex)return;
+  ex.extraSets=(ex.extraSets||0)+1;
+  scheduleSave();renderDiary();
+};
 
 // Move exercise up/down
 window.moveEx=function(wn,i,dir){
