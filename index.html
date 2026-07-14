@@ -300,22 +300,22 @@ tr.tr-done td{color:var(--text3)}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
           <div>
             <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Длительность (мин)</label>
-            <input type="number" id="cardio-duration" inputmode="numeric" placeholder="74"
+            <input type="number" id="cardio-duration" inputmode="numeric" placeholder="мин"
               style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
           </div>
           <div>
             <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
-            <input type="number" id="cardio-pulse" inputmode="numeric" placeholder="112"
+            <input type="number" id="cardio-pulse" inputmode="numeric" placeholder="BPM"
               style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
           </div>
           <div>
             <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
-            <input type="number" id="cardio-kcal" inputmode="numeric" placeholder="800"
+            <input type="number" id="cardio-kcal" inputmode="numeric" placeholder="ккал"
               style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
           </div>
           <div>
             <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Дистанция (км)</label>
-            <input type="number" id="cardio-dist" inputmode="decimal" step="0.1" placeholder="13"
+            <input type="number" id="cardio-dist" inputmode="decimal" step="0.1" placeholder="км"
               style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
           </div>
         </div>
@@ -397,12 +397,12 @@ tr.tr-done td{color:var(--text3)}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <div>
         <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
-        <input type="number" id="finish-pulse" inputmode="numeric" placeholder="112"
+        <input type="number" id="finish-pulse" inputmode="numeric" placeholder="BPM"
           style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
       </div>
       <div>
         <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
-        <input type="number" id="finish-kcal" inputmode="numeric" placeholder="800"
+        <input type="number" id="finish-kcal" inputmode="numeric" placeholder="ккал"
           style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
       </div>
     </div>
@@ -1304,6 +1304,7 @@ function renderCardio(){
           <div class="cardio-history-stat">${e.duration} мин${e.dist?' · '+e.dist+' км':''}</div>
           ${e.pulse?`<div class="cardio-history-stat">♥ ${e.pulse} BPM</div>`:''}
           ${e.kcal?`<div class="cardio-history-kcal">${e.kcal} ккал</div>`:''}
+          <button onclick="deleteCardio(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;margin-top:4px">🗑️</button>
         </div>
       </div>`).join('');
   }
