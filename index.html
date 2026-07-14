@@ -1096,17 +1096,27 @@ const TEMPLATES=[
 ];
 
 window.openTmplModal=function(){
-  // Add saved custom templates
   const custom=(state.customTemplates||[]).map((t,i)=>({id:'custom_'+i,label:'⭐ '+t.label,exercises:t.exercises}));
   const all=[...TEMPLATES,...custom];
   document.getElementById('tmpl-list').innerHTML=all.map(t=>`
-    <div class="tmpl-item" onclick="applyTemplate('${t.id}')">
-      <div class="tmpl-item-title">${t.label}</div>
-      <div class="tmpl-item-exs">${t.exercises.slice(0,4).join(', ')}${t.exercises.length>4?'...':''}</div>
+    <div class="tmpl-item" style="display:flex;align-items:center;gap:8px">
+      <div style="flex:1" onclick="applyTemplate('${t.id}')">
+        <div class="tmpl-item-title">${t.label}</div>
+        <div class="tmpl-item-exs">${t.exercises.slice(0,4).join(', ')}${t.exercises.length>4?'...':''}</div>
+      </div>
+      ${t.id.startsWith('custom_')?`<button onclick="deleteTmpl(${t.id.replace('custom_','')})" style="background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:4px">🗑️</button>`:''}
     </div>`).join('');
   document.getElementById('tmpl-modal-bg').classList.add('show');
 };
 window.closeTmplModal=function(e){if(!e||e.target===document.getElementById('tmpl-modal-bg'))document.getElementById('tmpl-modal-bg').classList.remove('show');};
+
+window.deleteTmpl=function(idx){
+  if(!confirm('Удалить шаблон?'))return;
+  if(!state.customTemplates)return;
+  state.customTemplates.splice(idx,1);
+  scheduleSave();
+  openTmplModal(); // обновить список
+};
 window.applyTemplate=function(id){
   const custom=state.customTemplates||[];
   let tmpl;
