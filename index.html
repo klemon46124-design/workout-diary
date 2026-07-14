@@ -802,7 +802,7 @@ function renderDiary(){
   const doneCnt=state.weeks.filter(x=>x.done).length;
   const isRecovery=doneCnt>=12&&doneCnt<=14;
   if(isRecovery){
-    function getLastKg(exName){
+    const getLastKg=(exName)=>{
       let last=0;
       state.weeks.forEach(week=>{
         if(week.n>=w.n)return;
@@ -810,7 +810,7 @@ function renderDiary(){
         if(ex&&parseFloat(ex.kg)>0)last=parseFloat(ex.kg);
       });
       return last;
-    }
+    };
     // Базовые — 60%
     ['Присед со штангой','Становая тяга','Жим лёжа'].forEach(name=>{
       const last=getLastKg(name);
@@ -1454,4 +1454,4 @@ function renderWeight(){
     return;
   }
 
-  const log=[...state.weightLo
+  const log=[...state.weightL
