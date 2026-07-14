@@ -868,7 +868,6 @@ window.confirmFinish=async function(){
     w.kcal=parseInt(document.getElementById('finish-kcal').value)||0;
     workoutStartTime=new Date();
   }
-  }
   await saveToFirebase();
   document.getElementById('finish-modal-bg').classList.remove('show');
   updateSummary();renderTabs();renderDiary();
