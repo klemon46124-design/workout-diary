@@ -173,7 +173,15 @@ tr.tr-done td{color:var(--text3)}
 .finish-ex-pr{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:1px 6px;border-radius:8px;margin-left:6px}
 .btn-finish{width:100%;padding:13px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px}
 .btn-finish-cancel{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit}
+.ex-move-btn{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);font-size:10px;cursor:pointer;padding:1px 4px;line-height:1.2;width:20px}
+.ex-move-btn:disabled{opacity:0.2;cursor:default}
+.ex-move-btn:active:not(:disabled){background:var(--input-bg)}
 .ex-alt-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:0.7}
+.ex-alt-btn:active{opacity:1}
+.trash-item{background:var(--input-bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
+.trash-item-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.trash-item-meta{font-size:11px;color:var(--text3);margin-bottom:8px}
+.trash-item-btns{display:flex;gap:8px}
 .ex-alt-btn:active{opacity:1}
 .alt-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;z-index:150}
 .alt-modal-bg.show{display:flex}
@@ -265,6 +273,7 @@ tr.tr-done td{color:var(--text3)}
     <button class="nav-btn" onclick="showPage('cardio')" id="nav-cardio" data-label="Кардио">🚴</button>
     <button class="nav-btn" onclick="showPage('weight')" id="nav-weight" data-label="Вес">⚖️</button>
     <button class="nav-btn" onclick="showPage('stats')" id="nav-stats" data-label="Итоги">📊</button>
+    <button class="nav-btn" onclick="showPage('trash')" id="nav-trash" data-label="Корзина">🗑️</button>
     <button class="nav-btn" onclick="showPage('export')" id="nav-export" data-label="Данные">💾</button>
   </div>
 
@@ -347,6 +356,15 @@ tr.tr-done td{color:var(--text3)}
   </div>
   <div class="page" id="page-stats">
     <div class="chart-wrap" id="stats-content"></div>
+  </div>
+  <div class="page" id="page-trash">
+    <div class="chart-wrap">
+      <div class="chart-card">
+        <h3>🗑️ Корзина</h3>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Удалённые тренировки хранятся 30 дней</p>
+        <div id="trash-list"></div>
+      </div>
+    </div>
   </div>
   <div class="page" id="page-export">
     <div class="export-wrap">
@@ -617,7 +635,7 @@ window.toggleDark=function(){state.dark=!state.dark;document.body.classList.togg
 function updateDarkBtn(){const b=document.getElementById('dark-btn');if(b)b.textContent=state.dark?'☀️':'🌙';}
 
 window.showPage=function(p){
-  ['diary','chart','cardio','weight','stats','export'].forEach(id=>{
+  ['diary','chart','cardio','weight','stats','trash','export'].forEach(id=>{
     document.getElementById('page-'+id)?.classList.toggle('active',id===p);
     document.getElementById('nav-'+id)?.classList.toggle('active',id===p);
   });
@@ -625,6 +643,7 @@ window.showPage=function(p){
   if(p==='cardio')renderCardio();
   if(p==='weight')renderWeight();
   if(p==='stats')renderStats();
+  if(p==='trash')renderTrash();
   if(p==='export')renderExport();
 };
 
@@ -717,6 +736,10 @@ function renderDiary(){
 
     return `<div class="ex-row">
       <div class="ex-top">
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
+          <button class="ex-move-btn" onclick="moveEx(${w.n},${i},-1)" ${i===0?'disabled':''}>▲</button>
+          <button class="ex-move-btn" onclick="moveEx(${w.n},${i},1)" ${i===w.exercises.length-1?'disabled':''}>▼</button>
+        </div>
         <input type="text" class="ex-name-input" value="${ex.name}" onchange="updateEx(${w.n},${i},'name',this.value)" placeholder="Упражнение">
         ${pr?'<span class="ex-pr">🏆 ПР</span>':''}
         ${alternativesMap[ex.name]?`<button class="ex-alt-btn" onclick="openAltModal(${w.n},${i})" title="Аналоги">🔄</button>`:''}
@@ -763,7 +786,10 @@ function renderDiary(){
           <div class="week-title">Тренировка ${w.n} · ${weekDay(w)}</div>
           <div class="week-date">${w.date||''}${extraInfo?' · '+extraInfo:''}</div>
         </div>
-        <span class="badge ${badgeCls}">${badgeTxt}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="badge ${badgeCls}">${badgeTxt}</span>
+          <button onclick="deleteWeek(${w.n})" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)" title="Удалить тренировку">🗑️</button>
+        </div>
       </div>
       <div class="ex-list">${exHtml}</div>
       <button class="btn btn-outline" style="width:100%;margin-bottom:12px" onclick="openModal(${w.n})">+ Добавить упражнение</button>
@@ -791,6 +817,71 @@ window.recheckPR=function(wn,i){const w=getWeek(wn);if(!w)return;const ex=w.exer
 window.updateEx=function(wn,i,f,v){const w=getWeek(wn);if(w&&w.exercises[i])w.exercises[i][f]=v;scheduleSave();};
 window.updateNote=function(wn,v){const w=getWeek(wn);if(w)w.note=v;scheduleSave();};
 window.delEx=function(wn,i){const w=getWeek(wn);if(w){w.exercises.splice(i,1);scheduleSave();renderDiary();}};
+
+// Move exercise up/down
+window.moveEx=function(wn,i,dir){
+  const w=getWeek(wn);if(!w)return;
+  const exs=w.exercises;
+  const newIdx=i+dir;
+  if(newIdx<0||newIdx>=exs.length)return;
+  const tmp=exs[i];exs[i]=exs[newIdx];exs[newIdx]=tmp;
+  scheduleSave();renderDiary();
+};
+
+// Delete week → trash
+window.deleteWeek=function(wn){
+  if(!confirm('Удалить тренировку? Её можно будет восстановить из корзины.'))return;
+  const w=getWeek(wn);if(!w)return;
+  if(!state.trash)state.trash=[];
+  state.trash.push({...w,deletedAt:new Date().toISOString()});
+  state.weeks=state.weeks.filter(x=>x.n!==wn);
+  // Renumber weeks
+  state.weeks.forEach((w,idx)=>w.n=idx+1);
+  state.active=state.weeks.length?state.weeks[state.weeks.length-1].n:1;
+  scheduleSave();updateSummary();renderTabs();renderDiary();
+};
+
+function renderTrash(){
+  const el=document.getElementById('trash-list');if(!el)return;
+  const trash=(state.trash||[]).filter(w=>{
+    const d=new Date(w.deletedAt);
+    return (new Date()-d)<30*24*60*60*1000;
+  });
+  if(!trash.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Корзина пуста</p>';return;}
+  el.innerHTML=[...trash].reverse().map((w,i)=>`
+    <div class="trash-item">
+      <div class="trash-item-title">Тренировка ${w.n} · ${w.type?(['A','B','C'].includes(w.type)?w.type:''):''}  ${w.date||''}</div>
+      <div class="trash-item-meta">${w.exercises.map(e=>e.name).slice(0,3).join(', ')}${w.exercises.length>3?'...':''}</div>
+      <div class="trash-item-btns">
+        <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="restoreWeek(${trash.length-1-i})">↩️ Восстановить</button>
+        <button class="btn" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)" onclick="deleteFromTrash(${trash.length-1-i})">Удалить навсегда</button>
+      </div>
+    </div>`).join('');
+}
+
+window.restoreWeek=function(idx){
+  const trash=(state.trash||[]);
+  const sorted=[...trash].reverse();
+  const w=sorted[idx];
+  if(!w)return;
+  // Add back with new number
+  const newN=(state.weeks.length?state.weeks[state.weeks.length-1].n:0)+1;
+  w.n=newN;
+  delete w.deletedAt;
+  state.weeks.push(w);
+  state.trash=trash.filter(x=>x.deletedAt!==undefined&&x!==w);
+  state.active=newN;
+  scheduleSave();updateSummary();renderTabs();renderDiary();
+  showPage('diary');
+};
+
+window.deleteFromTrash=function(idx){
+  if(!confirm('Удалить навсегда?'))return;
+  const sorted=[...( state.trash||[])].reverse();
+  const w=sorted[idx];
+  state.trash=(state.trash||[]).filter(x=>x!==w);
+  scheduleSave();renderTrash();
+};
 window.doSave=async function(wn){await saveToFirebase();const el=document.getElementById('smsg');if(el){el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}updateSummary();};
 window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date)w.date=fmtDate(new Date());scheduleSave();updateSummary();renderTabs();renderDiary();}};
 window.forceSave=async function(){await saveToFirebase();const m=document.getElementById('force-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
