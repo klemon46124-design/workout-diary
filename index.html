@@ -259,10 +259,10 @@ tr.tr-done td{color:var(--text3)}
     <input class="login-input" type="email" id="login-email" placeholder="Email" autocomplete="email" inputmode="email">
     <input class="login-input" type="password" id="login-pass" placeholder="Пароль" autocomplete="current-password">
     <div class="login-err" id="login-err"></div>
-    <button class="login-btn login-btn-main" id="login-main-btn" onclick="doLogin()">Войти</button>
-    <button class="login-btn login-btn-sec" id="login-sec-btn" onclick="doRegister()">Зарегистрироваться</button>
-    <div class="login-toggle" id="login-toggle" onclick="toggleMode()">Нет аккаунта? <span>Зарегистрироваться</span></div>
-    <div class="login-toggle" onclick="doReset()" style="margin-top:2px">Забыл пароль? <span>Сбросить</span></div>
+    <button class="login-btn login-btn-main" id="login-main-btn" onclick="window.doLogin()">Войти</button>
+    <button class="login-btn login-btn-sec" id="login-sec-btn" onclick="window.doRegister()">Зарегистрироваться</button>
+    <div class="login-toggle" id="login-toggle" onclick="window.toggleMode()">Нет аккаунта? <span>Зарегистрироваться</span></div>
+    <div class="login-toggle" onclick="window.doReset()" style="margin-top:2px">Забыл пароль? <span>Сбросить</span></div>
   </div>
 </div>
 
@@ -1527,4 +1527,78 @@ function renderWeight(){
       data:{
         labels:log.map(e=>new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})),
         datasets:[
-          {label:'Вес',data:log.map(e=>e.kg),borderColor:'#e94560',backgroundColor:'rgba(233,69,96,.1)
+          {label:'Вес',data:log.map(e=>e.kg),borderColor:'#e94560',backgroundColor:'rgba(233,69,96,.1)',tension:0.3,pointBackgroundColor:'#e94560',pointRadius:4,fill:true},
+          {label:'Цель',data:log.map(()=>WEIGHT_GOAL),borderColor:'#27ae60',borderDash:[5,5],pointRadius:0,fill:false}
+        ]
+      },
+      options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'кг'}},x:{}}}
+    });
+  }
+
+  // History list
+  const wh=document.getElementById('weight-history');
+  if(wh){
+    const sorted=[...log].reverse();
+    wh.innerHTML=sorted.map((e,i)=>{
+      const prev=sorted[i+1];
+      const diff=prev?Math.round((e.kg-prev.kg)*10)/10:null;
+      const diffStr=diff!==null?(diff>0?`+${diff}`:`${diff}`)+' кг':'—';
+      const diffColor=diff>0?'var(--red)':diff<0?'var(--green)':'var(--text3)';
+      return `<div class="finish-ex-item" style="margin-bottom:6px">
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">${e.kg} кг</div>
+          <div style="font-size:11px;color:var(--text3)">${new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:${diffColor}">${diffStr}</span>
+          <button onclick="deleteWeight(${log.length-1-i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    if(lost>0){
+      wh.innerHTML=`<div style="background:var(--green-bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;text-align:center">
+        <div style="font-size:13px;color:var(--green);font-weight:600">Сброшено ${lost} кг 💪</div>
+        <div style="font-size:11px;color:var(--green);margin-top:2px">с ${first} кг до ${last} кг</div>
+      </div>`+wh.innerHTML;
+    }
+  }
+}
+
+window.deleteWeight=function(idx){
+  if(!state.weightLog)return;
+  const sorted=[...state.weightLog].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const item=sorted[idx];
+  state.weightLog=state.weightLog.filter(e=>e.date!==item.date);
+  scheduleSave();renderWeight();
+};
+window.copyExport=function(){const el=document.getElementById('export-text');if(!el)return;el.select();try{document.execCommand('copy');}catch(e){navigator.clipboard?.writeText(el.value);}const m=document.getElementById('copy-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
+window.doImport=function(){const v=document.getElementById('import-text')?.value.trim();if(!v)return;try{state=JSON.parse(v);saveToFirebase();updateSummary();renderTabs();renderDiary();const m=document.getElementById('import-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}}catch(e){alert('Ошибка: неверный формат');}};
+
+const initH=window.innerHeight;
+window.addEventListener('resize',()=>{document.body.classList.toggle('keyboard-open',initH-window.innerHeight>150);});
+document.addEventListener('focusin',e=>{if(['INPUT','TEXTAREA'].includes(e.target.tagName))document.body.classList.add('keyboard-open');});
+document.addEventListener('focusout',()=>{setTimeout(()=>document.body.classList.remove('keyboard-open'),100);});
+
+const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';document.head.appendChild(s);
+renderTimerUI();
+
+// Register Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      console.log('SW registered');
+      // При появлении интернета — синхронизировать
+      window.addEventListener('online', () => {
+        if(currentUser) saveToFirebase();
+        setSyncStatus('✓ Синхронизировано',true);
+      });
+      window.addEventListener('offline', () => {
+        setSyncStatus('📴 Офлайн',false);
+      });
+    }).catch(e => console.log('SW error', e));
+  });
+}
+</script>
+</body>
+</html>
