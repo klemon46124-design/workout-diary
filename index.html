@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Тренировки">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1a1a2e">
 <title>Дневник тренировок</title>
@@ -13,7 +16,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{--bg:#f0f0f0;--card:#fff;--hdr:#1a1a2e;--hdr2:#16213e;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e94560;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#e8f8f0;--pr-color:#1a7a4a;--timer-fixed:#1a1a2e}
 body.dark{--bg:#0f0f0f;--card:#1c1c1e;--hdr:#000;--hdr2:#111;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--input:#2c2c2e;--input-bg:#2c2c2e;--tab-bg:#1c1c1e;--tab-border:#333;--chip-bg:#2c2c2e;--modal:#1c1c1e;--pr-bg:#0a2a1a;--pr-color:#4ade80;--timer-fixed:#000}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;transition:background .2s,color .2s}
+body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;transition:background .2s,color .2s}
 
 .login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--hdr);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:24px}
 .login-logo{font-size:52px;margin-bottom:16px}
@@ -50,7 +53,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .progress-fill{height:100%;background:var(--red);transition:width .4s}
 
 .nav{display:flex;background:var(--tab-bg);border-bottom:1px solid var(--tab-border)}
-.nav-btn{flex:1;padding:10px;font-size:20px;color:var(--text3);border:none;background:none;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;position:relative}
+.nav-btn{flex:1;padding:10px 6px;color:var(--text3);border:none;background:none;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;position:relative;display:flex;align-items:center;justify-content:center}
 .nav-btn.active{color:var(--red);border-bottom-color:var(--red)}
 .nav-btn::after{content:attr(data-label);position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text3);white-space:nowrap;display:none}
 .nav-btn.active::after{display:block;color:var(--red)}
@@ -88,13 +91,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .set-btn{width:34px;height:34px;border-radius:7px;border:1.5px solid var(--border);background:var(--input);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
 .set-btn.done{background:var(--red);color:#fff;border-color:var(--red)}
 
-.ex-inputs{display:flex;flex-direction:column;gap:6px}
+.ex-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .field label{font-size:11px;color:var(--text3);display:block;margin-bottom:4px}
-.num-row{display:flex;align-items:center;gap:3px}
-.num-btn{width:26px;height:30px;border-radius:5px;border:1px solid var(--border);background:var(--input);color:var(--text);font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.num-input{flex:1;padding:5px 2px;font-size:13px;border:1px solid var(--border);border-radius:5px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;min-width:0}
+.num-row{display:flex;align-items:center;gap:4px}
+.num-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);font-size:18px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.num-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
+.num-input{flex:1;padding:7px 4px;font-size:14px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;min-width:0;font-weight:600}
 .num-input:focus{outline:none;border-color:var(--red)}
 .hist-hint{font-size:10px;color:var(--text3);margin-top:3px}
+.plan-hint{display:inline-block;font-size:10px;font-weight:700;background:rgba(233,69,96,0.12);color:var(--red);border-radius:5px;padding:2px 7px;margin-top:4px;letter-spacing:0.2px}
 
 .note-wrap label{font-size:12px;color:var(--text3);display:block;margin-bottom:4px}
 .note-wrap textarea{width:100%;padding:8px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;resize:none}
@@ -173,9 +178,9 @@ tr.tr-done td{color:var(--text3)}
 .finish-ex-pr{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:1px 6px;border-radius:8px;margin-left:6px}
 .btn-finish{width:100%;padding:13px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px}
 .btn-finish-cancel{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit}
-.ex-move-btn{background:none;border:1px solid var(--border);border-radius:4px;color:var(--text3);font-size:10px;cursor:pointer;padding:1px 4px;line-height:1.2;width:20px}
+.ex-move-btn{background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;padding:3px 6px;line-height:1.2;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
 .ex-move-btn:disabled{opacity:0.2;cursor:default}
-.ex-move-btn:active:not(:disabled){background:var(--input-bg)}
+.ex-move-btn:active:not(:disabled){background:var(--red);color:#fff;border-color:var(--red)}
 .ex-alt-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:0.7}
 .ex-alt-btn:active{opacity:1}
 .trash-item{background:var(--input-bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
@@ -280,12 +285,24 @@ tr.tr-done td{color:var(--text3)}
   <div id="phase-banner" style="display:none"></div>
 
   <div class="nav">
-    <button class="nav-btn active" onclick="showPage('diary')" id="nav-diary" data-label="Дневник">📋</button>
-    <button class="nav-btn" onclick="showPage('chart')" id="nav-chart" data-label="Прогресс">📈</button>
-    <button class="nav-btn" onclick="showPage('cardio')" id="nav-cardio" data-label="Кардио">🚴</button>
-    <button class="nav-btn" onclick="showPage('weight')" id="nav-weight" data-label="Вес">⚖️</button>
-    <button class="nav-btn" onclick="showPage('stats')" id="nav-stats" data-label="Итоги">📊</button>
-    <button class="nav-btn" onclick="showPage('settings')" id="nav-settings" data-label="Ещё">⚙️</button>
+    <button class="nav-btn active" onclick="showPage('diary')" id="nav-diary" data-label="Дневник">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="12" y2="15"/></svg>
+    </button>
+    <button class="nav-btn" onclick="showPage('chart')" id="nav-chart" data-label="Прогресс">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </button>
+    <button class="nav-btn" onclick="showPage('cardio')" id="nav-cardio" data-label="Кардио">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/><path d="M5 3l1.5 1.5M19 3l-1.5 1.5"/></svg>
+    </button>
+    <button class="nav-btn" onclick="showPage('weight')" id="nav-weight" data-label="Вес">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12l2 6H4L6 2z"/><rect x="2" y="8" width="20" height="14" rx="2"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+    </button>
+    <button class="nav-btn" onclick="showPage('stats')" id="nav-stats" data-label="Итоги">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>
+    </button>
+    <button class="nav-btn" onclick="showPage('settings')" id="nav-settings" data-label="Ещё">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
   </div>
 
   <div class="page active" id="page-diary">
