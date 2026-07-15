@@ -482,14 +482,13 @@ tr.tr-done td{color:var(--text3)}
   </div>
 </div>
 
-<script type="module">
-import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,sendPasswordResetEmail,onAuthStateChanged,signOut}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import{getFirestore,doc,getDoc,setDoc}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-const app=initializeApp({apiKey:"AIzaSyDyMT0e0UYfahOEWQUZFYLhLtmy6g-9gKk",authDomain:"workout-diary-6a593.firebaseapp.com",projectId:"workout-diary-6a593",storageBucket:"workout-diary-6a593.firebasestorage.app",messagingSenderId:"779535485715",appId:"1:779535485715:web:5c84a87a5601db20f468e6"});
-const auth=getAuth(app);
-const db=getFirestore(app);
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+const app=firebase.initializeApp({apiKey:"AIzaSyDyMT0e0UYfahOEWQUZFYLhLtmy6g-9gKk",authDomain:"workout-diary-6a593.firebaseapp.com",projectId:"workout-diary-6a593",storageBucket:"workout-diary-6a593.firebasestorage.app",messagingSenderId:"779535485715",appId:"1:779535485715:web:5c84a87a5601db20f468e6"});
+const auth=firebase.auth();
+const db=firebase.firestore();
 
 const DAYS=['Пн','Ср','Пт'];
 const TYPE_DAY={'A':'Пн','B':'Ср','C':'Пт'};
@@ -592,8 +591,8 @@ window.doLogin=async function(){
   if(!email||!pass){err.textContent='Введи email и пароль';return;}
   err.textContent='Загрузка...';
   try{
-    if(isRegMode){await createUserWithEmailAndPassword(auth,email,pass);}
-    else{await signInWithEmailAndPassword(auth,email,pass);}
+    if(isRegMode){await auth.createUserWithEmailAndPassword(email,pass);}
+    else{await auth.signInWithEmailAndPassword(email,pass);}
     err.textContent='';
   }catch(e){
     const msgs={'auth/user-not-found':'Пользователь не найден','auth/wrong-password':'Неверный пароль','auth/email-already-in-use':'Email уже используется','auth/weak-password':'Пароль минимум 6 символов','auth/invalid-email':'Неверный формат email','auth/invalid-credential':'Неверный email или пароль'};
@@ -604,16 +603,16 @@ window.doRegister=function(){isRegMode=true;window.toggleMode();window.doLogin()
 window.doReset=async function(){
   const email=document.getElementById('login-email').value.trim();
   if(!email){document.getElementById('login-err').textContent='Введи email для сброса пароля';return;}
-  try{await sendPasswordResetEmail(auth,email);document.getElementById('login-err').textContent='Письмо отправлено на '+email;}
+  try{await auth.sendPasswordResetEmail(email);document.getElementById('login-err').textContent='Письмо отправлено на '+email;}
   catch(e){document.getElementById('login-err').textContent='Ошибка: '+e.message;}
 };
-window.doSignOut=async function(){await signOut(auth);};
+window.doSignOut=async function(){await auth.signOut();};
 
 // Enter key login
 document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')window.doLogin();});
 document.getElementById('login-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
 
-onAuthStateChanged(auth,async user=>{
+auth.onAuthStateChanged(async user=>{
   if(user){
     currentUser=user;
     document.getElementById('login-screen').style.display='none';
@@ -636,8 +635,8 @@ async function loadFromFirebase(){
   if(!currentUser)return;
   try{
     setSyncStatus('⟳',false);
-    const snap=await getDoc(doc(db,'users',currentUser.uid));
-    if(snap.exists()){state=snap.data().state||initState();}
+    const snap=await db.collection('users').doc(currentUser.uid).get();
+    if(snap.exists){state=snap.data().state||initState();}
     else{state=initState();await saveToFirebase();}
     if(state.dark)document.body.classList.add('dark');
     updateDarkBtn();updateSummary();renderTabs();renderDiary();
@@ -653,7 +652,7 @@ async function saveToFirebase(){
   if(!currentUser)return;
   try{
     setSyncStatus('⟳',false);
-    await setDoc(doc(db,'users',currentUser.uid),{state,updatedAt:new Date().toISOString()});
+    await db.collection('users').doc(currentUser.uid).set({state,updatedAt:new Date().toISOString()});
     try{localStorage.setItem('vl_'+currentUser.uid,JSON.stringify(state));}catch(e){}
     setSyncStatus('✓',true);
   }catch(e){
@@ -1521,4 +1520,58 @@ function renderWeight(){
       return `<div class="finish-ex-item" style="margin-bottom:6px">
         <div>
           <div style="font-size:13px;font-weight:500;color:var(--text)">${e.kg} кг</div>
-          <div style="font-size:11px;color:var
+          <div style="font-size:11px;color:var(--text3)">${new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:${diffColor}">${diffStr}</span>
+          <button onclick="deleteWeight(${log.length-1-i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    if(lost>0){
+      wh.innerHTML=`<div style="background:var(--green-bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;text-align:center">
+        <div style="font-size:13px;color:var(--green);font-weight:600">Сброшено ${lost} кг 💪</div>
+        <div style="font-size:11px;color:var(--green);margin-top:2px">с ${first} кг до ${last} кг</div>
+      </div>`+wh.innerHTML;
+    }
+  }
+}
+
+window.deleteWeight=function(idx){
+  if(!state.weightLog)return;
+  const sorted=[...state.weightLog].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const item=sorted[idx];
+  state.weightLog=state.weightLog.filter(e=>e.date!==item.date);
+  scheduleSave();renderWeight();
+};
+window.copyExport=function(){const el=document.getElementById('export-text');if(!el)return;el.select();try{document.execCommand('copy');}catch(e){navigator.clipboard?.writeText(el.value);}const m=document.getElementById('copy-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
+window.doImport=function(){const v=document.getElementById('import-text')?.value.trim();if(!v)return;try{state=JSON.parse(v);saveToFirebase();updateSummary();renderTabs();renderDiary();const m=document.getElementById('import-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}}catch(e){alert('Ошибка: неверный формат');}};
+
+const initH=window.innerHeight;
+window.addEventListener('resize',()=>{document.body.classList.toggle('keyboard-open',initH-window.innerHeight>150);});
+document.addEventListener('focusin',e=>{if(['INPUT','TEXTAREA'].includes(e.target.tagName))document.body.classList.add('keyboard-open');});
+document.addEventListener('focusout',()=>{setTimeout(()=>document.body.classList.remove('keyboard-open'),100);});
+
+const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';document.head.appendChild(s);
+renderTimerUI();
+
+// Register Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      console.log('SW registered');
+      // При появлении интернета — синхронизировать
+      window.addEventListener('online', () => {
+        if(currentUser) saveToFirebase();
+        setSyncStatus('✓ Синхронизировано',true);
+      });
+      window.addEventListener('offline', () => {
+        setSyncStatus('📴 Офлайн',false);
+      });
+    }).catch(e => console.log('SW error', e));
+  });
+}
+</script>
+</body>
+</html>
