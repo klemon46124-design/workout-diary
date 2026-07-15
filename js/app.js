@@ -1,260 +1,5 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Тренировки">
-<link rel="apple-touch-icon" href="/workout-diary/icon.png">
-<link rel="apple-touch-icon" sizes="192x192" href="/workout-diary/icon.png">
-<link rel="icon" type="image/png" href="/workout-diary/icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1a1a2e">
-<title>Дневник тренировок</title>
+// ============ FIREBASE ИНИЦИАЛИЗАЦИЯ ============
 
-<!-- Стили вынесены в отдельный файл css/styles.css -->
-<link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-
-
-<!-- LOGIN -->
-<div class="login-screen" id="login-screen">
-  <div class="login-logo">💪</div>
-  <h1>Дневник тренировок</h1>
-  <p>Войди чтобы данные сохранялись<br>и были доступны с любого устройства</p>
-  <div class="login-box">
-    <input class="login-input" type="email" id="login-email" placeholder="Email" autocomplete="email" inputmode="email">
-    <input class="login-input" type="password" id="login-pass" placeholder="Пароль" autocomplete="current-password">
-    <div class="login-err" id="login-err"></div>
-    <button class="login-btn login-btn-main" id="login-main-btn" onclick="doLogin()">Войти</button>
-    <button class="login-btn login-btn-sec" id="login-sec-btn" onclick="doRegister()">Зарегистрироваться</button>
-    <div class="login-toggle" id="login-toggle" onclick="toggleMode()">Нет аккаунта? <span>Зарегистрироваться</span></div>
-    <div class="login-toggle" onclick="doReset()" style="margin-top:2px">Забыл пароль? <span>Сбросить</span></div>
-  </div>
-</div>
-
-<!-- APP -->
-<div id="app" style="display:none">
-  <div class="header">
-    <h1>Дневник тренировок</h1>
-    <button class="dark-toggle" onclick="toggleDark()" id="dark-btn">🌙</button>
-  </div>
-  <div class="user-bar">
-    <div class="user-avatar" id="user-avatar">В</div>
-    <span class="user-name" id="user-name"></span>
-    <span class="sync-status" id="sync-status"></span>
-    <button class="btn-logout" onclick="doSignOut()">Выйти</button>
-  </div>
-  <div class="summary" style="grid-template-columns:repeat(4,1fr)">
-    <div class="stat"><div class="stat-val" id="s-done">0</div><div class="stat-label">Тренировок</div></div>
-    <div class="stat"><div class="stat-val" id="s-streak">0🔥</div><div class="stat-label">Стрик</div></div>
-    <div class="stat"><div class="stat-val" id="s-weeks">0/3</div><div class="stat-label">Неделя</div></div>
-    <div class="stat"><div class="stat-val" id="s-pr">0</div><div class="stat-label">Рекордов</div></div>
-  </div>
-  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
-  <div id="phase-banner" style="display:none"></div>
-
-  <div class="nav">
-    <button class="nav-btn active" onclick="showPage('diary')" id="nav-diary" data-label="Дневник">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>
-    </button>
-    <button class="nav-btn" onclick="showPage('chart')" id="nav-chart" data-label="Прогресс">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    </button>
-    <button class="nav-btn" onclick="showPage('cardio')" id="nav-cardio" data-label="Кардио">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="m3 12 4-2 4 4 3-6 3 4 4-2"/><path d="M3 20h18"/></svg>
-    </button>
-    <button class="nav-btn" onclick="showPage('weight')" id="nav-weight" data-label="Вес">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12M6 4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2M12 9v6M9 12h6"/></svg>
-    </button>
-    <button class="nav-btn" onclick="showPage('stats')" id="nav-stats" data-label="Итоги">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-    </button>
-    <button class="nav-btn" onclick="showPage('settings')" id="nav-settings" data-label="Ещё">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-  </div>
-
-  <div class="page active" id="page-diary">
-    <div class="tabs" id="tabs"></div>
-    <div id="diary-content" class="content"></div>
-  </div>
-  <div class="page" id="page-chart">
-    <div class="chart-wrap">
-      <div class="chart-card"><h3>Прогресс весов</h3><div class="chart-sel" id="chart-sel"></div><canvas id="myChart" height="220"></canvas></div>
-      <div class="chart-card"><h3>Объём по тренировкам (кг)</h3><canvas id="volChart" height="180"></canvas></div>
-      <div class="chart-card"><h3>🏆 Личные рекорды</h3><div class="pr-list" id="pr-list"></div></div>
-    </div>
-  </div>
-  <div class="page" id="page-cardio">
-    <div class="chart-wrap">
-      <div class="chart-card">
-        <h3>🚴 Добавить кардио</h3>
-        <div style="display:flex;gap:6px;margin-bottom:12px">
-          <button class="cardio-type-btn active" id="ct-bike" onclick="setCardioType('bike',this)">🚴 Велосипед</button>
-          <button class="cardio-type-btn" id="ct-run" onclick="setCardioType('run',this)">🏃 Бег</button>
-          <button class="cardio-type-btn" id="ct-walk" onclick="setCardioType('walk',this)">🚶 Ходьба</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-          <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Длительность (мин)</label>
-            <input type="number" id="cardio-duration" inputmode="numeric" placeholder="мин"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
-          </div>
-          <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
-            <input type="number" id="cardio-pulse" inputmode="numeric" placeholder="BPM"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
-          </div>
-          <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
-            <input type="number" id="cardio-kcal" inputmode="numeric" placeholder="ккал"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
-          </div>
-          <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Дистанция (км)</label>
-            <input type="number" id="cardio-dist" inputmode="decimal" step="0.1" placeholder="км"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
-          </div>
-        </div>
-        <button class="btn btn-red" style="width:100%" onclick="addCardio()">Добавить</button>
-        <span class="saved" id="cardio-msg" style="display:block;text-align:center;margin-top:8px">Добавлено ✓</span>
-      </div>
-      <div class="chart-card">
-        <h3>Статистика кардио</h3>
-        <div class="stat-grid" id="cardio-stats" style="margin-bottom:12px"></div>
-        <canvas id="cardioChart" height="180"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>История</h3>
-        <div id="cardio-history"></div>
-      </div>
-    </div>
-  </div>
-  <div class="page" id="page-weight">
-    <div class="chart-wrap">
-      <div class="chart-card">
-        <h3>⚖️ Вес тела</h3>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input type="number" id="weight-input" inputmode="decimal" placeholder="кг" step="0.1"
-            style="flex:1;padding:10px;font-size:16px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
-          <button class="btn btn-red" onclick="addWeight()" style="flex-shrink:0">Добавить</button>
-        </div>
-        <div class="goal-bar-wrap" style="margin-bottom:12px">
-          <div class="goal-bar-label"><span>Цель: 90 кг</span><span id="weight-progress-label"></span></div>
-          <div class="goal-bar"><div class="goal-bar-fill" id="weight-progress-bar" style="width:0%"></div></div>
-        </div>
-        <canvas id="weightChart" height="200"></canvas>
-      </div>
-      <div class="chart-card">
-        <h3>История</h3>
-        <div id="weight-history"></div>
-      </div>
-    </div>
-  </div>
-  <div class="page" id="page-stats">
-    <div class="chart-wrap" id="stats-content"></div>
-  </div>
-  <div class="page" id="page-trash" style="display:none!important"></div>
-  <div class="page" id="page-export" style="display:none!important"></div>
-  <div class="page" id="page-settings">
-    <div class="export-wrap">
-      <div class="export-card">
-        <h3>🗑️ Корзина</h3>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Удалённые тренировки хранятся 30 дней</p>
-        <div id="trash-list"></div>
-      </div>
-      <div class="export-card">
-        <h3>☁️ Облачное хранилище</h3>
-        <p>Данные автоматически сохраняются в Firebase. Доступны с любого устройства после входа.</p>
-        <div class="btn-row"><button class="btn btn-red" onclick="forceSave()">Сохранить сейчас</button><span class="saved" id="force-msg">Сохранено ✓</span></div>
-      </div>
-      <div class="export-card">
-        <h3>💾 Резервная копия</h3>
-        <p>Сохрани в заметки телефона на случай если что-то пойдёт не так.</p>
-        <textarea class="export-textarea" id="export-text" readonly></textarea>
-        <div class="btn-row" style="margin-top:10px"><button class="btn btn-outline" onclick="copyExport()">Копировать</button><span class="saved" id="copy-msg">Скопировано ✓</span></div>
-      </div>
-      <div class="export-card">
-        <h3>📥 Восстановить из копии</h3>
-        <p>Вставь ранее сохранённый текст и нажми «Восстановить».</p>
-        <textarea class="export-textarea" id="import-text" placeholder="Вставь сюда сохранённый текст..."></textarea>
-        <div class="btn-row" style="margin-top:10px"><button class="btn btn-outline" onclick="doImport()">Восстановить</button><span class="saved" id="import-msg">Восстановлено ✓</span></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="finish-modal-bg" id="finish-modal-bg">
-  <div class="finish-modal">
-    <h2 id="finish-title">🏆 Тренировка завершена!</h2>
-    <div class="finish-sub" id="finish-sub"></div>
-    <div class="finish-stats" id="finish-stats"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-      <div>
-        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
-        <input type="number" id="finish-pulse" inputmode="numeric" placeholder="BPM"
-          style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
-      </div>
-      <div>
-        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
-        <input type="number" id="finish-kcal" inputmode="numeric" placeholder="ккал"
-          style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
-      </div>
-    </div>
-    <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">Упражнения:</div>
-    <div class="finish-ex-list" id="finish-ex-list"></div>
-    <button class="btn-finish" onclick="confirmFinish()">Сохранить и завершить</button>
-    <button class="btn-finish-cancel" onclick="closeFinishModal()">Отмена</button>
-  </div>
-</div>
-<div class="alt-modal-bg" id="alt-modal-bg" onclick="closeAltModal(event)">
-  <div class="alt-modal">
-    <button class="modal-close" onclick="closeAltModal()" style="float:right;background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer">×</button>
-    <h3>🔄 Аналоги упражнения</h3>
-    <div class="alt-current" id="alt-current"></div>
-    <div class="alt-list" id="alt-list"></div>
-  </div>
-</div>
-
-<div class="tmpl-modal-bg" id="tmpl-modal-bg" onclick="closeTmplModal(event)">
-  <div class="tmpl-modal">
-    <button class="modal-close" onclick="closeTmplModal()" style="float:right;background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer">×</button>
-    <h3>Выбери шаблон</h3>
-    <div class="tmpl-list" id="tmpl-list"></div>
-  </div>
-</div>
-
-<div class="timer-fixed" id="timer-fixed" style="display:none">
-  <div id="tdisplay" class="timer-display">1:30</div>
-  <div class="timer-presets">
-    <button class="tp-btn" id="tp60" onclick="setPreset(60)">60с</button>
-    <button class="tp-btn" id="tp75" onclick="setPreset(75)">75с</button>
-    <button class="tp-btn sel" id="tp90" onclick="setPreset(90)">90с</button>
-    <button class="tp-btn" id="tp180" onclick="setPreset(180)">3м</button>
-  </div>
-  <button class="timer-start" id="tbtn" onclick="timerToggle()">Старт</button>
-</div>
-
-<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">×</button>
-    <h3>Добавить упражнение</h3>
-    <div class="ex-chips" id="ex-chips"></div>
-    <div class="divider">— или своё —</div>
-    <div class="custom-row">
-      <input type="text" id="custom-ex" placeholder="Название упражнения">
-      <button class="btn btn-red" onclick="addCustomEx()">Добавить</button>
-    </div>
-  </div>
-</div>
-
-<script type="module">
 import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,sendPasswordResetEmail,onAuthStateChanged,signOut}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import{getFirestore,doc,getDoc,setDoc}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -263,72 +8,86 @@ const app=initializeApp({apiKey:"AIzaSyDyMT0e0UYfahOEWQUZFYLhLtmy6g-9gKk",authDo
 const auth=getAuth(app);
 const db=getFirestore(app);
 
+// ============ КОНСТАНТЫ ============
 const DAYS=['Пн','Ср','Пт'];
 const TYPE_DAY={'A':'Пн','B':'Ср','C':'Пт'};
 function weekDay(w){return w.type?TYPE_DAY[w.type]||DAYS[(w.n-1)%3]:DAYS[(w.n-1)%3];}
 
 // Предустановленные подходы для каждого упражнения
 const setsMap={
+  // Базовые
   'Присед со штангой':'5×5','Становая тяга':'5×5','Жим лёжа':'5×5',
-  'Тяга штанги в наклоне':'4×15','Жим гантелей сидя':'3×15',
-  'Разводка гантелей стоя':'3×15','Подъём на бицепс':'3×15',
-  'Молотки на бицепс':'3×15','Планка':'3×60с',
-  'Тяга верхнего блока':'4×15','Тяга гантели одной рукой':'3×15',
-  'Разводка в наклоне':'3×15','Сгибания ног':'3×15',
+  // Тренировка A
+  'Тяга штанги в наклоне':'4×15','Разводка гантелей стоя':'3×15',
+  'Подъём на бицепс':'3×15','Планка':'3×60с',
+  // Тренировка B
+  'Тяга верхнего блока':'4×15','Жим гантелей на наклонной скамье':'3×15',
+  'Обратная разводка в блоке':'3×15','Сгибания ног в тренажёре':'3×15',
   'Разгибания на трицепс':'3×15','Подъём ног лёжа':'3×15',
+  // Тренировка C
   'Румынская тяга':'4×15','Разгибания ног':'2×15',
   'Отжимания на брусьях':'4×15','Разводка гантелей лёжа':'3×15',
-  'Тяга нижнего блока':'3×15','Тяга к подбородку':'3×15',
-  'Фермерская прогулка':'3×40м','Жим ногами':'3×15','Ягодичный мостик':'3×15',
-  // Аналоги
+  'Тяга в хаммере одной рукой':'3×15','Тяга к подбородку':'3×15',
+  'Фермерская прогулка':'3×40м',
+  // Аналоги A
   'Присед в Смите':'5×5','Присед с гантелями':'5×5','Фронтальный присед':'5×5',
   'Жим гантелей лёжа':'5×5','Жим в Смите':'5×5','Отжимания с весом':'5×5',
   'Тяга гантелей в наклоне':'4×15','Тяга в хаммере':'4×15','Тяга Т-грифа':'4×15',
   'Подъём гантелей через стороны':'3×15','Разводка на блоке стоя':'3×15',
   'Подъём гантелей на бицепс':'3×15','Молотки':'3×15','Подъём на блоке':'3×15',
   'Планка на локтях':'3×60с','Боковая планка':'3×60с','Планка с подъёмом ног':'3×60с',
+  // Аналоги B
   'Становая в Смите':'5×5','Становая с гантелями':'5×5','Трэп-гриф становая':'5×5',
   'Подтягивания':'4×15','Тяга гантелей за голову':'4×15',
-  'Тяга нижнего блока одной рукой':'3×15','Тяга гантели к поясу':'3×15',
-  'Разводка гантелей в наклоне':'3×15','Обратные разведения на блоке':'3×15',
+  'Жим штанги на наклонной':'3×15','Жим в Смите наклонной':'3×15','Отжимания с ногами на возвышении':'3×15',
+  'Разводка гантелей в наклоне':'3×15','Обратные разведения на тренажёре':'3×15',
   'Румынская тяга с гантелями на одной ноге':'3×15','Мёртвая тяга с гантелями':'3×15',
   'Французский жим с гантелями':'3×15','Разгибания с гантелью':'3×15',
   'Скручивания':'3×15','Велосипед':'3×15','Подъём ног в висе':'3×15',
+  // Аналоги C
   'Румынская с гантелями':'4×15','Становая на прямых ногах с гантелями':'4×15',
   'Приседания с паузой':'2×15','Приседания с гантелями':'2×15',
   'Жим гантелей узким хватом':'4×15','Французский жим':'4×15',
   'Кроссовер на блоке':'3×15','Разводка гантелей на наклонной':'3×15',
-  'Тяга гантелей к поясу':'3×15',
-  'Тяга гантелей к подбородку':'3×15',
+  'Тяга гантели одной рукой':'3×15','Тяга нижнего блока одной рукой':'3×15',
+  'Подъём гантелей через стороны':'3×15','Тяга гантелей к подбородку':'3×15',
   'Удержание гантелей стоя':'3×40м','Прогулка с гантелями':'3×40м',
+  // Прочие
+  'Жим ногами':'3×15','Ягодичный мостик':'3×15','Молотки на бицепс':'3×15',
 };
 
 // Аналоги упражнений
 const alternativesMap={
+  // Тренировка A
   'Присед со штангой':['Присед в Смите','Присед с гантелями','Фронтальный присед'],
   'Жим лёжа':['Жим гантелей лёжа','Жим в Смите','Отжимания с весом'],
   'Тяга штанги в наклоне':['Тяга гантелей в наклоне','Тяга в хаммере','Тяга Т-грифа'],
   'Разводка гантелей стоя':['Подъём гантелей через стороны','Разводка на блоке стоя'],
-  'Подъём на бицепс со штангой':['Подъём гантелей на бицепс','Молотки','Подъём на блоке'],
+  'Подъём на бицепс':['Подъём гантелей на бицепс','Молотки','Подъём на блоке'],
   'Планка':['Планка на локтях','Боковая планка','Планка с подъёмом ног'],
+  // Тренировка B
   'Становая тяга':['Становая в Смите','Становая с гантелями','Трэп-гриф становая'],
   'Тяга верхнего блока':['Подтягивания','Тяга гантелей за голову','Тяга в хаммере'],
-  'Тяга гантели одной рукой':['Тяга нижнего блока одной рукой','Тяга гантели к поясу'],
-  'Разводка в наклоне':['Разводка гантелей в наклоне','Обратные разведения на блоке'],
-  'Сгибания ног':['Румынская тяга с гантелями на одной ноге','Мёртвая тяга с гантелями'],
+  'Жим гантелей на наклонной скамье':['Жим штанги на наклонной','Жим в Смите наклонной','Отжимания с ногами на возвышении'],
+  'Обратная разводка в блоке':['Разводка гантелей в наклоне','Обратные разведения на тренажёре'],
+  'Сгибания ног в тренажёре':['Румынская тяга с гантелями на одной ноге','Мёртвая тяга с гантелями'],
   'Разгибания на трицепс':['Французский жим с гантелями','Разгибания с гантелью','Отжимания на брусьях'],
   'Подъём ног лёжа':['Скручивания','Велосипед','Подъём ног в висе'],
+  // Тренировка C
   'Румынская тяга':['Румынская с гантелями','Становая на прямых ногах с гантелями'],
   'Разгибания ног':['Приседания с паузой','Приседания с гантелями'],
-  'Сгибания ног':['Румынская тяга с гантелями на одной ноге'],
   'Отжимания на брусьях':['Жим гантелей узким хватом','Французский жим с гантелями'],
   'Разводка гантелей лёжа':['Кроссовер на блоке','Разводка гантелей на наклонной'],
-  'Тяга нижнего блока':['Тяга гантелей в наклоне','Тяга гантели к поясу'],
+  'Тяга в хаммере одной рукой':['Тяга гантели одной рукой','Тяга нижнего блока одной рукой'],
   'Тяга к подбородку':['Подъём гантелей через стороны','Тяга гантелей к подбородку'],
   'Фермерская прогулка':['Удержание гантелей стоя','Прогулка с гантелями'],
 };
-const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Жим гантелей сидя","Тяга штанги в наклоне","Тяга верхнего блока","Тяга гантели одной рукой","Тяга нижнего блока","Румынская тяга","Жим ногами","Ягодичный мостик","Разгибания ног","Сгибания ног","Разводка гантелей стоя","Разводка в наклоне","Тяга к подбородку","Отжимания на брусьях","Разводка гантелей лёжа","Подъём на бицепс","Молотки на бицепс","Разгибания на трицепс","Французский жим","Планка","Подъём ног лёжа","Скручивания","Фермерская прогулка","Подтягивания","Приседания с гирей"];
-const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Жим гантелей сидя","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Тяга гантели одной рукой","Разводка в наклоне","Сгибания ног","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Сгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга нижнего блока","Тяга к подбородку","Фермерская прогулка"]];
+const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Тяга штанги в наклоне","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа","Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка","Разводка гантелей стоя","Подъём на бицепс","Планка","Жим ногами","Ягодичный мостик","Молотки на бицепс","Французский жим","Скручивания","Подтягивания","Велосипед","Подъём ног в висе"];
+const DEF_EX=[
+  ["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],
+  ["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],
+  ["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"],
+];
 const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
 
 let state={weeks:[],active:1,dark:false};
@@ -345,6 +104,7 @@ function initState(){const now=new Date();return{weeks:DEF_EX.map((exs,idx)=>({n
 function getWeek(n){return state.weeks.find(w=>w.n===n);}
 
 // Auth UI
+// ============ АВТОРИЗАЦИЯ ============
 window.toggleMode=function(){
   isRegMode=!isRegMode;
   document.getElementById('login-main-btn').textContent=isRegMode?'Зарегистрироваться':'Войти';
@@ -399,6 +159,7 @@ onAuthStateChanged(auth,async user=>{
   }
 });
 
+// ============ FIREBASE ЗАГРУЗКА/СОХРАНЕНИЕ ============
 async function loadFromFirebase(){
   if(!currentUser)return;
   try{
@@ -409,6 +170,8 @@ async function loadFromFirebase(){
     if(state.dark)document.body.classList.add('dark');
     updateDarkBtn();updateSummary();renderTabs();renderDiary();
     setSyncStatus('✓',true);
+    // Показываем онбординг новым пользователям
+    if(!state.onboardingDone&&typeof window.showOnboarding==='function')window.showOnboarding();
   }catch(e){
     setSyncStatus('✗',false,true);
     try{const s=localStorage.getItem('vl_'+currentUser.uid);if(s)state=JSON.parse(s);}catch(e2){}
@@ -447,6 +210,7 @@ window.showPage=function(p){
   if(p==='settings'){renderTrash();renderExport();}
 };
 
+// ============ ТАЙМЕР ============
 window.setPreset=function(s){timer.preset=s;timer.rem=s;if(!timer.running)renderTimerUI();[60,75,90,180].forEach(t=>{const b=document.getElementById('tp'+t);if(b)b.className='tp-btn'+(t===s?' sel':'');});};
 window.timerToggle=function(){if(timer.running)stopTimer();else startTimer(timer.preset);};
 function startTimer(s){if(timer.iv)clearInterval(timer.iv);timer.rem=s;timer.preset=s;timer.running=true;renderTimerUI();timer.iv=setInterval(()=>{timer.rem--;if(timer.rem<=0){timer.rem=0;timer.running=false;clearInterval(timer.iv);beep();}renderTimerUI();},1000);}
@@ -458,6 +222,7 @@ function checkPR(wn,i){const w=getWeek(wn);if(!w)return false;const ex=w.exercis
 function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)t++;}));return t;}
 function getHistory(name){const h=[];state.weeks.forEach(w=>{const ex=w.exercises.find(e=>e.name===name);if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0});});return h;}
 
+// ============ СТРИК ============
 function calcStreak(){
   if(!state.weeks.length)return 0;
   // Найти последнюю выполненную тренировку
@@ -559,6 +324,7 @@ window.dismissBanner=function(fromVal){
   if(banner)banner.style.display='none';
 };
 
+// ============ ТАБЫ И ДНЕВНИК ============
 function renderTabs(){
   const el=document.getElementById('tabs');if(!el)return;
   let html='';
@@ -751,6 +517,7 @@ window.deleteWeek=function(wn){
   scheduleSave();updateSummary();renderTabs();renderDiary();
 };
 
+// ============ КОРЗИНА ============
 function renderTrash(){
   const el=document.getElementById('trash-list');if(!el)return;
   const trash=(state.trash||[]).filter(w=>{
@@ -796,7 +563,7 @@ window.doSave=async function(wn){await saveToFirebase();const el=document.getEle
 window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date)w.date=fmtDate(new Date());scheduleSave();updateSummary();renderTabs();renderDiary();if(document.getElementById('page-stats')?.classList.contains('active'))renderStats();}};
 window.forceSave=async function(){await saveToFirebase();const m=document.getElementById('force-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
 
-// Finish workout modal
+// ============ ЗАВЕРШЕНИЕ ТРЕНИРОВКИ ============
 let finishWeekN=null;
 let workoutStartTime=null;
 
@@ -876,7 +643,7 @@ window.confirmFinish=async function(){
 };
 window.openModal=function(wn){modalWeek=wn;const used=getWeek(wn)?.exercises.map(e=>e.name)||[];document.getElementById('ex-chips').innerHTML=PRESET_EX.filter(p=>!used.includes(p)).map(p=>`<button class="chip" onclick="addPresetEx('${p.replace(/'/g,"\\'")}')">${p}</button>`).join('');document.getElementById('custom-ex').value='';document.getElementById('modal-bg').classList.add('show');};
 
-// Alternatives modal
+// ============ АНАЛОГИ УПРАЖНЕНИЙ ============
 let altWeekN=null, altExIdx=null;
 window.openAltModal=function(wn,i){
   altWeekN=wn; altExIdx=i;
@@ -895,9 +662,14 @@ window.closeAltModal=function(e){if(!e||e.target===document.getElementById('alt-
 window.applyAlt=function(name){
   const w=getWeek(altWeekN);if(!w)return;
   const ex=w.exercises[altExIdx];if(!ex)return;
+  // Сохраняем текущие подходы/повторения — не сбрасываем
+  const prevSets=ex.sets;
+  const prevKg=ex.kg;
   ex.name=name;
-  ex.sets=setsMap[name]||ex.sets;
-  ex.setsDone=[];
+  // Берём подходы из setsMap только если у упражнения ещё нет своих
+  ex.sets=prevSets||setsMap[name]||'3×15';
+  ex.kg=prevKg; // Вес тоже сохраняем
+  ex.setsDone=[]; // Только галочки сбрасываем — начинаем упражнение заново
   scheduleSave();renderDiary();
   document.getElementById('alt-modal-bg').classList.remove('show');
 };
@@ -908,6 +680,7 @@ window.addCustomEx=function(){const v=document.getElementById('custom-ex').value
 function getAllExNames(){const names=new Set();state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.name&&e.kg)names.add(e.name);}));return[...names];}
 
 // STATS
+// ============ ИТОГИ И СТАТИСТИКА ============
 function renderStats(){
   const el=document.getElementById('stats-content');if(!el)return;
   const done=state.weeks.filter(w=>w.done);
@@ -1126,7 +899,7 @@ function renderChart(){
 }
 window.selectChartEx=function(name){chartEx=name;renderChart();};
 
-// CARDIO
+// ============ КАРДИО ============
 let cardioType='bike';
 let cardioChartInst=null;
 const CARDIO_LABELS={'bike':'🚴 Велосипед','run':'🏃 Бег','walk':'🚶 Ходьба'};
@@ -1223,9 +996,10 @@ window.deleteCardio=function(idx){
   scheduleSave();renderCardio();
 };
 
+// ============ ДАННЫЕ И РЕЗЕРВНАЯ КОПИЯ ============
 function renderExport(){const el=document.getElementById('export-text');if(el)el.value=JSON.stringify(state,null,2);}
 
-// WEIGHT TRACKER
+// ============ ТРЕКЕР ВЕСА ============
 let weightChartInst=null;
 const WEIGHT_GOAL=90;
 
@@ -1340,11 +1114,3 @@ if('serviceWorker' in navigator){
     }).catch(e => console.log('SW error', e));
   });
 }
-</script>
-
-</body>
-<!-- Весь JS вынесен в js/app.js — разбит по разделам с комментариями -->
-<script type="module" src="js/app.js"></script>
-<!-- Онбординг для новых пользователей -->
-<script type="module" src="js/onboarding.js"></script>
-</html>
