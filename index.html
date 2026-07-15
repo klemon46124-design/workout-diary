@@ -1305,24 +1305,27 @@ function renderStats(){
   },100);
 }
 
-// TEMPLATES
-const TEMPLATES=[
-  {id:'A',label:'Тренировка A — Понедельник',exercises:["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Жим гантелей сидя","Разводка гантелей стоя","Подъём на бицепс","Планка"]},
-  {id:'B',label:'Тренировка B — Среда',exercises:["Становая тяга","Тяга верхнего блока","Тяга гантели одной рукой","Разводка в наклоне","Сгибания ног","Разгибания на трицепс","Подъём ног лёжа"]},
-  {id:'C',label:'Тренировка C — Пятница',exercises:["Румынская тяга","Разгибания ног","Сгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга нижнего блока","Тяга к подбородку","Фермерская прогулка"]},
-];
+// TEMPLATES — только пользовательские
+const TEMPLATES=[];
 
 window.openTmplModal=function(){
-  const custom=(state.customTemplates||[]).map((t,i)=>({id:'custom_'+i,label:'⭐ '+t.label,exercises:t.exercises}));
-  const all=[...TEMPLATES,...custom];
-  document.getElementById('tmpl-list').innerHTML=all.map(t=>`
-    <div class="tmpl-item" style="display:flex;align-items:center;gap:8px">
-      <div style="flex:1" onclick="applyTemplate('${t.id}')">
-        <div class="tmpl-item-title">${t.label}</div>
-        <div class="tmpl-item-exs">${t.exercises.slice(0,4).join(', ')}${t.exercises.length>4?'...':''}</div>
-      </div>
-      ${t.id.startsWith('custom_')?`<button onclick="deleteTmpl(${t.id.replace('custom_','')})" style="background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:4px">🗑️</button>`:''}
-    </div>`).join('');
+  const custom=(state.customTemplates||[]).map((t,i)=>({id:'custom_'+i,label:t.label,exercises:t.exercises}));
+  const el=document.getElementById('tmpl-list');
+  if(!custom.length){
+    el.innerHTML=`<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">
+      Нет сохранённых шаблонов.<br><br>
+      Создай тренировку вручную, добавь упражнения<br>и нажми ⭐ Сохранить как шаблон.
+    </div>`;
+  }else{
+    el.innerHTML=custom.map(t=>`
+      <div class="tmpl-item" style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1" onclick="applyTemplate('${t.id}')">
+          <div class="tmpl-item-title">${t.label}</div>
+          <div class="tmpl-item-exs">${t.exercises.slice(0,4).join(', ')}${t.exercises.length>4?'...':''}</div>
+        </div>
+        <button onclick="deleteTmpl(${t.id.replace('custom_','')})" style="background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:4px">🗑️</button>
+      </div>`).join('');
+  }
   document.getElementById('tmpl-modal-bg').classList.add('show');
 };
 window.closeTmplModal=function(e){if(!e||e.target===document.getElementById('tmpl-modal-bg'))document.getElementById('tmpl-modal-bg').classList.remove('show');};
@@ -1338,12 +1341,11 @@ window.applyTemplate=function(id){
   const custom=state.customTemplates||[];
   let tmpl;
   if(id.startsWith('custom_')){tmpl=custom[parseInt(id.replace('custom_',''))];}
-  else{tmpl=TEMPLATES.find(t=>t.id===id);}
   if(!tmpl)return;
   const last=state.weeks[state.weeks.length-1];
   const n=last?last.n+1:1;
   const exs=tmpl.exercises.map(name=>({name,kg:'',sets:'',setsDone:[],pr:false}));
-  state.weeks.push({n,done:false,note:'',date:fmtDate(new Date()),type:id.startsWith('custom_')?'A':id,exercises:exs});
+  state.weeks.push({n,done:false,note:'',date:fmtDate(new Date()),type:'custom',exercises:exs});
   state.active=n;
   scheduleSave();updateSummary();renderTabs();renderDiary();
   document.getElementById('tmpl-modal-bg').classList.remove('show');
