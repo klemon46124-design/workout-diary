@@ -94,7 +94,7 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .set-btn{width:34px;height:34px;border-radius:7px;border:1.5px solid var(--border);background:var(--input);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
 .set-btn.done{background:var(--red);color:#fff;border-color:var(--red)}
 
-.ex-inputs{display:grid;grid-template-columns:1.2fr 0.8fr;gap:8px}
+.ex-inputs{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:11px;color:var(--text3);display:block;margin-bottom:4px}
 .num-row{display:flex;align-items:center;gap:3px;width:100%}
 .num-btn{width:32px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);font-size:16px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
@@ -639,6 +639,7 @@ async function loadFromFirebase(){
     if(snap.exists){state=snap.data().state||initState();}
     else{state=initState();await saveToFirebase();}
     if(state.dark)document.body.classList.add('dark');
+    migrateTemplates();
     updateDarkBtn();updateSummary();renderTabs();renderDiary();
     setSyncStatus('✓',true);
   }catch(e){
@@ -689,6 +690,32 @@ function renderTimerUI(){const m=Math.floor(timer.rem/60),s=String(timer.rem%60)
 function checkPR(wn,i){const w=getWeek(wn);if(!w)return false;const ex=w.exercises[i];if(!ex||!ex.kg)return false;const kg=parseFloat(ex.kg);if(isNaN(kg))return false;for(const ow of state.weeks){if(ow.n>=wn)continue;const oex=ow.exercises[i];if(oex&&parseFloat(oex.kg)>=kg)return false;}return true;}
 function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)t++;}));return t;}
 function getHistory(name){const h=[];state.weeks.forEach(w=>{const ex=w.exercises.find(e=>e.name===name);if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0});});return h;}
+
+// Обновляет упражнения в незавершённых тренировках под новые шаблоны
+function migrateTemplates(){
+  const typeMap={'A':0,'B':1,'C':2};
+  let changed=false;
+  state.weeks.forEach(w=>{
+    if(w.done)return; // завершённые не трогаем
+    const idx=typeMap[w.type];
+    if(idx===undefined)return;
+    const newExs=DEF_EX[idx];
+    if(!newExs)return;
+    // Проверяем совпадают ли упражнения
+    const oldNames=w.exercises.map(e=>e.name);
+    const same=newExs.every((name,i)=>oldNames[i]===name)&&newExs.length===oldNames.length;
+    if(!same){
+      // Сохраняем веса для упражнений которые есть в новом шаблоне
+      const weightMap={};
+      w.exercises.forEach(e=>{if(e.kg)weightMap[e.name]=e.kg;});
+      w.exercises=newExs.map(name=>({
+        name,kg:weightMap[name]||'',sets:'',setsDone:[],pr:false
+      }));
+      changed=true;
+    }
+  });
+  if(changed)scheduleSave();
+}
 
 function calcStreak(){
   if(!state.weeks.length)return 0;
@@ -1500,78 +1527,4 @@ function renderWeight(){
       data:{
         labels:log.map(e=>new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})),
         datasets:[
-          {label:'Вес',data:log.map(e=>e.kg),borderColor:'#e94560',backgroundColor:'rgba(233,69,96,.1)',tension:0.3,pointBackgroundColor:'#e94560',pointRadius:4,fill:true},
-          {label:'Цель',data:log.map(()=>WEIGHT_GOAL),borderColor:'#27ae60',borderDash:[5,5],pointRadius:0,fill:false}
-        ]
-      },
-      options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'кг'}},x:{}}}
-    });
-  }
-
-  // History list
-  const wh=document.getElementById('weight-history');
-  if(wh){
-    const sorted=[...log].reverse();
-    wh.innerHTML=sorted.map((e,i)=>{
-      const prev=sorted[i+1];
-      const diff=prev?Math.round((e.kg-prev.kg)*10)/10:null;
-      const diffStr=diff!==null?(diff>0?`+${diff}`:`${diff}`)+' кг':'—';
-      const diffColor=diff>0?'var(--red)':diff<0?'var(--green)':'var(--text3)';
-      return `<div class="finish-ex-item" style="margin-bottom:6px">
-        <div>
-          <div style="font-size:13px;font-weight:500;color:var(--text)">${e.kg} кг</div>
-          <div style="font-size:11px;color:var(--text3)">${new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;color:${diffColor}">${diffStr}</span>
-          <button onclick="deleteWeight(${log.length-1-i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
-        </div>
-      </div>`;
-    }).join('');
-
-    if(lost>0){
-      wh.innerHTML=`<div style="background:var(--green-bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;text-align:center">
-        <div style="font-size:13px;color:var(--green);font-weight:600">Сброшено ${lost} кг 💪</div>
-        <div style="font-size:11px;color:var(--green);margin-top:2px">с ${first} кг до ${last} кг</div>
-      </div>`+wh.innerHTML;
-    }
-  }
-}
-
-window.deleteWeight=function(idx){
-  if(!state.weightLog)return;
-  const sorted=[...state.weightLog].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const item=sorted[idx];
-  state.weightLog=state.weightLog.filter(e=>e.date!==item.date);
-  scheduleSave();renderWeight();
-};
-window.copyExport=function(){const el=document.getElementById('export-text');if(!el)return;el.select();try{document.execCommand('copy');}catch(e){navigator.clipboard?.writeText(el.value);}const m=document.getElementById('copy-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
-window.doImport=function(){const v=document.getElementById('import-text')?.value.trim();if(!v)return;try{state=JSON.parse(v);saveToFirebase();updateSummary();renderTabs();renderDiary();const m=document.getElementById('import-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}}catch(e){alert('Ошибка: неверный формат');}};
-
-const initH=window.innerHeight;
-window.addEventListener('resize',()=>{document.body.classList.toggle('keyboard-open',initH-window.innerHeight>150);});
-document.addEventListener('focusin',e=>{if(['INPUT','TEXTAREA'].includes(e.target.tagName))document.body.classList.add('keyboard-open');});
-document.addEventListener('focusout',()=>{setTimeout(()=>document.body.classList.remove('keyboard-open'),100);});
-
-const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';document.head.appendChild(s);
-renderTimerUI();
-
-// Register Service Worker
-if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
-      console.log('SW registered');
-      // При появлении интернета — синхронизировать
-      window.addEventListener('online', () => {
-        if(currentUser) saveToFirebase();
-        setSyncStatus('✓ Синхронизировано',true);
-      });
-      window.addEventListener('offline', () => {
-        setSyncStatus('📴 Офлайн',false);
-      });
-    }).catch(e => console.log('SW error', e));
-  });
-}
-</script>
-</body>
-</html>
+          {label:'Вес',data:log.map(e=>e.kg),borderColor:'#e94560',backgroundColor:'rgba(233,69,96,.1)
