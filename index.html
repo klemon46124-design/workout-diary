@@ -723,6 +723,16 @@ function checkPR(wn,i){const w=getWeek(wn);if(!w)return false;const ex=w.exercis
 function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)t++;}));return t;}
 function getHistory(name){const h=[];state.weeks.forEach(w=>{const ex=w.exercises.find(e=>e.name===name);if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0});});return h;}
 
+// Единая формула объёма (кг × повторы × выполненные подходы), чтобы разные
+// экраны (карточка завершения, Итоги, Прогресс) не расходились в цифрах
+function calcExVolume(ex){
+  const kg=parseFloat(ex.kg)||0;
+  const setsDone=(ex.setsDone||[]).length;
+  const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;
+  return kg*setsDone*reps;
+}
+function calcWeekVolume(w){return w.exercises.reduce((s,ex)=>s+calcExVolume(ex),0);}
+
 // Обновляет упражнения в незавершённых тренировках под новые шаблоны
 function migrateTemplates(){
   const typeMap={'A':0,'B':1,'C':2};
@@ -1098,38 +1108,35 @@ function renderTrash(){
     return (new Date()-d)<30*24*60*60*1000;
   });
   if(!trash.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Корзина пуста</p>';return;}
-  el.innerHTML=[...trash].reverse().map((w,i)=>`
+  el.innerHTML=[...trash].reverse().map(w=>`
     <div class="trash-item">
       <div class="trash-item-title">Тренировка ${w.n} · ${w.type?(['A','B','C'].includes(w.type)?w.type:''):''}  ${w.date||''}</div>
       <div class="trash-item-meta">${w.exercises.map(e=>e.name).slice(0,3).join(', ')}${w.exercises.length>3?'...':''}</div>
       <div class="trash-item-btns">
-        <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="restoreWeek(${trash.length-1-i})">↩️ Восстановить</button>
-        <button class="btn" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)" onclick="deleteFromTrash(${trash.length-1-i})">Удалить навсегда</button>
+        <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="restoreWeek('${w.deletedAt}')">↩️ Восстановить</button>
+        <button class="btn" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)" onclick="deleteFromTrash('${w.deletedAt}')">Удалить навсегда</button>
       </div>
     </div>`).join('');
 }
 
-window.restoreWeek=function(idx){
+window.restoreWeek=function(deletedAt){
   const trash=(state.trash||[]);
-  const sorted=[...trash].reverse();
-  const w=sorted[idx];
+  const w=trash.find(x=>x.deletedAt===deletedAt);
   if(!w)return;
   // Add back with new number
   const newN=(state.weeks.length?state.weeks[state.weeks.length-1].n:0)+1;
   w.n=newN;
   delete w.deletedAt;
   state.weeks.push(w);
-  state.trash=trash.filter(x=>x.deletedAt!==undefined&&x!==w);
+  state.trash=trash.filter(x=>x!==w);
   state.active=newN;
   scheduleSave();updateSummary();renderTabs();renderDiary();
   showPage('diary');
 };
 
-window.deleteFromTrash=function(idx){
+window.deleteFromTrash=function(deletedAt){
   if(!confirm('Удалить навсегда?'))return;
-  const sorted=[...( state.trash||[])].reverse();
-  const w=sorted[idx];
-  state.trash=(state.trash||[]).filter(x=>x!==w);
+  state.trash=(state.trash||[]).filter(x=>x.deletedAt!==deletedAt);
   scheduleSave();renderTrash();
 };
 window.doSave=async function(wn){await saveToFirebase();const el=document.getElementById('smsg');if(el){el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}updateSummary();};
@@ -1158,9 +1165,7 @@ window.openFinishModal=function(wn){
     const sets=(ex.setsDone||[]).length;
     totalSets+=sets;
     if(sets>0)exDone++;
-    const kg=parseFloat(ex.kg)||0;
-    const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
-    totalVol+=kg*sets*reps;
+    totalVol+=calcExVolume(ex);
   });
 
   // PRs this workout
@@ -1256,12 +1261,7 @@ function renderStats(){
   const avgPulse=done.filter(w=>w.pulse).length?Math.round(done.filter(w=>w.pulse).reduce((s,w)=>s+w.pulse,0)/done.filter(w=>w.pulse).length):0;
   const totalKcalStr=done.filter(w=>w.kcal).reduce((s,w)=>s+w.kcal,0);
   let totalVol=0;
-  state.weeks.forEach(w=>w.exercises.forEach(ex=>{
-    const kg=parseFloat(ex.kg)||0;
-    const sets=(ex.setsDone||[]).length;
-    const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
-    totalVol+=kg*sets*reps;
-  }));
+  state.weeks.forEach(w=>w.exercises.forEach(ex=>{totalVol+=calcExVolume(ex);}));
 
   // Прогресс текущей недели — найти первую незавершённую группу из 3
   let weekStart=0;
@@ -1293,16 +1293,7 @@ function renderStats(){
   const topExHtml=topEx.length?topEx.map(([n,c])=>`<div class="finish-ex-item"><span class="finish-ex-name">${n}</span><span class="finish-ex-val">${c} ПР</span></div>`).join(''):'<p style="color:var(--text3);font-size:13px">Данных пока нет</p>';
 
   // Weekly volume for chart
-  const weekVols=state.weeks.map(w=>{
-    let vol=0;
-    w.exercises.forEach(ex=>{
-      const kg=parseFloat(ex.kg)||0;
-      const sets=(ex.setsDone||[]).length||5;
-      const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
-      vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;
-    });
-    return{n:w.n,vol:Math.round(vol)};
-  });
+  const weekVols=state.weeks.map(w=>({n:w.n,vol:Math.round(calcWeekVolume(w))}));
 
   // ДОЛГОСРОЧНАЯ АНАЛИТИКА — группировка по месяцам
   const monthKey=iso=>{const d=new Date(iso);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
@@ -1316,9 +1307,7 @@ function renderStats(){
     m.workouts++;
     w.exercises.forEach(ex=>{
       const kg=parseFloat(ex.kg)||0;
-      const sets=(ex.setsDone||[]).length;
-      const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;
-      m.vol+=kg*sets*reps;
+      m.vol+=calcExVolume(ex);
       if(ex.pr)m.prs++;
       if(kg>0&&(!m.kgByEx[ex.name]||kg>m.kgByEx[ex.name]))m.kgByEx[ex.name]=kg;
     });
@@ -1359,12 +1348,7 @@ function renderStats(){
 
   // История тренировок
   const historyHtml=[...done].reverse().slice(0,10).map(w=>{
-    const vol=w.exercises.reduce((s,ex)=>{
-      const kg=parseFloat(ex.kg)||0;
-      const sets=(ex.setsDone||[]).length;
-      const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
-      return s+kg*sets*reps;
-    },0);
+    const vol=calcWeekVolume(w);
     const typeLabel=w.type?` · ${w.type}`:'';
     return `<div class="cardio-history-item">
       <div class="cardio-history-left">
@@ -1525,11 +1509,7 @@ function renderChart(){
   // Volume chart
   const volCtx=document.getElementById('volChart')?.getContext('2d');
   if(volCtx){
-    const weekVols=state.weeks.map(w=>{
-      let vol=0;
-      w.exercises.forEach(ex=>{const kg=parseFloat(ex.kg)||0;const sets=(ex.setsDone||[]).length||0;const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;});
-      return{n:w.n,vol:Math.round(vol)};
-    }).filter(v=>v.vol>0);
+    const weekVols=state.weeks.map(w=>({n:w.n,vol:Math.round(calcWeekVolume(w))})).filter(v=>v.vol>0);
     if(window._volChart)window._volChart.destroy();
     window._volChart=new window.Chart(volCtx,{type:'bar',data:{labels:weekVols.map(v=>`Тр.${v.n}`),datasets:[{data:weekVols.map(v=>v.vol),backgroundColor:'rgba(233,69,96,.6)',borderRadius:5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
   }
@@ -1738,6 +1718,17 @@ document.addEventListener('focusout',()=>{setTimeout(()=>document.body.classList
 
 const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';document.head.appendChild(s);
 renderTimerUI();
+
+// Немедленно сохранять при сворачивании/закрытии — иначе последние
+// несколько секунд правок (например, только что отмеченный подход)
+// могут не успеть уйти в Firestore из-за дебаунса в scheduleSave()
+function flushSave(){
+  if(!currentUser)return;
+  if(saveTO){clearTimeout(saveTO);saveTO=null;}
+  saveToFirebase();
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushSave();});
+window.addEventListener('pagehide',flushSave);
 
 // Register Service Worker
 if('serviceWorker' in navigator){
