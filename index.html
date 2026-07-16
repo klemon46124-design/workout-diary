@@ -565,8 +565,6 @@ const alternativesMap={
 };
 const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Тяга штанги в наклоне","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа","Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка","Разводка гантелей стоя","Подъём на бицепс","Планка","Жим ногами","Ягодичный мостик","Молотки на бицепс","Французский жим","Скручивания","Подтягивания","Велосипед","Подъём ног в висе"];
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
-const PLAN=[["1","85 кг","110 кг","95 кг",""],["2","85 кг","110 кг","95 кг",""],["3","85 кг","110 кг","95 кг",""],["4","85 кг","110 кг","95 кг",""],["5","85 кг","110 кг","95 кг",""],["6","85 кг","110 кг","95 кг",""],["7","90 кг","110 кг","100 кг","pr"],["8","90 кг","115 кг","100 кг","pr"],["9","90 кг","115 кг","100 кг",""],["10","90 кг","115 кг","100 кг",""],["11","90 кг","115 кг","100 кг",""],["12","90 кг","115 кг","100 кг",""]];
-
 // Двойная прогрессия: вес растёт только если в прошлый раз подходы были закрыты полностью.
 // holds — сколько раз подряд нужно закрыть все подходы на одном весе прежде чем предложить +5.
 const PROGRESSION_CONFIG={
@@ -971,8 +969,6 @@ function renderDiary(){
     </div>`;
   }).join('');
 
-  const planRows=PLAN.map(r=>{const wM=state.weeks.find(x=>x.n===parseInt(r[0]));const cls=r[0]===String(w.n)?'tr-current':(wM&&wM.done?'tr-done':'');return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}${r[4]==='pr'?'<span class="pr-tag">ПР</span>':''}</td></tr>`;}).join('');
-
   // Кнопка завершения только если тренировка не завершена
   const finishBtn=isDone?'':`<button class="btn" style="background:var(--green);color:#fff;border-color:var(--green);width:100%;margin-bottom:8px;font-size:14px" onclick="openFinishModal(${w.n})">🏁 Завершить тренировку</button>`;
   const tmplBtn=`<button class="btn btn-outline" style="width:100%;font-size:13px" onclick="saveAsTemplate(${w.n})">⭐ Сохранить как шаблон</button>`;
@@ -1006,7 +1002,7 @@ function renderDiary(){
     </div>`;
 }
 
-window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);if(ex.setsDone.length===5)setTimeout(()=>startTimer(timer.preset),200);}scheduleSave();renderDiary();};
+window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);const reqSets=parseInt((ex.sets||setsMap[ex.name]||'5×5').split('×')[1])||5;if(ex.setsDone.length===reqSets)setTimeout(()=>startTimer(timer.preset),200);}scheduleSave();renderDiary();};
 window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10));scheduleSave();recheckPR(wn,i);renderDiary();};
 window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'15×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'15×3';scheduleSave();renderDiary();};
 window.recheckPR=function(wn,i){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.pr=checkPR(wn,i);scheduleSave();updateSummary();};
