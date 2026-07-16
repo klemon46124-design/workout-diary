@@ -13,12 +13,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#1a1a2e">
+<meta name="theme-color" content="#0d0d0d">
 <title>Дневник тренировок</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#f0f0f0;--card:#fff;--hdr:#1a1a2e;--hdr2:#16213e;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e94560;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#e8f8f0;--pr-color:#1a7a4a;--timer-fixed:#1a1a2e}
-body.dark{--bg:#0f0f0f;--card:#1c1c1e;--hdr:#000;--hdr2:#111;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--input:#2c2c2e;--input-bg:#2c2c2e;--tab-bg:#1c1c1e;--tab-border:#333;--chip-bg:#2c2c2e;--modal:#1c1c1e;--pr-bg:#0a2a1a;--pr-color:#4ade80;--timer-fixed:#000}
+:root{--bg:#f0f0f0;--card:#fff;--hdr:#0d0d0d;--hdr2:#000;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e8935c;--red-on:#fff;--pr-fg:#e8935c;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#111;--pr-color:#e8935c;--timer-fixed:#0d0d0d}
+body.dark{--bg:#0f0f0f;--card:#1c1c1e;--hdr:#000;--hdr2:#000;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--input:#2c2c2e;--input-bg:#2c2c2e;--tab-bg:#1c1c1e;--tab-border:#333;--chip-bg:#2c2c2e;--modal:#1c1c1e;--pr-bg:#000;--pr-color:#f0a06e;--red:#f0a06e;--red-on:#1a1a1a;--timer-fixed:#000}
 body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;transition:background .2s,color .2s}
 
 .login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--hdr);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:24px}
@@ -30,14 +30,14 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .login-input::placeholder{color:#888}
 .login-input:focus{border-color:var(--red)}
 .login-btn{width:100%;padding:13px;font-size:15px;font-weight:600;border:none;border-radius:10px;cursor:pointer;font-family:inherit}
-.login-btn-main{background:var(--red);color:#fff}
+.login-btn-main{background:var(--red);color:var(--red-on)}
 .login-btn-sec{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
 .login-err{color:#ff6b6b;font-size:12px;text-align:center;min-height:16px}
 .login-toggle{color:#aaaacc;font-size:12px;text-align:center;margin-top:4px;cursor:pointer}
 .login-toggle span{color:var(--red);text-decoration:underline}
 
 .user-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.1)}
-.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--red-on);flex-shrink:0}
 .user-name{font-size:12px;color:#ddd;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sync-status{font-size:10px;color:#aaa;flex-shrink:0}
 .sync-status.ok{color:#4ade80}
@@ -77,32 +77,36 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .week-meta .week-date{font-size:11px;color:var(--text3);margin-top:2px}
 .badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
 .badge-done{background:var(--green-bg);color:var(--green)}
-.badge-current{background:#ffeaea;color:var(--red)}
+.badge-current{background:#fbe6d3;color:#8a4a1f}
 .badge-up{background:var(--input-bg);color:var(--text3)}
 
 .ex-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .ex-row{background:var(--input-bg);border-radius:8px;padding:10px;border:1px solid var(--border)}
-.ex-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.ex-name-input{flex:1;font-size:13px;font-weight:600;color:var(--text);border:none;background:transparent;font-family:inherit;padding:0;border-bottom:1px dashed var(--border);outline:none;-webkit-appearance:none;min-width:0}
+.ex-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ex-name-input{flex:1;font-size:14px;font-weight:700;color:var(--text);border:none;background:transparent;font-family:inherit;padding:0;border-bottom:1px dashed var(--border);outline:none;-webkit-appearance:none;min-width:0}
 .ex-name-input:focus{border-bottom-color:var(--red)}
-.ex-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0}
-.ex-pr{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:2px 7px;border-radius:10px;flex-shrink:0}
+.ex-del{background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:2px 2px;flex-shrink:0}
+.ex-pr{font-size:10px;font-weight:700;background:var(--pr-bg);color:var(--pr-color);padding:3px 8px;border-radius:10px;flex-shrink:0}
 
-.sets-wrap{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.sets-label{font-size:11px;color:var(--text3);flex-shrink:0}
-.sets-btns{display:flex;gap:5px}
-.set-btn{width:34px;height:34px;border-radius:7px;border:1.5px solid var(--border);background:var(--input);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
-.set-btn.done{background:var(--red);color:#fff;border-color:var(--red)}
+.sets-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding:0 1px}
+.sets-label{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.sets-plan-hint{font-size:11px;color:var(--text3)}
+.sets-wrap{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.sets-btns{display:flex;gap:6px;flex:1}
+.set-btn{flex:1;height:36px;border-radius:9px;border:1.5px solid var(--border);background:var(--input);color:var(--text3);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.set-btn.done{background:var(--red);color:var(--red-on);border-color:var(--red)}
 
-.ex-inputs{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:11px;color:var(--text3);display:block;margin-bottom:4px}
-.num-row{display:flex;align-items:center;gap:3px;width:100%}
-.num-btn{width:32px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);font-size:16px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.num-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
-.num-input{flex:1;padding:6px 2px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;min-width:0;font-weight:600}
-.num-input:focus{outline:none;border-color:var(--red)}
+.ex-inputs{display:flex;gap:8px;background:var(--input-bg);border-radius:10px;padding:10px;margin-bottom:8px}
+.field{flex:1}
+.field label{font-size:10px;color:var(--text3);font-weight:700;display:block;margin-bottom:4px;letter-spacing:.2px}
+.num-row{display:flex;align-items:center;gap:4px;width:100%}
+.num-btn{width:26px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--input);color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.num-btn:active{background:var(--red);color:var(--red-on);border-color:var(--red)}
+.num-input{flex:1;height:30px;padding:0 2px;font-size:14px;border:1px solid var(--border);border-radius:7px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;min-width:0;font-weight:700}
+.num-input:focus{outline:none;border-color:var(--red);border-width:1.5px}
+.field.field-kg .num-input{border-color:var(--red);border-width:1.5px}
 .hist-hint{font-size:10px;color:var(--text3);margin-top:3px}
-.plan-hint{display:inline-block;font-size:10px;font-weight:700;background:rgba(233,69,96,0.12);color:var(--red);border-radius:5px;padding:2px 7px;margin-top:4px;letter-spacing:0.2px}
+.plan-hint{display:inline-block;font-size:10px;font-weight:700;background:rgba(232,147,92,0.14);color:var(--red);border-radius:5px;padding:2px 7px;margin-top:4px;letter-spacing:0.2px}
 
 .note-wrap label{font-size:12px;color:var(--text3);display:block;margin-bottom:4px}
 .note-wrap textarea{width:100%;padding:8px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;resize:none}
@@ -110,7 +114,7 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
 .btn{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500}
-.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-red{background:var(--red);color:var(--red-on);border-color:var(--red)}
 .btn-green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
 .btn-outline{border-color:var(--red);color:var(--red);background:transparent}
 .saved{font-size:12px;color:var(--green);display:none}
@@ -124,14 +128,14 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .timer-presets{display:flex;gap:5px;flex:1;flex-wrap:wrap}
 .tp-btn{padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:11px;cursor:pointer;font-family:inherit}
 .tp-btn.sel{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5)}
-.timer-start{padding:7px 14px;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0}
+.timer-start{padding:7px 14px;border-radius:8px;border:none;background:var(--red);color:var(--red-on);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0}
 
 .chart-wrap{padding:12px;display:flex;flex-direction:column;gap:10px}
 .chart-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
 .chart-card h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
 .chart-sel{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .chart-sel-btn{padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit}
-.chart-sel-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+.chart-sel-btn.active{background:var(--red);color:var(--red-on);border-color:var(--red)}
 canvas{width:100%!important;max-width:100%;display:block}
 .pr-list{display:flex;flex-direction:column;gap:6px}
 .pr-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--input-bg);border-radius:8px;font-size:13px}
@@ -183,7 +187,7 @@ tr.tr-done td{color:var(--text3)}
 .btn-finish-cancel{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit}
 .ex-move-btn{background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;padding:3px 6px;line-height:1.2;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
 .ex-move-btn:disabled{opacity:0.2;cursor:default}
-.ex-move-btn:active:not(:disabled){background:var(--red);color:#fff;border-color:var(--red)}
+.ex-move-btn:active:not(:disabled){background:var(--red);color:var(--red-on);border-color:var(--red)}
 .ex-alt-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:0.7}
 .ex-alt-btn:active{opacity:1}
 .trash-item{background:var(--input-bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
@@ -203,7 +207,7 @@ tr.tr-done td{color:var(--text3)}
 .alt-item-sets{font-size:11px;color:var(--text3)}
 
 .cardio-type-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
-.cardio-type-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+.cardio-type-btn.active{background:var(--red);color:var(--red-on);border-color:var(--red)}
 .cardio-history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--input-bg);border-radius:10px;margin-bottom:6px}
 .cardio-history-left{display:flex;flex-direction:column;gap:2px}
 .cardio-history-type{font-size:13px;font-weight:600;color:var(--text)}
@@ -561,7 +565,37 @@ const alternativesMap={
 };
 const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Тяга штанги в наклоне","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа","Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка","Разводка гантелей стоя","Подъём на бицепс","Планка","Жим ногами","Ягодичный мостик","Молотки на бицепс","Французский жим","Скручивания","Подтягивания","Велосипед","Подъём ног в висе"];
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
-const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
+const PLAN=[["1","85 кг","110 кг","95 кг",""],["2","85 кг","110 кг","95 кг",""],["3","85 кг","110 кг","95 кг",""],["4","85 кг","110 кг","95 кг",""],["5","85 кг","110 кг","95 кг",""],["6","85 кг","110 кг","95 кг",""],["7","90 кг","110 кг","100 кг","pr"],["8","90 кг","115 кг","100 кг","pr"],["9","90 кг","115 кг","100 кг",""],["10","90 кг","115 кг","100 кг",""],["11","90 кг","115 кг","100 кг",""],["12","90 кг","115 кг","100 кг",""]];
+
+// Двойная прогрессия: вес растёт только если в прошлый раз подходы были закрыты полностью.
+// holds — сколько раз подряд нужно закрыть все подходы на одном весе прежде чем предложить +5.
+const PROGRESSION_CONFIG={
+  'Присед со штангой':{start:85,inc:5,holds:3},
+  'Становая тяга':{start:110,inc:5,holds:3},
+  'Жим лёжа':{start:95,inc:5,holds:2},
+};
+function calcNextWeight(exName,beforeN){
+  const cfg=PROGRESSION_CONFIG[exName];if(!cfg)return null;
+  const entries=[];
+  state.weeks.filter(w=>w.n<beforeN).sort((a,b)=>a.n-b.n).forEach(w=>{
+    const ex=w.exercises.find(e=>e.name===exName);
+    if(ex&&ex.kg){
+      const reqSets=parseInt((ex.sets||setsMap[exName]||'5×5').split('×')[1])||5;
+      const completed=(ex.setsDone||[]).length>=reqSets;
+      entries.push({n:w.n,kg:parseFloat(ex.kg),completed});
+    }
+  });
+  if(!entries.length)return{kg:cfg.start,advance:false};
+  const last=entries[entries.length-1];
+  let streak=0;
+  for(let i=entries.length-1;i>=0;i--){
+    if(entries[i].kg===last.kg&&entries[i].completed)streak++;
+    else break;
+  }
+  if(!last.completed)return{kg:last.kg,advance:false};
+  if(streak>=cfg.holds)return{kg:last.kg+cfg.inc,advance:true};
+  return{kg:last.kg,advance:false};
+}
 
 let state={weeks:[],active:1,dark:false};
 let currentUser=null;
@@ -841,13 +875,13 @@ function renderDiary(){
   const badgeCls=isDone?'badge-done':(firstUndone&&w.n===firstUndone.n?'badge-current':'badge-up');
   const badgeTxt=isDone?'Выполнена ✓':(firstUndone&&w.n===firstUndone.n?'Текущая':'Предстоит');
 
-  // Плановые веса из таблицы прогрессии для базовых упражнений
-  const planWeeks=PLAN.find(r=>r[0]===String(w.n));
-  const planMap={
-    'Присед со штангой': planWeeks?planWeeks[1]:'',
-    'Становая тяга': planWeeks?planWeeks[2]:'',
-    'Жим лёжа': planWeeks?planWeeks[3]:'',
-  };
+  // Плановые веса — динамическая двойная прогрессия по факту закрытых подходов
+  const planMap={};
+  const planAdvance={};
+  Object.keys(PROGRESSION_CONFIG).forEach(name=>{
+    const r=calcNextWeight(name,w.n);
+    if(r){planMap[name]=r.kg+' кг';planAdvance[name]=r.advance;}
+  });
 
   // Восстановительная фаза — 60% от последнего веса
   const doneCnt=state.weeks.filter(x=>x.done).length;
@@ -880,7 +914,7 @@ function renderDiary(){
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
     const totalSets=Math.max(5,(ex.setsDone||[]).length+1,(ex.extraSets||0)+5);
     const setsBtns=Array.from({length:totalSets},(_,si)=>`<button class="set-btn${(ex.setsDone||[]).includes(si)?' done':''}" onclick="toggleSet(${w.n},${i},${si})">${si+1}</button>`).join('');
-    const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
+    const addSetBtn=`<button class="set-btn" style="flex:0 0 36px;background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n!==w.n).pop();
     const planKg=planMap[ex.name]||'';
     const planSets=setsMap[ex.name]||'15×3';
@@ -909,21 +943,21 @@ function renderDiary(){
         <input type="text" class="ex-name-input" value="${ex.name}" onchange="updateEx(${w.n},${i},'name',this.value)" placeholder="Упражнение">
         ${pr?'<span class="ex-pr">🏆 ПР</span>':''}
         ${alternativesMap[ex.name]?`<button class="ex-alt-btn" onclick="openAltModal(${w.n},${i})" title="Аналоги">🔄</button>`:''}
-        <button class="ex-del" onclick="delEx(${w.n},${i})">✕</button>
       </div>
-      <div class="sets-wrap"><span class="sets-label">Подходы:</span><div class="sets-btns">${setsBtns}${addSetBtn}</div></div>
+      <div class="sets-head"><span class="sets-label">Подходы</span><span class="sets-plan-hint">план: ${planSets}</span></div>
+      <div class="sets-wrap"><div class="sets-btns">${setsBtns}</div>${addSetBtn}</div>
       <div class="ex-inputs">
-        <div class="field">
-          <label>Вес (кг)</label>
+        <div class="field field-kg">
+          <label>ВЕС, КГ</label>
           <div class="num-row">
             <button class="num-btn" onclick="changeKg(${w.n},${i},-2.5)">−</button>
             <input class="num-input" type="number" inputmode="decimal" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
-          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}
+          ${planKg?`<div class="plan-hint">план: ${planKg}${planAdvance[ex.name]?' 🔥 можно прибавить':''}</div>`:''}
         </div>
         <div class="field">
-          <label>Повторы</label>
+          <label>ПОВТОРЫ</label>
           <div class="num-row">
             <button class="num-btn" onclick="changeSets(${w.n},${i},-1)">−</button>
             <input class="num-input" type="text" placeholder="${planSets}" value="${ex.sets}" onchange="updateEx(${w.n},${i},'sets',this.value)">
@@ -933,6 +967,7 @@ function renderDiary(){
         </div>
       </div>
       ${compareHtml}
+      <div style="text-align:right;margin-top:6px"><button class="ex-del" onclick="delEx(${w.n},${i})">✕ удалить</button></div>
     </div>`;
   }).join('');
 
@@ -1259,7 +1294,7 @@ function renderStats(){
         ${['Пн A','Ср B','Пт C'].map((label,i)=>{
           const w=state.weeks[weekStart+i];
           const color=w?(w.done?'var(--green)':'var(--red)'):'var(--border)';
-          const bg=w?(w.done?'var(--green-bg)':'#ffeaea'):'var(--input-bg)';
+          const bg=w?(w.done?'var(--green-bg)':'#fbe6d3'):'var(--input-bg)';
           return `<div style="flex:1;text-align:center;padding:8px;border-radius:8px;background:${bg};border:1px solid ${color}">
             <div style="font-size:11px;font-weight:600;color:${color}">${label}</div>
             <div style="font-size:10px;color:var(--text3);margin-top:2px">${w?(w.done?'✓ '+w.date:'Ожидает'):'—'}</div>
