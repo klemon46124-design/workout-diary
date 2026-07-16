@@ -91,18 +91,19 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .sets-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding:0 1px}
 .sets-label{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.3px;text-transform:uppercase}
 .sets-plan-hint{font-size:11px;color:var(--text3)}
-.sets-wrap{display:flex;align-items:center;gap:6px;margin-bottom:10px}
-.sets-btns{display:flex;gap:6px;flex:1}
-.set-btn{flex:1;height:36px;border-radius:9px;border:1.5px solid var(--border);background:var(--input);color:var(--text3);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.sets-wrap{display:flex;align-items:center;gap:6px;margin-bottom:10px;min-width:0}
+.sets-btns{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sets-btns::-webkit-scrollbar{display:none}
+.set-btn{flex:1 1 0;min-width:26px;height:36px;border-radius:9px;border:1.5px solid var(--border);background:var(--input);color:var(--text3);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
 .set-btn.done{background:var(--red);color:var(--red-on);border-color:var(--red)}
 
-.ex-inputs{display:flex;gap:8px;background:var(--input-bg);border-radius:10px;padding:10px;margin-bottom:8px}
-.field{flex:1}
+.ex-inputs{display:flex;gap:8px;background:var(--input-bg);border-radius:10px;padding:10px;margin-bottom:8px;min-width:0}
+.field{flex:1;min-width:0}
 .field label{font-size:10px;color:var(--text3);font-weight:700;display:block;margin-bottom:4px;letter-spacing:.2px}
-.num-row{display:flex;align-items:center;gap:4px;width:100%}
+.num-row{display:flex;align-items:center;gap:4px;width:100%;min-width:0}
 .num-btn{width:26px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--input);color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .num-btn:active{background:var(--red);color:var(--red-on);border-color:var(--red)}
-.num-input{flex:1;height:30px;padding:0 2px;font-size:14px;border:1px solid var(--border);border-radius:7px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;min-width:0;font-weight:700}
+.num-input{flex:1;min-width:0;height:30px;padding:0 2px;font-size:14px;border:1px solid var(--border);border-radius:7px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;font-weight:700}
 .num-input:focus{outline:none;border-color:var(--red);border-width:1.5px}
 .field.field-kg .num-input{border-color:var(--red);border-width:1.5px}
 .hist-hint{font-size:10px;color:var(--text3);margin-top:3px}
@@ -565,35 +566,7 @@ const alternativesMap={
 };
 const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Тяга штанги в наклоне","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа","Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка","Разводка гантелей стоя","Подъём на бицепс","Планка","Жим ногами","Ягодичный мостик","Молотки на бицепс","Французский жим","Скручивания","Подтягивания","Велосипед","Подъём ног в висе"];
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
-// Двойная прогрессия: вес растёт только если в прошлый раз подходы были закрыты полностью.
-// holds — сколько раз подряд нужно закрыть все подходы на одном весе прежде чем предложить +5.
-const PROGRESSION_CONFIG={
-  'Присед со штангой':{start:85,inc:5,holds:3},
-  'Становая тяга':{start:110,inc:5,holds:3},
-  'Жим лёжа':{start:95,inc:5,holds:2},
-};
-function calcNextWeight(exName,beforeN){
-  const cfg=PROGRESSION_CONFIG[exName];if(!cfg)return null;
-  const entries=[];
-  state.weeks.filter(w=>w.n<beforeN).sort((a,b)=>a.n-b.n).forEach(w=>{
-    const ex=w.exercises.find(e=>e.name===exName);
-    if(ex&&ex.kg){
-      const reqSets=parseInt((ex.sets||setsMap[exName]||'5×5').split('×')[1])||5;
-      const completed=(ex.setsDone||[]).length>=reqSets;
-      entries.push({n:w.n,kg:parseFloat(ex.kg),completed});
-    }
-  });
-  if(!entries.length)return{kg:cfg.start,advance:false};
-  const last=entries[entries.length-1];
-  let streak=0;
-  for(let i=entries.length-1;i>=0;i--){
-    if(entries[i].kg===last.kg&&entries[i].completed)streak++;
-    else break;
-  }
-  if(!last.completed)return{kg:last.kg,advance:false};
-  if(streak>=cfg.holds)return{kg:last.kg+cfg.inc,advance:true};
-  return{kg:last.kg,advance:false};
-}
+const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
 
 let state={weeks:[],active:1,dark:false};
 let currentUser=null;
@@ -873,13 +846,13 @@ function renderDiary(){
   const badgeCls=isDone?'badge-done':(firstUndone&&w.n===firstUndone.n?'badge-current':'badge-up');
   const badgeTxt=isDone?'Выполнена ✓':(firstUndone&&w.n===firstUndone.n?'Текущая':'Предстоит');
 
-  // Плановые веса — динамическая двойная прогрессия по факту закрытых подходов
-  const planMap={};
-  const planAdvance={};
-  Object.keys(PROGRESSION_CONFIG).forEach(name=>{
-    const r=calcNextWeight(name,w.n);
-    if(r){planMap[name]=r.kg+' кг';planAdvance[name]=r.advance;}
-  });
+  // Плановые веса из таблицы прогрессии для базовых упражнений
+  const planWeeks=PLAN.find(r=>r[0]===String(w.n));
+  const planMap={
+    'Присед со штангой': planWeeks?planWeeks[1]:'',
+    'Становая тяга': planWeeks?planWeeks[2]:'',
+    'Жим лёжа': planWeeks?planWeeks[3]:'',
+  };
 
   // Восстановительная фаза — 60% от последнего веса
   const doneCnt=state.weeks.filter(x=>x.done).length;
@@ -952,7 +925,7 @@ function renderDiary(){
             <input class="num-input" type="number" inputmode="decimal" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
-          ${planKg?`<div class="plan-hint">план: ${planKg}${planAdvance[ex.name]?' 🔥 можно прибавить':''}</div>`:''}
+          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}
         </div>
         <div class="field">
           <label>ПОВТОРЫ</label>
@@ -968,6 +941,8 @@ function renderDiary(){
       <div style="text-align:right;margin-top:6px"><button class="ex-del" onclick="delEx(${w.n},${i})">✕ удалить</button></div>
     </div>`;
   }).join('');
+
+  const planRows=PLAN.map(r=>{const wM=state.weeks.find(x=>x.n===parseInt(r[0]));const cls=r[0]===String(w.n)?'tr-current':(wM&&wM.done?'tr-done':'');return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}${r[4]==='pr'?'<span class="pr-tag">ПР</span>':''}</td></tr>`;}).join('');
 
   // Кнопка завершения только если тренировка не завершена
   const finishBtn=isDone?'':`<button class="btn" style="background:var(--green);color:#fff;border-color:var(--green);width:100%;margin-bottom:8px;font-size:14px" onclick="openFinishModal(${w.n})">🏁 Завершить тренировку</button>`;
@@ -1002,7 +977,7 @@ function renderDiary(){
     </div>`;
 }
 
-window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);const reqSets=parseInt((ex.sets||setsMap[ex.name]||'5×5').split('×')[1])||5;if(ex.setsDone.length===reqSets)setTimeout(()=>startTimer(timer.preset),200);}scheduleSave();renderDiary();};
+window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);if(ex.setsDone.length===5)setTimeout(()=>startTimer(timer.preset),200);}scheduleSave();renderDiary();};
 window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10));scheduleSave();recheckPR(wn,i);renderDiary();};
 window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'15×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'15×3';scheduleSave();renderDiary();};
 window.recheckPR=function(wn,i){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.pr=checkPR(wn,i);scheduleSave();updateSummary();};
