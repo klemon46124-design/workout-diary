@@ -563,6 +563,38 @@ const PRESET_EX=["Присед со штангой","Становая тяга",
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
 const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
 
+// ФАЗА 2 — волновая периодизация (тяжёлая → средняя → лёгкая неделя, по кругу)
+const PHASE2_START=16; // тренировка, с которой начинается Фаза 2 (сразу после восстановительной недели 13-15)
+const PHASE2_LIFTS=['Присед со штангой','Становая тяга','Жим лёжа'];
+const WAVE_CYCLE=[
+  {label:'Тяжёлая',pct:0.92,reps:3,setsCount:5},
+  {label:'Средняя',pct:0.82,reps:5,setsCount:5},
+  {label:'Лёгкая',pct:0.72,reps:8,setsCount:3},
+];
+// Прирост базового веса (тренировочного максимума) за каждый полный круг волны (3 недели)
+const WAVE_CYCLE_INCREMENT=2.5;
+
+function getPhase2Base(name){
+  // Тренировочный максимум = лучший вес, показанный ДО начала Фазы 2
+  let best=0;
+  state.weeks.forEach(w=>{
+    if(w.n>=PHASE2_START)return;
+    const ex=w.exercises.find(e=>e.name===name);
+    if(ex&&parseFloat(ex.kg)>best)best=parseFloat(ex.kg);
+  });
+  return best;
+}
+
+function getWaveInfo(wn){
+  const weekGroup=Math.floor((wn-1)/3);
+  const startGroup=Math.floor((PHASE2_START-1)/3);
+  const offset=weekGroup-startGroup;
+  if(offset<0)return null;
+  const stage=WAVE_CYCLE[offset%3];
+  const cycleNumber=Math.floor(offset/3);
+  return{stage,cycleNumber};
+}
+
 let state={weeks:[],active:1,dark:false};
 let currentUser=null;
 let saveTO=null;
@@ -756,8 +788,7 @@ function updateSummary(){
 // Фазы тренировок
 const PHASES=[
   {from:12,to:14,type:'phase-complete',icon:'🏆',title:'Фаза 1 завершена! Время отдохнуть.',text:'Ты прошёл 12 тренировок базовой фазы. Следующие 3 тренировки — восстановительная неделя: снизь все веса до 60% и сосредоточься на технике.'},
-  {from:15,to:17,type:'phase-recovery',icon:'💆',title:'Восстановительная неделя',text:'Работай с 60% от рабочих весов. Больше внимания технике и растяжке. После этих 3 тренировок начнётся Фаза 2 — волновая периодизация.'},
-  {from:18,to:18,type:'phase-next',icon:'🚀',title:'Готов к Фазе 2!',text:'Восстановительная неделя завершена. Самое время перейти на волновую периодизацию: тяжёлая → средняя → лёгкая неделя по кругу. Обратись к дневнику за новой программой.'},
+  {from:15,to:15,type:'phase-next',icon:'🚀',title:'Фаза 2 началась — волновая периодизация!',text:'Восстановительная неделя позади. Для приседа, становой и жима теперь вес и повторы меняются по волне: тяжёлая неделя → средняя → лёгкая, и по кругу заново — дневник считает всё сам. Смотри план прямо в карточке упражнения.'},
 ];
 
 function getRecoveryWeights(){
@@ -786,7 +817,7 @@ function updatePhaseBanner(done){
 
   // Добавляем веса для восстановительной фазы
   let weightsHtml='';
-  if(phase.from===12||phase.from===15){
+  if(phase.from===12){
     const weights=getRecoveryWeights();
     if(weights.length){
       weightsHtml=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
@@ -876,6 +907,22 @@ function renderDiary(){
     });
   }
 
+  // Фаза 2 — волновая периодизация для базовых упражнений
+  const waveInfo=getWaveInfo(w.n);
+  const planSetsMap={};
+  if(waveInfo){
+    const{stage,cycleNumber}=waveInfo;
+    PHASE2_LIFTS.forEach(name=>{
+      const base=getPhase2Base(name);
+      if(base>0){
+        const effectiveBase=base+cycleNumber*WAVE_CYCLE_INCREMENT;
+        const target=Math.round(effectiveBase*stage.pct/2.5)*2.5;
+        planMap[name]=target+' кг';
+        planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
+      }
+    });
+  }
+
   const exHtml=w.exercises.map((ex,i)=>{
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
     const totalSets=Math.max(5,(ex.setsDone||[]).length+1,(ex.extraSets||0)+5);
@@ -883,7 +930,7 @@ function renderDiary(){
     const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n!==w.n).pop();
     const planKg=planMap[ex.name]||'';
-    const planSets=setsMap[ex.name]||'15×3';
+    const planSets=planSetsMap[ex.name]||setsMap[ex.name]||'15×3';
     const kgPlaceholder=planKg?planKg.replace(' кг',''):'кг';
 
     // Сравнение с прошлой тренировкой
@@ -951,6 +998,7 @@ function renderDiary(){
         <div class="week-meta">
           <div class="week-title">Тренировка ${w.n} · ${weekDay(w)}</div>
           <div class="week-date">${w.date||''}${extraInfo?' · '+extraInfo:''}</div>
+          ${waveInfo?`<div style="margin-top:4px"><span class="plan-hint" style="background:rgba(41,128,185,.14);color:#2980b9">🌊 ${waveInfo.stage.label} неделя${waveInfo.cycleNumber>0?' · круг '+(waveInfo.cycleNumber+1):''}</span></div>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge ${badgeCls}">${badgeTxt}</span>
