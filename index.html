@@ -403,6 +403,11 @@ tr.tr-done td{color:var(--text3)}
         <div class="btn-row"><button class="btn btn-red" onclick="forceSave()">Сохранить сейчас</button><span class="saved" id="force-msg">Сохранено ✓</span></div>
       </div>
       <div class="export-card">
+        <h3>🕐 Автобэкапы (последние 14 дней)</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Каждый день при сохранении автоматически создаётся снимок данных — на случай если основная копия повредится или обнулится.</p>
+        <div id="cloud-backups-list"><p style="color:var(--text3);font-size:13px">Загрузка...</p></div>
+      </div>
+      <div class="export-card">
         <h3>💾 Резервная копия</h3>
         <p>Сохрани в заметки телефона на случай если что-то пойдёт не так.</p>
         <textarea class="export-textarea" id="export-text" readonly></textarea>
@@ -417,6 +422,7 @@ tr.tr-done td{color:var(--text3)}
     </div>
   </div>
 </div>
+
 
 <div class="finish-modal-bg" id="finish-modal-bg">
   <div class="finish-modal">
@@ -737,12 +743,69 @@ async function saveToFirebase(){
     setSyncStatus('⟳',false);
     await db.collection('users').doc(currentUser.uid).set({state,updatedAt:new Date().toISOString()});
     try{localStorage.setItem('vl_'+currentUser.uid,JSON.stringify(state));}catch(e){}
+    backupToFirebase(); // фоновый ежедневный снимок — не ждём его завершения
     setSyncStatus('✓',true);
   }catch(e){
     setSyncStatus('✗',false,true);
     try{localStorage.setItem('vl_'+currentUser.uid,JSON.stringify(state));}catch(e2){}
   }
 }
+
+// Ежедневный снимок данных в отдельной подколлекции Firestore. Живёт независимо
+// от основного документа users/{uid} — если тот когда-нибудь будет случайно
+// обнулён (как это уже однажды произошло), прошлые снимки останутся целы.
+async function backupToFirebase(){
+  if(!currentUser||!dataLoaded)return;
+  try{
+    const today=new Date().toISOString().slice(0,10); // YYYY-MM-DD — один снимок в день
+    await db.collection('users').doc(currentUser.uid).collection('backups').doc(today)
+      .set({state,savedAt:new Date().toISOString()});
+  }catch(e){/* бэкап не критичен для основной работы — молча игнорируем сбой */}
+}
+
+// Показывает список последних облачных снимков на странице "Ещё"
+async function renderCloudBackups(){
+  const el=document.getElementById('cloud-backups-list');
+  if(!el||!currentUser)return;
+  el.innerHTML='<p style="color:var(--text3);font-size:13px">Загрузка...</p>';
+  try{
+    const snap=await db.collection('users').doc(currentUser.uid).collection('backups')
+      .orderBy('savedAt','desc').limit(14).get();
+    if(snap.empty){el.innerHTML='<p style="color:var(--text3);font-size:13px">Бэкапов пока нет — появятся после следующего сохранения.</p>';return;}
+    el.innerHTML=snap.docs.map(doc=>{
+      const d=doc.data();
+      const weeksCount=(d.state&&d.state.weeks||[]).length;
+      let dateLabel=doc.id;
+      try{dateLabel=new Date(d.savedAt).toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}catch(e){}
+      return `<div class="trash-item">
+        <div class="trash-item-title">${dateLabel}</div>
+        <div class="trash-item-meta">${weeksCount} трен. в снимке</div>
+        <div class="trash-item-btns">
+          <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="restoreCloudBackup('${doc.id}')">↩️ Восстановить этот снимок</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML='<p style="color:var(--red);font-size:13px">Не удалось загрузить список снимков.</p>';
+  }
+}
+
+window.restoreCloudBackup=async function(dateId){
+  if(!confirm('Заменить текущие данные снимком за '+dateId+'? Всё, что было сделано после этой даты, будет потеряно.'))return;
+  try{
+    const doc=await db.collection('users').doc(currentUser.uid).collection('backups').doc(dateId).get();
+    if(!doc.exists){alert('Снимок не найден');return;}
+    state=doc.data().state;
+    dataLoaded=true;
+    document.body.classList.toggle('dark',!!state.dark);
+    migrateTemplates();migrateSeq();
+    updateDarkBtn();updateSummary();renderTabs();renderDiary();
+    await saveToFirebase();
+    alert('Восстановлено из снимка за '+dateId);
+  }catch(e){
+    alert('Ошибка восстановления: '+e.message);
+  }
+};
 
 function scheduleSave(){if(!dataLoaded)return;if(saveTO)clearTimeout(saveTO);saveTO=setTimeout(()=>saveToFirebase(),1500);}
 function setSyncStatus(t,ok,err){const el=document.getElementById('sync-status');if(el){el.textContent=t;el.className='sync-status'+(ok?' ok':err?' err':'');}}
@@ -759,7 +822,7 @@ window.showPage=function(p){
   if(p==='cardio')renderCardio();
   if(p==='weight')renderWeight();
   if(p==='stats')renderStats();
-  if(p==='settings'){renderTrash();renderExport();}
+  if(p==='settings'){renderTrash();renderExport();renderCloudBackups();}
 };
 
 window.setPreset=function(s){timer.preset=s;timer.rem=s;if(!timer.running)renderTimerUI();[60,75,90,180].forEach(t=>{const b=document.getElementById('tp'+t);if(b)b.className='tp-btn'+(t===s?' sel':'');});};
@@ -1759,7 +1822,7 @@ window.deleteWeight=function(idx){
   scheduleSave();renderWeight();
 };
 window.copyExport=function(){const el=document.getElementById('export-text');if(!el)return;el.select();try{document.execCommand('copy');}catch(e){navigator.clipboard?.writeText(el.value);}const m=document.getElementById('copy-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
-window.doImport=function(){const v=document.getElementById('import-text')?.value.trim();if(!v)return;try{state=JSON.parse(v);saveToFirebase();updateSummary();renderTabs();renderDiary();const m=document.getElementById('import-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}}catch(e){alert('Ошибка: неверный формат');}};
+window.doImport=function(){const v=document.getElementById('import-text')?.value.trim();if(!v)return;try{state=JSON.parse(v);dataLoaded=true;saveToFirebase();updateSummary();renderTabs();renderDiary();const m=document.getElementById('import-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}}catch(e){alert('Ошибка: неверный формат');}};
 
 const initH=window.innerHeight;
 window.addEventListener('resize',()=>{document.body.classList.toggle('keyboard-open',initH-window.innerHeight>150);});
