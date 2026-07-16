@@ -13,12 +13,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0d0d0d">
+<meta name="theme-color" content="#1a1a2e">
 <title>Дневник тренировок</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#f0f0f0;--card:#fff;--hdr:#0d0d0d;--hdr2:#000;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e8935c;--red-on:#fff;--pr-fg:#e8935c;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#111;--pr-color:#e8935c;--timer-fixed:#0d0d0d}
-body.dark{--bg:#0f0f0f;--card:#1c1c1e;--hdr:#000;--hdr2:#000;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--input:#2c2c2e;--input-bg:#2c2c2e;--tab-bg:#1c1c1e;--tab-border:#333;--chip-bg:#2c2c2e;--modal:#1c1c1e;--pr-bg:#000;--pr-color:#f0a06e;--red:#f0a06e;--red-on:#1a1a1a;--timer-fixed:#000}
+:root{--bg:#f0f0f0;--card:#fff;--hdr:#1a1a2e;--hdr2:#16213e;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e94560;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#e8f8f0;--pr-color:#1a7a4a;--timer-fixed:#1a1a2e}
+body.dark{--bg:#0f0f0f;--card:#1c1c1e;--hdr:#000;--hdr2:#111;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--input:#2c2c2e;--input-bg:#2c2c2e;--tab-bg:#1c1c1e;--tab-border:#333;--chip-bg:#2c2c2e;--modal:#1c1c1e;--pr-bg:#0a2a1a;--pr-color:#4ade80;--timer-fixed:#000}
 body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;transition:background .2s,color .2s}
 
 .login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--hdr);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:24px}
@@ -30,14 +30,14 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .login-input::placeholder{color:#888}
 .login-input:focus{border-color:var(--red)}
 .login-btn{width:100%;padding:13px;font-size:15px;font-weight:600;border:none;border-radius:10px;cursor:pointer;font-family:inherit}
-.login-btn-main{background:var(--red);color:var(--red-on)}
+.login-btn-main{background:var(--red);color:#fff}
 .login-btn-sec{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
 .login-err{color:#ff6b6b;font-size:12px;text-align:center;min-height:16px}
 .login-toggle{color:#aaaacc;font-size:12px;text-align:center;margin-top:4px;cursor:pointer}
 .login-toggle span{color:var(--red);text-decoration:underline}
 
 .user-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.1)}
-.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--red-on);flex-shrink:0}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
 .user-name{font-size:12px;color:#ddd;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sync-status{font-size:10px;color:#aaa;flex-shrink:0}
 .sync-status.ok{color:#4ade80}
@@ -77,37 +77,32 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .week-meta .week-date{font-size:11px;color:var(--text3);margin-top:2px}
 .badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
 .badge-done{background:var(--green-bg);color:var(--green)}
-.badge-current{background:#fbe6d3;color:#8a4a1f}
+.badge-current{background:#ffeaea;color:var(--red)}
 .badge-up{background:var(--input-bg);color:var(--text3)}
 
 .ex-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
 .ex-row{background:var(--input-bg);border-radius:8px;padding:10px;border:1px solid var(--border)}
-.ex-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.ex-name-input{flex:1;font-size:14px;font-weight:700;color:var(--text);border:none;background:transparent;font-family:inherit;padding:0;border-bottom:1px dashed var(--border);outline:none;-webkit-appearance:none;min-width:0}
+.ex-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ex-name-input{flex:1;font-size:13px;font-weight:600;color:var(--text);border:none;background:transparent;font-family:inherit;padding:0;border-bottom:1px dashed var(--border);outline:none;-webkit-appearance:none;min-width:0}
 .ex-name-input:focus{border-bottom-color:var(--red)}
-.ex-del{background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:2px 2px;flex-shrink:0}
-.ex-pr{font-size:10px;font-weight:700;background:var(--pr-bg);color:var(--pr-color);padding:3px 8px;border-radius:10px;flex-shrink:0}
+.ex-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0}
+.ex-pr{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:2px 7px;border-radius:10px;flex-shrink:0}
 
-.sets-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding:0 1px}
-.sets-label{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:.3px;text-transform:uppercase}
-.sets-plan-hint{font-size:11px;color:var(--text3)}
-.sets-wrap{display:flex;align-items:center;gap:6px;margin-bottom:10px;min-width:0}
-.sets-btns{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.sets-btns::-webkit-scrollbar{display:none}
-.set-btn{flex:1 1 0;min-width:26px;height:36px;border-radius:9px;border:1.5px solid var(--border);background:var(--input);color:var(--text3);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
-.set-btn.done{background:var(--red);color:var(--red-on);border-color:var(--red)}
+.sets-wrap{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.sets-label{font-size:11px;color:var(--text3);flex-shrink:0}
+.sets-btns{display:flex;gap:5px}
+.set-btn{width:34px;height:34px;border-radius:7px;border:1.5px solid var(--border);background:var(--input);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
+.set-btn.done{background:var(--red);color:#fff;border-color:var(--red)}
 
-.ex-inputs{display:flex;gap:8px;background:var(--input-bg);border-radius:10px;padding:10px;margin-bottom:8px;min-width:0}
-.field{flex:1;min-width:0}
-.field label{font-size:10px;color:var(--text3);font-weight:700;display:block;margin-bottom:4px;letter-spacing:.2px}
-.num-row{display:flex;align-items:center;gap:4px;width:100%;min-width:0}
-.num-btn{width:26px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--input);color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.num-btn:active{background:var(--red);color:var(--red-on);border-color:var(--red)}
-.num-input{flex:1;min-width:0;height:30px;padding:0 2px;font-size:14px;border:1px solid var(--border);border-radius:7px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;font-weight:700}
-.num-input:focus{outline:none;border-color:var(--red);border-width:1.5px}
-.field.field-kg .num-input{border-color:var(--red);border-width:1.5px}
+.ex-inputs{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;color:var(--text3);display:block;margin-bottom:4px}
+.num-row{display:flex;align-items:center;gap:3px;width:100%}
+.num-btn{width:32px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);font-size:16px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.num-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
+.num-input{flex:1;padding:6px 2px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;min-width:0;font-weight:600}
+.num-input:focus{outline:none;border-color:var(--red)}
 .hist-hint{font-size:10px;color:var(--text3);margin-top:3px}
-.plan-hint{display:inline-block;font-size:10px;font-weight:700;background:rgba(232,147,92,0.14);color:var(--red);border-radius:5px;padding:2px 7px;margin-top:4px;letter-spacing:0.2px}
+.plan-hint{display:inline-block;font-size:10px;font-weight:700;background:rgba(233,69,96,0.12);color:var(--red);border-radius:5px;padding:2px 7px;margin-top:4px;letter-spacing:0.2px}
 
 .note-wrap label{font-size:12px;color:var(--text3);display:block;margin-bottom:4px}
 .note-wrap textarea{width:100%;padding:8px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;resize:none}
@@ -115,7 +110,7 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
 .btn{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500}
-.btn-red{background:var(--red);color:var(--red-on);border-color:var(--red)}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
 .btn-green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
 .btn-outline{border-color:var(--red);color:var(--red);background:transparent}
 .saved{font-size:12px;color:var(--green);display:none}
@@ -129,14 +124,14 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 .timer-presets{display:flex;gap:5px;flex:1;flex-wrap:wrap}
 .tp-btn{padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:11px;cursor:pointer;font-family:inherit}
 .tp-btn.sel{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5)}
-.timer-start{padding:7px 14px;border-radius:8px;border:none;background:var(--red);color:var(--red-on);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0}
+.timer-start{padding:7px 14px;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0}
 
 .chart-wrap{padding:12px;display:flex;flex-direction:column;gap:10px}
 .chart-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
 .chart-card h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
 .chart-sel{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .chart-sel-btn{padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit}
-.chart-sel-btn.active{background:var(--red);color:var(--red-on);border-color:var(--red)}
+.chart-sel-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
 canvas{width:100%!important;max-width:100%;display:block}
 .pr-list{display:flex;flex-direction:column;gap:6px}
 .pr-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--input-bg);border-radius:8px;font-size:13px}
@@ -188,7 +183,7 @@ tr.tr-done td{color:var(--text3)}
 .btn-finish-cancel{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit}
 .ex-move-btn{background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;padding:3px 6px;line-height:1.2;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
 .ex-move-btn:disabled{opacity:0.2;cursor:default}
-.ex-move-btn:active:not(:disabled){background:var(--red);color:var(--red-on);border-color:var(--red)}
+.ex-move-btn:active:not(:disabled){background:var(--red);color:#fff;border-color:var(--red)}
 .ex-alt-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:0.7}
 .ex-alt-btn:active{opacity:1}
 .trash-item{background:var(--input-bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
@@ -208,7 +203,7 @@ tr.tr-done td{color:var(--text3)}
 .alt-item-sets{font-size:11px;color:var(--text3)}
 
 .cardio-type-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
-.cardio-type-btn.active{background:var(--red);color:var(--red-on);border-color:var(--red)}
+.cardio-type-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
 .cardio-history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--input-bg);border-radius:10px;margin-bottom:6px}
 .cardio-history-left{display:flex;flex-direction:column;gap:2px}
 .cardio-history-type{font-size:13px;font-weight:600;color:var(--text)}
@@ -885,7 +880,7 @@ function renderDiary(){
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
     const totalSets=Math.max(5,(ex.setsDone||[]).length+1,(ex.extraSets||0)+5);
     const setsBtns=Array.from({length:totalSets},(_,si)=>`<button class="set-btn${(ex.setsDone||[]).includes(si)?' done':''}" onclick="toggleSet(${w.n},${i},${si})">${si+1}</button>`).join('');
-    const addSetBtn=`<button class="set-btn" style="flex:0 0 36px;background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
+    const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n!==w.n).pop();
     const planKg=planMap[ex.name]||'';
     const planSets=setsMap[ex.name]||'15×3';
@@ -914,21 +909,21 @@ function renderDiary(){
         <input type="text" class="ex-name-input" value="${ex.name}" onchange="updateEx(${w.n},${i},'name',this.value)" placeholder="Упражнение">
         ${pr?'<span class="ex-pr">🏆 ПР</span>':''}
         ${alternativesMap[ex.name]?`<button class="ex-alt-btn" onclick="openAltModal(${w.n},${i})" title="Аналоги">🔄</button>`:''}
+        <button class="ex-del" onclick="delEx(${w.n},${i})">✕</button>
       </div>
-      <div class="sets-head"><span class="sets-label">Подходы</span><span class="sets-plan-hint">план: ${planSets}</span></div>
-      <div class="sets-wrap"><div class="sets-btns">${setsBtns}</div>${addSetBtn}</div>
+      <div class="sets-wrap"><span class="sets-label">Подходы:</span><div class="sets-btns">${setsBtns}${addSetBtn}</div></div>
       <div class="ex-inputs">
-        <div class="field field-kg">
-          <label>ВЕС, КГ</label>
+        <div class="field">
+          <label>Вес (кг)</label>
           <div class="num-row">
             <button class="num-btn" onclick="changeKg(${w.n},${i},-2.5)">−</button>
-            <input class="num-input" type="number" inputmode="decimal" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
+            <input class="num-input" type="number" inputmode="decimal" min="0" max="500" step="0.5" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
           ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}
         </div>
         <div class="field">
-          <label>ПОВТОРЫ</label>
+          <label>Повторы</label>
           <div class="num-row">
             <button class="num-btn" onclick="changeSets(${w.n},${i},-1)">−</button>
             <input class="num-input" type="text" placeholder="${planSets}" value="${ex.sets}" onchange="updateEx(${w.n},${i},'sets',this.value)">
@@ -938,7 +933,6 @@ function renderDiary(){
         </div>
       </div>
       ${compareHtml}
-      <div style="text-align:right;margin-top:6px"><button class="ex-del" onclick="delEx(${w.n},${i})">✕ удалить</button></div>
     </div>`;
   }).join('');
 
@@ -978,10 +972,43 @@ function renderDiary(){
 }
 
 window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);if(ex.setsDone.length===5)setTimeout(()=>startTimer(timer.preset),200);}scheduleSave();renderDiary();};
-window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10));scheduleSave();recheckPR(wn,i);renderDiary();};
+window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.min(500,Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10)));scheduleSave();recheckPR(wn,i);renderDiary();};
 window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'15×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'15×3';scheduleSave();renderDiary();};
 window.recheckPR=function(wn,i){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.pr=checkPR(wn,i);scheduleSave();updateSummary();};
-window.updateEx=function(wn,i,f,v){const w=getWeek(wn);if(w&&w.exercises[i])w.exercises[i][f]=v;scheduleSave();};
+window.updateEx=function(wn,i,f,v){
+  const w=getWeek(wn);if(!w||!w.exercises[i])return;
+  const ex=w.exercises[i];
+  if(f==='kg'){
+    const t=String(v).trim().replace(',','.');
+    if(t===''){ex.kg='';scheduleSave();return;}
+    const n=parseFloat(t);
+    if(isNaN(n)||n<0||n>500){
+      alert('Введи вес от 0 до 500 кг');
+      renderDiary();
+      return;
+    }
+    ex.kg=String(Math.round(n*10)/10);
+    scheduleSave();
+    renderDiary();
+    return;
+  }
+  if(f==='sets'){
+    const t=String(v).trim();
+    if(t===''){ex.sets='';scheduleSave();return;}
+    const m=t.match(/^(\d{1,3})\s*[x×]\s*(\d{1,2})$/i);
+    if(!m||parseInt(m[1])<1||parseInt(m[2])<1){
+      alert('Формат: повторения×подходы, например 15×3');
+      renderDiary();
+      return;
+    }
+    ex.sets=`${parseInt(m[1])}×${parseInt(m[2])}`;
+    scheduleSave();
+    renderDiary();
+    return;
+  }
+  ex[f]=v;
+  scheduleSave();
+};
 window.updateNote=function(wn,v){const w=getWeek(wn);if(w)w.note=v;scheduleSave();};
 window.delEx=function(wn,i){const w=getWeek(wn);if(w){w.exercises.splice(i,1);scheduleSave();renderDiary();}};
 
@@ -1058,7 +1085,7 @@ window.deleteFromTrash=function(idx){
   scheduleSave();renderTrash();
 };
 window.doSave=async function(wn){await saveToFirebase();const el=document.getElementById('smsg');if(el){el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}updateSummary();};
-window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date)w.date=fmtDate(new Date());scheduleSave();updateSummary();renderTabs();renderDiary();if(document.getElementById('page-stats')?.classList.contains('active'))renderStats();}};
+window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date){w.date=fmtDate(new Date());}if(w.done&&!w.finishedAt){w.finishedAt=new Date().toISOString();}scheduleSave();updateSummary();renderTabs();renderDiary();if(document.getElementById('page-stats')?.classList.contains('active'))renderStats();}};
 window.forceSave=async function(){await saveToFirebase();const m=document.getElementById('force-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
 
 // Finish workout modal
@@ -1229,6 +1256,59 @@ function renderStats(){
     return{n:w.n,vol:Math.round(vol)};
   });
 
+  // ДОЛГОСРОЧНАЯ АНАЛИТИКА — группировка по месяцам
+  const monthKey=iso=>{const d=new Date(iso);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+  const monthLabel=key=>{const[y,m]=key.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});};
+  const monthlyMap={};
+  done.forEach(w=>{
+    if(!w.finishedAt)return;
+    const key=monthKey(w.finishedAt);
+    if(!monthlyMap[key])monthlyMap[key]={vol:0,workouts:0,prs:0,kgByEx:{}};
+    const m=monthlyMap[key];
+    m.workouts++;
+    w.exercises.forEach(ex=>{
+      const kg=parseFloat(ex.kg)||0;
+      const sets=(ex.setsDone||[]).length;
+      const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;
+      m.vol+=kg*sets*reps;
+      if(ex.pr)m.prs++;
+      if(kg>0&&(!m.kgByEx[ex.name]||kg>m.kgByEx[ex.name]))m.kgByEx[ex.name]=kg;
+    });
+  });
+  const monthKeys=Object.keys(monthlyMap).sort();
+
+  // Скорость прогресса (кг/месяц) для базовых упражнений
+  const mainLifts=['Присед со штангой','Становая тяга','Жим лёжа'];
+  const progressRateHtml=mainLifts.map(name=>{
+    const pts=monthKeys.filter(k=>monthlyMap[k].kgByEx[name]!=null).map(k=>({key:k,kg:monthlyMap[k].kgByEx[name]}));
+    if(pts.length<2)return `<div class="finish-ex-item"><span class="finish-ex-name">${name}</span><span class="finish-ex-val" style="color:var(--text3)">мало данных</span></div>`;
+    const first=pts[0],last=pts[pts.length-1];
+    const[fy,fm]=first.key.split('-').map(Number);const[ly,lm]=last.key.split('-').map(Number);
+    let diffMonths=(ly-fy)*12+(lm-fm);if(diffMonths<1)diffMonths=1;
+    const rate=Math.round((last.kg-first.kg)/diffMonths*10)/10;
+    const rateColor=rate>0?'var(--green)':rate<0?'var(--red)':'var(--text3)';
+    const rateStr=rate>0?`+${rate}`:`${rate}`;
+    return `<div class="finish-ex-item"><span class="finish-ex-name">${name}</span><span class="finish-ex-val" style="color:${rateColor}">${rateStr} кг/мес</span></div>`;
+  }).join('');
+
+  // Сравнение месяцев: текущий vs предыдущий
+  const now=new Date();const currKey=monthKey(now.toISOString());
+  const prevD=new Date(now.getFullYear(),now.getMonth()-1,1);const prevKey=monthKey(prevD.toISOString());
+  const curr=monthlyMap[currKey]||{vol:0,workouts:0,prs:0};
+  const prev=monthlyMap[prevKey]||{vol:0,workouts:0,prs:0};
+  const pctDiff=(c,p)=>p>0?Math.round((c-p)/p*100):(c>0?100:0);
+  const compareRow=(label,c,p,unit)=>{
+    const diff=p>0?pctDiff(c,p):null;
+    const diffHtml=diff===null?'':`<span style="font-size:11px;color:${diff>=0?'var(--green)':'var(--red)'};margin-left:6px">${diff>=0?'▲':'▼'} ${Math.abs(diff)}%</span>`;
+    return `<div class="finish-ex-item"><span class="finish-ex-name">${label}</span><span class="finish-ex-val">${Math.round(c)}${unit}${diffHtml}</span></div>`;
+  };
+  const comparisonHtml=`
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${monthLabel(currKey)} vs ${monthLabel(prevKey)}</div>
+    ${compareRow('Объём (тоннаж)',curr.vol,prev.vol,' кг')}
+    ${compareRow('Тренировок',curr.workouts,prev.workouts,'')}
+    ${compareRow('Рекордов (ПР)',curr.prs,prev.prs,'')}`;
+
+
   // История тренировок
   const historyHtml=[...done].reverse().slice(0,10).map(w=>{
     const vol=w.exercises.reduce((s,ex)=>{
@@ -1265,7 +1345,7 @@ function renderStats(){
         ${['Пн A','Ср B','Пт C'].map((label,i)=>{
           const w=state.weeks[weekStart+i];
           const color=w?(w.done?'var(--green)':'var(--red)'):'var(--border)';
-          const bg=w?(w.done?'var(--green-bg)':'#fbe6d3'):'var(--input-bg)';
+          const bg=w?(w.done?'var(--green-bg)':'#ffeaea'):'var(--input-bg)';
           return `<div style="flex:1;text-align:center;padding:8px;border-radius:8px;background:${bg};border:1px solid ${color}">
             <div style="font-size:11px;font-weight:600;color:${color}">${label}</div>
             <div style="font-size:10px;color:var(--text3);margin-top:2px">${w?(w.done?'✓ '+w.date:'Ожидает'):'—'}</div>
@@ -1297,17 +1377,37 @@ function renderStats(){
       <canvas id="statsVolChart" height="160"></canvas>
     </div>
     <div class="stat-big">
+      <h3>📆 Долгосрочная динамика</h3>
+      ${monthKeys.length?`<canvas id="statsMonthlyChart" height="160"></canvas>`:'<p style="color:var(--text3);font-size:13px;text-align:center;padding:12px">Нужно завершить хотя бы пару тренировок в разных месяцах</p>'}
+      <div style="margin-top:14px">
+        <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px">Скорость прогресса</div>
+        <div class="finish-ex-list">${progressRateHtml}</div>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px">Этот месяц vs прошлый</div>
+        <div class="finish-ex-list">${comparisonHtml}</div>
+      </div>
+    </div>
+    <div class="stat-big">
       <h3>📋 История тренировок</h3>
       ${done.length?historyHtml:'<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Нет завершённых тренировок</p>'}
     </div>`;
 
   setTimeout(()=>{
     const ctx=document.getElementById('statsVolChart')?.getContext('2d');
-    if(!ctx||!window.Chart)return;
-    new window.Chart(ctx,{type:'bar',data:{
-      labels:weekVols.map(v=>`Тр.${v.n}`),
-      datasets:[{label:'Объём кг',data:weekVols.map(v=>v.vol),backgroundColor:'rgba(233,69,96,.7)',borderRadius:6}]
-    },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
+    if(ctx&&window.Chart){
+      new window.Chart(ctx,{type:'bar',data:{
+        labels:weekVols.map(v=>`Тр.${v.n}`),
+        datasets:[{label:'Объём кг',data:weekVols.map(v=>v.vol),backgroundColor:'rgba(233,69,96,.7)',borderRadius:6}]
+      },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
+    }
+    const mctx=document.getElementById('statsMonthlyChart')?.getContext('2d');
+    if(mctx&&window.Chart&&monthKeys.length){
+      new window.Chart(mctx,{type:'bar',data:{
+        labels:monthKeys.map(monthLabel),
+        datasets:[{label:'Объём кг/мес',data:monthKeys.map(k=>Math.round(monthlyMap[k].vol)),backgroundColor:'rgba(41,128,185,.7)',borderRadius:6}]
+      },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
+    }
   },100);
 }
 
