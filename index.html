@@ -575,18 +575,21 @@ const WAVE_CYCLE=[
 const WAVE_CYCLE_INCREMENT=2.5;
 
 function getPhase2Base(name){
-  // Тренировочный максимум = лучший вес, показанный ДО начала Фазы 2
+  // Тренировочный максимум = лучший вес, показанный ДО начала Фазы 2.
+  // Используем w.seq (постоянный номер по порядку создания), а не w.n —
+  // w.n меняется при удалении тренировок из середины истории (renumbering),
+  // а w.seq присваивается один раз при создании и никогда не пересчитывается.
   let best=0;
   state.weeks.forEach(w=>{
-    if(w.n>=PHASE2_START)return;
+    if((w.seq??w.n)>=PHASE2_START)return;
     const ex=w.exercises.find(e=>e.name===name);
     if(ex&&parseFloat(ex.kg)>best)best=parseFloat(ex.kg);
   });
   return best;
 }
 
-function getWaveInfo(wn){
-  const weekGroup=Math.floor((wn-1)/3);
+function getWaveInfo(seq){
+  const weekGroup=Math.floor((seq-1)/3);
   const startGroup=Math.floor((PHASE2_START-1)/3);
   const offset=weekGroup-startGroup;
   if(offset<0)return null;
@@ -598,6 +601,7 @@ function getWaveInfo(wn){
 let state={weeks:[],active:1,dark:false};
 let currentUser=null;
 let saveTO=null;
+let dataLoaded=false; // true только когда state подтверждён загруженным (из облака или локального бэкапа) — до этого сохранение запрещено
 let timer={iv:null,rem:90,preset:90,running:false};
 let modalWeek=null;
 let chartInst=null;
@@ -605,8 +609,31 @@ let chartEx='Присед со штангой';
 let isRegMode=false;
 
 function fmtDate(d){return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
-function initState(){const now=new Date();return{weeks:DEF_EX.map((exs,idx)=>({n:idx+1,type:['A','B','C'][idx],done:false,note:'',date:fmtDate(new Date(now.getTime()+idx*2*86400000)),exercises:exs.map(name=>({name,kg:'',sets:'',setsDone:[],pr:false}))})),active:1,dark:false};}
+function initState(){const now=new Date();return{weeks:DEF_EX.map((exs,idx)=>({n:idx+1,seq:idx+1,type:['A','B','C'][idx],done:false,note:'',date:fmtDate(new Date(now.getTime()+idx*2*86400000)),exercises:exs.map(name=>({name,kg:'',sets:'',setsDone:[],pr:false}))})),active:1,dark:false,seqCounter:DEF_EX.length};}
 function getWeek(n){return state.weeks.find(w=>w.n===n);}
+
+// Выдаёт следующий постоянный порядковый номер для новой тренировки.
+// В отличие от w.n (который пересчитывается при удалении из корзины),
+// seq присваивается один раз и не меняется — на нём держится граница Фазы 2.
+function nextSeq(){
+  if(!state.seqCounter){
+    let maxSeq=0;
+    (state.weeks||[]).forEach(w=>{maxSeq=Math.max(maxSeq,w.seq||w.n||0);});
+    (state.trash||[]).forEach(w=>{maxSeq=Math.max(maxSeq,w.seq||w.n||0);});
+    state.seqCounter=maxSeq;
+  }
+  state.seqCounter++;
+  return state.seqCounter;
+}
+
+// Для данных, сохранённых до введения seq — присваиваем seq=n один раз,
+// чтобы граница Фазы 2 не сдвинулась для уже существующих тренировок.
+function migrateSeq(){
+  let changed=false;
+  (state.weeks||[]).forEach(w=>{if(w.seq==null){w.seq=w.n;changed=true;}});
+  (state.trash||[]).forEach(w=>{if(w.seq==null){w.seq=w.n;changed=true;}});
+  if(changed)scheduleSave();
+}
 
 // Auth UI
 window.toggleMode=function(){
@@ -665,24 +692,47 @@ auth.onAuthStateChanged(async user=>{
 
 async function loadFromFirebase(){
   if(!currentUser)return;
+  dataLoaded=false;
   try{
     setSyncStatus('⟳',false);
     const snap=await db.collection('users').doc(currentUser.uid).get();
-    if(snap.exists){state=snap.data().state||initState();}
-    else{state=initState();await saveToFirebase();}
+    const isNew=!snap.exists;
+    state=isNew?initState():(snap.data().state||initState());
     if(state.dark)document.body.classList.add('dark');
     migrateTemplates();
+    migrateSeq();
+    dataLoaded=true; // данные подтверждены облаком — теперь сохранение разрешено
     updateDarkBtn();updateSummary();renderTabs();renderDiary();
     setSyncStatus('✓',true);
+    if(isNew)await saveToFirebase(); // создаём документ для нового аккаунта
   }catch(e){
-    setSyncStatus('✗',false,true);
-    try{const s=localStorage.getItem('vl_'+currentUser.uid);if(s)state=JSON.parse(s);}catch(e2){}
-    updateSummary();renderTabs();renderDiary();
+    // Firestore недоступен — пробуем последний локальный бэкап этого браузера.
+    // Если бэкапа тоже нет — НЕ помечаем dataLoaded=true на пустом состоянии,
+    // иначе следующее автосохранение может затереть реальные данные в облаке.
+    let s=null;
+    try{s=localStorage.getItem('vl_'+currentUser.uid);}catch(e2){}
+    if(s){
+      try{
+        state=JSON.parse(s);
+        if(state.dark)document.body.classList.add('dark');
+        migrateTemplates();
+        migrateSeq();
+        dataLoaded=true;
+        updateDarkBtn();updateSummary();renderTabs();renderDiary();
+        setSyncStatus('📴 Офлайн-копия',false);
+      }catch(e3){
+        setSyncStatus('✗ Ошибка данных',false,true);
+      }
+    }else{
+      setSyncStatus('✗ Нет связи',false,true);
+      const el=document.getElementById('diary-content');
+      if(el)el.innerHTML='<div class="card" style="text-align:center;color:var(--text3);padding:20px">Не удалось загрузить данные.<br>Проверь интернет-соединение и обнови страницу.<br><br><button class="btn btn-red" onclick="location.reload()">Обновить</button></div>';
+    }
   }
 }
 
 async function saveToFirebase(){
-  if(!currentUser)return;
+  if(!currentUser||!dataLoaded)return; // блокируем запись, пока реальные данные не подтверждены загруженными
   try{
     setSyncStatus('⟳',false);
     await db.collection('users').doc(currentUser.uid).set({state,updatedAt:new Date().toISOString()});
@@ -694,7 +744,7 @@ async function saveToFirebase(){
   }
 }
 
-function scheduleSave(){if(saveTO)clearTimeout(saveTO);saveTO=setTimeout(()=>saveToFirebase(),1500);}
+function scheduleSave(){if(!dataLoaded)return;if(saveTO)clearTimeout(saveTO);saveTO=setTimeout(()=>saveToFirebase(),1500);}
 function setSyncStatus(t,ok,err){const el=document.getElementById('sync-status');if(el){el.textContent=t;el.className='sync-status'+(ok?' ok':err?' err':'');}}
 
 window.toggleDark=function(){state.dark=!state.dark;document.body.classList.toggle('dark',state.dark);updateDarkBtn();scheduleSave();};
@@ -918,7 +968,7 @@ function renderDiary(){
   }
 
   // Фаза 2 — волновая периодизация для базовых упражнений
-  const waveInfo=getWaveInfo(w.n);
+  const waveInfo=getWaveInfo(w.seq??w.n);
   const planSetsMap={};
   if(waveInfo){
     const{stage,cycleNumber}=waveInfo;
@@ -1483,7 +1533,7 @@ window.applyTemplate=function(id){
   const last=state.weeks[state.weeks.length-1];
   const n=last?last.n+1:1;
   const exs=tmpl.exercises.map(name=>({name,kg:'',sets:'',setsDone:[],pr:false}));
-  state.weeks.push({n,done:false,note:'',date:fmtDate(new Date()),type:'custom',exercises:exs});
+  state.weeks.push({n,seq:nextSeq(),done:false,note:'',date:fmtDate(new Date()),type:'custom',exercises:exs});
   state.active=n;
   scheduleSave();updateSummary();renderTabs();renderDiary();
   document.getElementById('tmpl-modal-bg').classList.remove('show');
@@ -1723,7 +1773,7 @@ renderTimerUI();
 // несколько секунд правок (например, только что отмеченный подход)
 // могут не успеть уйти в Firestore из-за дебаунса в scheduleSave()
 function flushSave(){
-  if(!currentUser)return;
+  if(!currentUser||!dataLoaded)return; // saveToFirebase уже проверяет это, но проверяем явно и здесь
   if(saveTO){clearTimeout(saveTO);saveTO=null;}
   saveToFirebase();
 }
@@ -1735,9 +1785,14 @@ if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(reg => {
       console.log('SW registered');
-      // При появлении интернета — синхронизировать
+      // При появлении интернета — если данные ещё не были загружены (например,
+      // открыли приложение полностью офлайн без локального бэкапа), сначала
+      // пробуем ЗАГРУЗИТЬ реальные данные, а не сразу отправлять то, что в памяти
       window.addEventListener('online', () => {
-        if(currentUser) saveToFirebase();
+        if(currentUser){
+          if(!dataLoaded)loadFromFirebase();
+          else saveToFirebase();
+        }
         setSyncStatus('✓ Синхронизировано',true);
       });
       window.addEventListener('offline', () => {
