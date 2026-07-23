@@ -593,6 +593,27 @@ function calcNextWeight(exName,beforeN){
   return{kg:last.kg,advance:false};
 }
 
+// Упражнения на собственном весе — в общий объём считаем вес тела (на дату тренировки) + доп.отягощение
+const BODYWEIGHT_EXERCISES=['Подтягивания','Отжимания на брусьях'];
+function getBodyweightKg(dateIso){
+  const log=state.weightLog;
+  if(!log||!log.length)return null;
+  const sorted=[...log].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!dateIso)return sorted[sorted.length-1].kg;
+  const target=new Date(dateIso).getTime();
+  let candidate=sorted[0];
+  for(const e of sorted){if(new Date(e.date).getTime()<=target)candidate=e;}
+  return candidate.kg;
+}
+function getExerciseLoad(ex,dateIso){
+  const added=parseFloat(ex.kg)||0;
+  if(BODYWEIGHT_EXERCISES.includes(ex.name)){
+    const bw=getBodyweightKg(dateIso);
+    if(bw)return bw+added;
+  }
+  return added;
+}
+
 let state={weeks:[],active:1,dark:false};
 let currentUser=null;
 let saveTO=null;
@@ -1107,7 +1128,7 @@ window.openFinishModal=function(wn){
     const sets=(ex.setsDone||[]).length;
     totalSets+=sets;
     if(sets>0)exDone++;
-    const kg=parseFloat(ex.kg)||0;
+    const kg=getExerciseLoad(ex,now.toISOString());
     const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
     totalVol+=kg*sets*reps;
   });
@@ -1206,7 +1227,7 @@ function renderStats(){
   const totalKcalStr=done.filter(w=>w.kcal).reduce((s,w)=>s+w.kcal,0);
   let totalVol=0;
   state.weeks.forEach(w=>w.exercises.forEach(ex=>{
-    const kg=parseFloat(ex.kg)||0;
+    const kg=getExerciseLoad(ex,w.finishedAt||null);
     const sets=(ex.setsDone||[]).length;
     const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
     totalVol+=kg*sets*reps;
@@ -1245,7 +1266,7 @@ function renderStats(){
   const weekVols=state.weeks.map(w=>{
     let vol=0;
     w.exercises.forEach(ex=>{
-      const kg=parseFloat(ex.kg)||0;
+      const kg=getExerciseLoad(ex,w.finishedAt||null);
       const sets=(ex.setsDone||[]).length||5;
       const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
       vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;
@@ -1256,7 +1277,7 @@ function renderStats(){
   // История тренировок
   const historyHtml=[...done].reverse().slice(0,10).map(w=>{
     const vol=w.exercises.reduce((s,ex)=>{
-      const kg=parseFloat(ex.kg)||0;
+      const kg=getExerciseLoad(ex,w.finishedAt||null);
       const sets=(ex.setsDone||[]).length;
       const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
       return s+kg*sets*reps;
@@ -1403,7 +1424,7 @@ function renderChart(){
   if(volCtx){
     const weekVols=state.weeks.map(w=>{
       let vol=0;
-      w.exercises.forEach(ex=>{const kg=parseFloat(ex.kg)||0;const sets=(ex.setsDone||[]).length||0;const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;});
+      w.exercises.forEach(ex=>{const kg=getExerciseLoad(ex,w.finishedAt||null);const sets=(ex.setsDone||[]).length||0;const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;});
       return{n:w.n,vol:Math.round(vol)};
     }).filter(v=>v.vol>0);
     if(window._volChart)window._volChart.destroy();
