@@ -265,6 +265,10 @@ tr.tr-done td{color:var(--text3)}
 .phase-banner.phase-recovery{background:linear-gradient(135deg,#2980b9,#3498db);color:#fff}
 .phase-banner.phase-next{background:linear-gradient(135deg,#8e44ad,#9b59b6);color:#fff}
 
+/* Пока открыт режим тренировки — страница под ним не прокручивается.
+   На iOS одного overflow:hidden мало, нужен position:fixed со смещением. */
+body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bottom:0}
+
 /* РЕЖИМ ТРЕНИРОВКИ */
 .wo{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;display:none;flex-direction:column}
 .wo.show{display:flex}
@@ -274,7 +278,7 @@ tr.tr-done td{color:var(--text3)}
 .wo-x{background:rgba(255,255,255,.12);border:none;color:#fff;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0;font-family:inherit}
 .wo-toggle{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex-shrink:0;line-height:1;opacity:.45;font-family:inherit}
 .wo-toggle.on{background:var(--red);border-color:var(--red);opacity:1}
-.wo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px;display:flex;flex-direction:column;gap:14px}
+.wo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 14px;display:flex;flex-direction:column;gap:14px}
 .wo-exname{font-size:26px;font-weight:700;color:var(--text);line-height:1.2;text-align:center}
 .wo-plan{text-align:center;font-size:13px;color:var(--text3);margin-top:5px}
 .wo-kg{display:flex;align-items:center;gap:10px}
@@ -1622,8 +1626,20 @@ window.confirmFinish=async function(){
   stopTimer();
 };
 // ===== РЕЖИМ ТРЕНИРОВКИ (WAKE LOCK + ЭКРАН БЛОКИРОВКИ) =====
-let woWeekN=null,woIdx=0,woActive=false;
+let woWeekN=null,woIdx=0,woActive=false,woScrollY=0;
 let wakeLock=null,woWakeOn=true,woLockOn=false,bgAudio=null;
+
+// Фиксируем страницу под оверлеем и запоминаем, куда вернуть
+function lockPageScroll(){
+  woScrollY=window.scrollY||window.pageYOffset||0;
+  document.body.style.top=`-${woScrollY}px`;
+  document.body.classList.add('wo-open');
+}
+function unlockPageScroll(){
+  document.body.classList.remove('wo-open');
+  document.body.style.top='';
+  window.scrollTo(0,woScrollY);
+}
 
 // Сколько подходов запланировано у упражнения
 function woSetsCount(ex){
@@ -1641,6 +1657,7 @@ window.openWorkoutMode=function(wn){
   woWeekN=wn;woActive=true;
   const i=w.exercises.findIndex(ex=>(ex.setsDone||[]).length<woSetsCount(ex));
   woIdx=i>-1?i:0;
+  lockPageScroll();
   document.getElementById('wo').classList.add('show');
   if(woWakeOn)requestWakeLock();
   renderWo();
@@ -1649,6 +1666,7 @@ window.openWorkoutMode=function(wn){
 window.closeWorkoutMode=function(){
   woActive=false;
   document.getElementById('wo').classList.remove('show');
+  unlockPageScroll();
   releaseWakeLock();
   stopBgAudio();
   woLockOn=false;
