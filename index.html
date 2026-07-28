@@ -586,7 +586,8 @@ function weekDay(w){
     if(!isNaN(d.getTime()))return WD_SHORT[d.getDay()];
   }
   if(w.type&&TYPE_DAY[w.type])return TYPE_DAY[w.type];
-  return DAYS[(w.n-1)%3];
+  const i=state.weeks?state.weeks.indexOf(w):-1;
+  return DAYS[(i>=0?i:0)%3];
 }
 
 // Предустановленные подходы для каждого упражнения
@@ -751,8 +752,8 @@ const WAVE_CYCLE_INCREMENT=2.5;
 function getPhase2Base(name){
   // Тренировочный максимум = лучший вес, показанный ДО начала Фазы 2
   let best=0;
-  state.weeks.forEach(w=>{
-    if(w.n>=PHASE2_START)return;
+  state.weeks.forEach((w,pos)=>{
+    if(pos>=PHASE2_START-1)return; // позиция, а не идентификатор
     const ex=w.exercises.find(e=>e.name===name);
     if(ex&&parseFloat(ex.kg)>best)best=parseFloat(ex.kg);
   });
@@ -780,8 +781,37 @@ let chartMode='kg';
 let isRegMode=false;
 
 function fmtDate(d){return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
-function initState(){const now=new Date();return{weeks:DEF_EX.map((exs,idx)=>({n:idx+1,type:['A','B','C'][idx],done:false,note:'',date:fmtDate(new Date(now.getTime()+idx*2*86400000)),exercises:exs.map(name=>({name,kg:'',sets:'',setsDone:[],pr:false}))})),active:1,dark:false};}
+function initState(){const now=new Date();return{schema:2,seqCounter:3,weeks:DEF_EX.map((exs,idx)=>({n:idx+1,type:['A','B','C'][idx],done:false,note:'',date:fmtDate(new Date(now.getTime()+idx*2*86400000)),exercises:exs.map(name=>({name,kg:'',sets:'',setsDone:[],pr:false}))})),active:1,dark:false};}
 function getWeek(n){return state.weeks.find(w=>w.n===n);}
+// n — стабильный идентификатор, он НИКОГДА не меняется после создания.
+// Порядок и отображаемый номер берутся из позиции в массиве.
+function weekPos(w){return state.weeks.indexOf(w);}
+function weekPosByN(n){return state.weeks.findIndex(w=>w.n===n);}
+function weekNo(w){const i=state.weeks.indexOf(w);return i>=0?i+1:(w.n||0);}
+function nextSeq(){
+  const maxN=Math.max(0,...(state.weeks||[]).map(w=>w.n||0),...(state.trash||[]).map(w=>w.n||0));
+  state.seqCounter=Math.max(state.seqCounter||0,maxN)+1;
+  return state.seqCounter;
+}
+// Разовая миграция: чиним отсутствующие и дублирующиеся id
+function migrateIds(){
+  let changed=false;
+  const seen=new Set();
+  state.weeks.forEach(w=>{
+    if(typeof w.n!=='number'||!isFinite(w.n)||seen.has(w.n)){w.n=null;changed=true;}
+    else seen.add(w.n);
+  });
+  state.weeks.forEach(w=>{if(w.n==null){w.n=nextSeq();}});
+  const maxN=Math.max(0,...state.weeks.map(w=>w.n||0),...(state.trash||[]).map(w=>w.n||0));
+  if((state.seqCounter||0)<maxN){state.seqCounter=maxN;changed=true;}
+  // Активная вкладка могла указывать на удалённую тренировку
+  if(!state.weeks.some(w=>w.n===state.active)){
+    state.active=state.weeks.length?state.weeks[state.weeks.length-1].n:1;
+    changed=true;
+  }
+  if(state.schema!==2){state.schema=2;changed=true;}
+  return changed;
+}
 
 // Auth UI
 window.toggleMode=function(){
@@ -870,13 +900,14 @@ function normalizeWeights(){
 
 function applyLoadedState(){
   if(state.dark)document.body.classList.add('dark');
+  const idsChanged=migrateIds();
   migrateTemplates();
   const aliasChanged=applyAliases();
   const kgChanged=normalizeWeights();
   // Разовая починка: старые pr считались по номеру строки, а не по упражнению
   const prChanged=recalcAllPRs();
   const trashChanged=purgeTrash();
-  if(aliasChanged||kgChanged||prChanged||trashChanged)scheduleSave();
+  if(idsChanged||aliasChanged||kgChanged||prChanged||trashChanged)scheduleSave();
   refreshExDatalist();
   updateDarkBtn();updateSummary();renderTabs();renderDiary();
 }
@@ -973,8 +1004,9 @@ function checkPR(wn,i){
   const kg=parseFloat(ex.kg);
   if(isNaN(kg)||kg<=0)return false; // вес 0 (брусья, планка) рекордом не считаем
   const target=normName(canonName(ex.name));
-  for(const ow of state.weeks){
-    if(ow.n>=wn)continue;
+  const pos=weekPosByN(wn);
+  for(let k=0;k<pos;k++){
+    const ow=state.weeks[k];
     for(const oex of ow.exercises){
       if(normName(canonName(oex.name))===target&&parseFloat(oex.kg)>=kg)return false;
     }
@@ -993,9 +1025,9 @@ function recalcAllPRs(){
 function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)t++;}));return t;}
 function getHistory(name){
   const h=[];const target=normName(canonName(name));
-  state.weeks.forEach(w=>{
+  state.weeks.forEach((w,pos)=>{
     const ex=w.exercises.find(e=>normName(canonName(e.name))===target);
-    if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0,orm:exE1rm(ex)});
+    if(ex&&ex.kg)h.push({n:pos+1,id:w.n,kg:parseFloat(ex.kg)||0,orm:exE1rm(ex)});
   });
   return h;
 }
@@ -1138,7 +1170,7 @@ function renderTabs(){
       const weekNum=Math.floor(idx/3)+1;
       html+=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 6px 0 ${idx===0?'6':'12'}px;flex-shrink:0"><span style="font-size:9px;color:var(--text3);white-space:nowrap;padding-bottom:2px">Нед.${weekNum}</span><div style="height:16px;width:1px;background:${idx===0?'transparent':'var(--border)'}"></div></div>`;
     }
-    html+=`<button class="tab${w.n===state.active?' active':''}" onclick="setTab(${w.n})">${weekDay(w)}${w.type?' '+w.type:''}<br>Тр.${w.n}${w.done?'<span class="done-dot"></span>':''}</button>`;
+    html+=`<button class="tab${w.n===state.active?' active':''}" onclick="setTab(${w.n})">${weekDay(w)}${w.type?' '+w.type:''}<br>Тр.${idx+1}${w.done?'<span class="done-dot"></span>':''}</button>`;
   });
   html+=`<button class="tab-add" onclick="addWeek()">+</button>`;
   el.innerHTML=html;
@@ -1154,7 +1186,8 @@ function renderDiary(){
   const badgeTxt=isDone?'Выполнена ✓':(firstUndone&&w.n===firstUndone.n?'Текущая':'Предстоит');
 
   // Плановые веса из таблицы прогрессии для базовых упражнений
-  const planWeeks=PLAN.find(r=>r[0]===String(w.n));
+  const wNo=weekNo(w);
+  const planWeeks=PLAN.find(r=>r[0]===String(wNo));
   const planMap={
     'Присед со штангой': planWeeks?planWeeks[1]:'',
     'Становая тяга': planWeeks?planWeeks[2]:'',
@@ -1167,8 +1200,9 @@ function renderDiary(){
   if(isRecovery){
     const getLastKg=(exName)=>{
       let last=0;
-      state.weeks.forEach(week=>{
-        if(week.n>=w.n)return;
+      const myPos=weekPos(w);
+      state.weeks.forEach((week,pos)=>{
+        if(pos>=myPos)return;
         const ex=week.exercises.find(e=>e.name===exName);
         if(ex&&parseFloat(ex.kg)>0)last=parseFloat(ex.kg);
       });
@@ -1189,7 +1223,7 @@ function renderDiary(){
   }
 
   // Фаза 2 — волновая периодизация для базовых упражнений
-  const waveInfo=getWaveInfo(w.n);
+  const waveInfo=getWaveInfo(wNo);
   const planSetsMap={};
   if(waveInfo){
     const{stage,cycleNumber}=waveInfo;
@@ -1209,7 +1243,7 @@ function renderDiary(){
     const totalSets=Math.max(5,(ex.setsDone||[]).length+1,(ex.extraSets||0)+5);
     const setsBtns=Array.from({length:totalSets},(_,si)=>`<button class="set-btn${(ex.setsDone||[]).includes(si)?' done':''}" onclick="toggleSet(${w.n},${i},${si})">${si+1}</button>`).join('');
     const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
-    const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n!==w.n).pop();
+    const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.id!==w.n).pop();
     const planKg=planMap[ex.name]||'';
     const planSets=planSetsMap[ex.name]||setsMap[ex.name]||'15×3';
     const kgPlaceholder=planKg?planKg.replace(' кг',''):'кг';
@@ -1264,7 +1298,7 @@ function renderDiary(){
     </div>`;
   }).join('');
 
-  const planRows=PLAN.map(r=>{const wM=state.weeks.find(x=>x.n===parseInt(r[0]));const cls=r[0]===String(w.n)?'tr-current':(wM&&wM.done?'tr-done':'');return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}${r[4]==='pr'?'<span class="pr-tag">ПР</span>':''}</td></tr>`;}).join('');
+  const planRows=PLAN.map(r=>{const wM=state.weeks[parseInt(r[0])-1];const cls=r[0]===String(wNo)?'tr-current':(wM&&wM.done?'tr-done':'');return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}${r[4]==='pr'?'<span class="pr-tag">ПР</span>':''}</td></tr>`;}).join('');
 
   // Кнопка завершения только если тренировка не завершена
   const woBtn=isDone?'':`<button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);width:100%;margin-bottom:8px;font-size:14px" onclick="openWorkoutMode(${w.n})">▶️ Режим тренировки</button>`;
@@ -1299,7 +1333,7 @@ function renderDiary(){
     <div class="card">
       <div class="week-header">
         <div class="week-meta">
-          <div class="week-title">Тренировка ${w.n} · ${weekDay(w)}</div>
+          <div class="week-title">Тренировка ${wNo} · ${weekDay(w)}</div>
           <div class="week-date">${w.date||''}${extraInfo?' · '+extraInfo:''}</div>
           ${waveInfo?`<div style="margin-top:4px"><span class="plan-hint" style="background:rgba(41,128,185,.14);color:#2980b9">🌊 ${waveInfo.stage.label} неделя${waveInfo.cycleNumber>0?' · круг '+(waveInfo.cycleNumber+1):''}</span></div>`:''}
         </div>
@@ -1400,11 +1434,13 @@ window.deleteWeek=function(wn){
   if(!confirm('Удалить тренировку? Её можно будет восстановить из корзины.'))return;
   const w=getWeek(wn);if(!w)return;
   if(!state.trash)state.trash=[];
+  const pos=weekPos(w);
   state.trash.push({...w,deletedAt:new Date().toISOString()});
   state.weeks=state.weeks.filter(x=>x.n!==wn);
-  // Renumber weeks
-  state.weeks.forEach((w,idx)=>w.n=idx+1);
-  state.active=state.weeks.length?state.weeks[state.weeks.length-1].n:1;
+  // Идентификаторы не трогаем — иначе поедут фазы и волновая периодизация
+  const neighbour=state.weeks[Math.min(pos,state.weeks.length-1)];
+  state.active=neighbour?neighbour.n:1;
+  recalcAllPRs();
   scheduleSave();updateSummary();renderTabs();renderDiary();
 };
 
@@ -1487,8 +1523,7 @@ window.restoreWeek=function(key){
   const trash=state.trash||[];
   const w=trash.find(x=>x.deletedAt===key);
   if(!w)return;
-  const maxN=state.weeks.length?Math.max(...state.weeks.map(x=>x.n)):0;
-  w.n=maxN+1;
+  w.n=nextSeq();
   delete w.deletedAt;
   state.weeks.push(w);
   state.trash=trash.filter(x=>x!==w);
@@ -1536,7 +1571,7 @@ window.openFinishModal=function(wn){
   // PRs this workout
   const prs=w.exercises.filter((ex,i)=>checkPR(wn,i)&&ex.kg).map(ex=>ex.name);
 
-  document.getElementById('finish-sub').textContent=`${weekDay(w)} · Тренировка ${w.n} · ${fmtDate(now)}`;
+  document.getElementById('finish-sub').textContent=`${weekDay(w)} · Тренировка ${weekNo(w)} · ${fmtDate(now)}`;
   document.getElementById('finish-stats').innerHTML=`
     <div class="finish-stat"><div class="finish-stat-val">${prs.length}</div><div class="finish-stat-label">Рекордов</div></div>
     <div class="finish-stat"><div class="finish-stat-val">${totalSets}</div><div class="finish-stat-label">Подходов</div></div>
@@ -1627,7 +1662,7 @@ function renderWo(){
   const total=woSetsCount(ex),done=(ex.setsDone||[]).length;
   const planSets=ex.sets||setsMap[ex.name]||'';
 
-  document.getElementById('wo-title').textContent=`Тренировка ${w.n} · ${weekDay(w)}`;
+  document.getElementById('wo-title').textContent=`Тренировка ${weekNo(w)} · ${weekDay(w)}`;
   document.getElementById('wo-sub').textContent=`Упражнение ${woIdx+1} из ${w.exercises.length}`;
   document.getElementById('wo-wake').classList.toggle('on',!!wakeLock);
   document.getElementById('wo-lock').classList.toggle('on',woLockOn);
@@ -1777,7 +1812,7 @@ function updateMediaSession(){
     navigator.mediaSession.metadata=new MediaMetadata({
       title:ex.name,
       artist:`Подход ${Math.min(done+1,total)} из ${total}${ex.kg?' · '+ex.kg+' кг':''}`,
-      album:`Тренировка ${w.n} · ${weekDay(w)}`
+      album:`Тренировка ${weekNo(w)} · ${weekDay(w)}`
     });
   }catch(e){}
 }
@@ -1861,7 +1896,7 @@ function renderStats(){
   const topExHtml=topEx.length?topEx.map(([n,c])=>`<div class="finish-ex-item"><span class="finish-ex-name">${n}</span><span class="finish-ex-val">${c} ПР</span></div>`).join(''):'<p style="color:var(--text3);font-size:13px">Данных пока нет</p>';
 
   // Weekly volume for chart
-  const weekVols=state.weeks.map(w=>{
+  const weekVols=state.weeks.map((w,pos)=>{
     let vol=0;
     w.exercises.forEach(ex=>{
       const kg=parseFloat(ex.kg)||0;
@@ -1869,7 +1904,7 @@ function renderStats(){
       const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
       vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;
     });
-    return{n:w.n,vol:Math.round(vol)};
+    return{n:pos+1,vol:Math.round(vol)};
   });
 
   // ДОЛГОСРОЧНАЯ АНАЛИТИКА — группировка по месяцам
@@ -1936,7 +1971,7 @@ function renderStats(){
     const typeLabel=w.type?` · ${w.type}`:'';
     return `<div class="cardio-history-item">
       <div class="cardio-history-left">
-        <div class="cardio-history-type">Тр.${w.n}${typeLabel} · ${weekDay(w)}</div>
+        <div class="cardio-history-type">Тр.${weekNo(w)}${typeLabel} · ${weekDay(w)}</div>
         <div class="cardio-history-date">${w.date||''}${w.duration?' · '+w.duration+'м':''}</div>
       </div>
       <div class="cardio-history-right">
@@ -2064,8 +2099,7 @@ window.applyTemplate=function(id){
   let tmpl;
   if(id.startsWith('custom_')){tmpl=custom[parseInt(id.replace('custom_',''))];}
   if(!tmpl)return;
-  const last=state.weeks[state.weeks.length-1];
-  const n=last?last.n+1:1;
+  const n=nextSeq();
   const exs=tmpl.exercises.map(name=>({name,kg:'',sets:'',setsDone:[],pr:false}));
   state.weeks.push({n,done:false,note:'',date:fmtDate(new Date()),type:'custom',exercises:exs});
   state.active=n;
@@ -2099,10 +2133,10 @@ function renderChart(){
   // Volume chart
   const volCtx=document.getElementById('volChart')?.getContext('2d');
   if(volCtx){
-    const weekVols=state.weeks.map(w=>{
+    const weekVols=state.weeks.map((w,pos)=>{
       let vol=0;
       w.exercises.forEach(ex=>{const kg=parseFloat(ex.kg)||0;const sets=(ex.setsDone||[]).length||0;const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;});
-      return{n:w.n,vol:Math.round(vol)};
+      return{n:pos+1,vol:Math.round(vol)};
     }).filter(v=>v.vol>0);
     if(window._volChart)window._volChart.destroy();
     window._volChart=new window.Chart(volCtx,{type:'bar',data:{labels:weekVols.map(v=>`Тр.${v.n}`),datasets:[{data:weekVols.map(v=>v.vol),backgroundColor:'rgba(233,69,96,.6)',borderRadius:5}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
@@ -2356,7 +2390,24 @@ window.deleteWeight=function(idx){
   scheduleSave();renderWeight();
 };
 window.copyExport=function(){const el=document.getElementById('export-text');if(!el)return;el.select();try{document.execCommand('copy');}catch(e){navigator.clipboard?.writeText(el.value);}const m=document.getElementById('copy-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
-window.doImport=function(){const v=document.getElementById('import-text')?.value.trim();if(!v)return;try{state=JSON.parse(v);saveToFirebase();updateSummary();renderTabs();renderDiary();const m=document.getElementById('import-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}}catch(e){alert('Ошибка: неверный формат');}};
+window.doImport=function(){
+  const v=document.getElementById('import-text')?.value.trim();
+  if(!v)return;
+  let parsed;
+  try{parsed=JSON.parse(v);}catch(e){alert('Ошибка: это не похоже на сохранённую копию');return;}
+  // Минимальная проверка структуры — иначе можно затереть всё чем угодно
+  if(!parsed||typeof parsed!=='object'||!Array.isArray(parsed.weeks)){
+    alert('Ошибка: в копии нет списка тренировок');return;
+  }
+  const bad=parsed.weeks.some(w=>!w||!Array.isArray(w.exercises));
+  if(bad){alert('Ошибка: повреждён список упражнений');return;}
+  if(!confirm(`Заменить текущие данные на копию (${parsed.weeks.length} тренировок)? Отменить будет нельзя.`))return;
+  state=parsed;
+  applyLoadedState();
+  saveToFirebase();
+  const m=document.getElementById('import-msg');
+  if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}
+};
 
 const initH=window.innerHeight;
 window.addEventListener('resize',()=>{document.body.classList.toggle('keyboard-open',initH-window.innerHeight>150);});
