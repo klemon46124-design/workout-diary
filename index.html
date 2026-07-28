@@ -423,6 +423,11 @@ tr.tr-done td{color:var(--text3)}
     <h2 id="finish-title">🏆 Тренировка завершена!</h2>
     <div class="finish-sub" id="finish-sub"></div>
     <div class="finish-stats" id="finish-stats"></div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Длительность (мин)</label>
+      <input type="number" id="finish-duration" inputmode="numeric" placeholder="мин"
+        style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <div>
         <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
@@ -497,38 +502,38 @@ function weekDay(w){return w.type?TYPE_DAY[w.type]||DAYS[(w.n-1)%3]:DAYS[(w.n-1)
 // Предустановленные подходы для каждого упражнения
 const setsMap={
   'Присед со штангой':'5×5','Становая тяга':'5×5','Жим лёжа':'5×5',
-  'Тяга штанги в наклоне':'12×4','Разводка гантелей стоя':'12×3',
-  'Подъём на бицепс':'12×3','Планка':'3×60с',
-  'Тяга верхнего блока':'12×4','Жим гантелей на наклонной скамье':'12×3',
-  'Обратная разводка в блоке':'12×3','Сгибания ног в тренажёре':'12×3',
-  'Разгибания на трицепс':'12×3','Подъём ног лёжа':'12×3',
-  'Румынская тяга':'12×4','Разгибания ног':'12×2',
-  'Отжимания на брусьях':'12×4','Разводка гантелей лёжа':'12×3',
-  'Тяга в хаммере одной рукой':'12×3','Тяга к подбородку':'12×3',
+  'Тяга штанги в наклоне':'15×4','Разводка гантелей стоя':'15×3',
+  'Подъём на бицепс':'15×3','Планка':'3×60с',
+  'Тяга верхнего блока':'15×4','Жим гантелей на наклонной скамье':'15×3',
+  'Обратная разводка в блоке':'15×3','Сгибания ног в тренажёре':'15×3',
+  'Разгибания на трицепс':'15×3','Подъём ног лёжа':'15×3',
+  'Румынская тяга':'15×4','Разгибания ног':'15×2',
+  'Отжимания на брусьях':'15×4','Разводка гантелей лёжа':'15×3',
+  'Тяга в хаммере одной рукой':'15×3','Тяга к подбородку':'15×3',
   'Фермерская прогулка':'3×40м',
-  'Жим ногами':'12×3','Ягодичный мостик':'12×3','Молотки на бицепс':'12×3',
+  'Жим ногами':'15×3','Ягодичный мостик':'15×3','Молотки на бицепс':'15×3',
   // Аналоги A
   'Присед в Смите':'5×5','Присед с гантелями':'5×5','Фронтальный присед':'5×5',
   'Жим гантелей лёжа':'5×5','Жим в Смите':'5×5','Отжимания с весом':'5×5',
-  'Тяга гантелей в наклоне':'12×4','Тяга в хаммере':'12×4','Тяга Т-грифа':'12×4',
-  'Подъём гантелей через стороны':'12×3','Разводка на блоке стоя':'12×3',
-  'Подъём гантелей на бицепс':'12×3','Молотки':'12×3','Подъём на блоке':'12×3',
+  'Тяга гантелей в наклоне':'15×4','Тяга в хаммере':'15×4','Тяга Т-грифа':'15×4',
+  'Подъём гантелей через стороны':'15×3','Разводка на блоке стоя':'15×3',
+  'Подъём гантелей на бицепс':'15×3','Молотки':'15×3','Подъём на блоке':'15×3',
   'Планка на локтях':'3×60с','Боковая планка':'3×60с','Планка с подъёмом ног':'3×60с',
   // Аналоги B
   'Становая в Смите':'5×5','Становая с гантелями':'5×5','Трэп-гриф становая':'5×5',
-  'Подтягивания':'12×4','Тяга гантелей за голову':'12×4',
-  'Жим штанги на наклонной':'12×3','Жим в Смите наклонной':'12×3','Отжимания с ногами на возвышении':'12×3',
-  'Разводка гантелей в наклоне':'12×3','Обратные разведения на тренажёре':'12×3',
-  'Румынская тяга с гантелями на одной ноге':'12×3','Мёртвая тяга с гантелями':'12×3',
-  'Французский жим с гантелями':'12×3','Разгибания с гантелью':'12×3',
-  'Скручивания':'12×3','Велосипед':'12×3','Подъём ног в висе':'12×3',
+  'Подтягивания':'15×4','Тяга гантелей за голову':'15×4',
+  'Жим штанги на наклонной':'15×3','Жим в Смите наклонной':'15×3','Отжимания с ногами на возвышении':'15×3',
+  'Разводка гантелей в наклоне':'15×3','Обратные разведения на тренажёре':'15×3',
+  'Румынская тяга с гантелями на одной ноге':'15×3','Мёртвая тяга с гантелями':'15×3',
+  'Французский жим с гантелями':'15×3','Разгибания с гантелью':'15×3',
+  'Скручивания':'15×3','Велосипед':'15×3','Подъём ног в висе':'15×3',
   // Аналоги C
-  'Румынская с гантелями':'12×4','Становая на прямых ногах с гантелями':'12×4',
-  'Приседания с паузой':'12×2','Приседания с гантелями':'12×2',
-  'Жим гантелей узким хватом':'12×4','Французский жим':'12×4',
-  'Кроссовер на блоке':'12×3','Разводка гантелей на наклонной':'12×3',
-  'Тяга гантели одной рукой':'12×3','Тяга нижнего блока одной рукой':'12×3',
-  'Тяга гантелей к подбородку':'12×3',
+  'Румынская с гантелями':'15×4','Становая на прямых ногах с гантелями':'15×4',
+  'Приседания с паузой':'15×2','Приседания с гантелями':'15×2',
+  'Жим гантелей узким хватом':'15×4','Французский жим':'15×4',
+  'Кроссовер на блоке':'15×3','Разводка гантелей на наклонной':'15×3',
+  'Тяга гантели одной рукой':'15×3','Тяга нижнего блока одной рукой':'15×3',
+  'Тяга гантелей к подбородку':'15×3',
   'Удержание гантелей стоя':'3×40м','Прогулка с гантелями':'3×40м',
 };
 
@@ -561,57 +566,38 @@ const alternativesMap={
 };
 const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Тяга штанги в наклоне","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа","Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка","Разводка гантелей стоя","Подъём на бицепс","Планка","Жим ногами","Ягодичный мостик","Молотки на бицепс","Французский жим","Скручивания","Подтягивания","Велосипед","Подъём ног в висе"];
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
-const PLAN=[["1","85 кг","110 кг","95 кг",""],["2","85 кг","110 кг","95 кг",""],["3","85 кг","110 кг","95 кг",""],["4","85 кг","110 кг","95 кг",""],["5","85 кг","110 кг","95 кг",""],["6","85 кг","110 кг","95 кг",""],["7","90 кг","110 кг","100 кг","pr"],["8","90 кг","115 кг","100 кг","pr"],["9","90 кг","115 кг","100 кг",""],["10","90 кг","115 кг","100 кг",""],["11","90 кг","115 кг","100 кг",""],["12","90 кг","115 кг","100 кг",""]];
+const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
 
-// Двойная прогрессия: вес растёт только если в прошлый раз подходы были закрыты полностью.
-// holds — сколько раз подряд нужно закрыть все подходы на одном весе прежде чем предложить +5.
-const PROGRESSION_CONFIG={
-  'Присед со штангой':{start:85,inc:5,holds:2},
-  'Становая тяга':{start:110,inc:5,holds:2},
-  'Жим лёжа':{start:95,inc:5,holds:2},
-};
-function calcNextWeight(exName,beforeN){
-  const cfg=PROGRESSION_CONFIG[exName];if(!cfg)return null;
-  const entries=[];
-  state.weeks.filter(w=>w.n<beforeN).sort((a,b)=>a.n-b.n).forEach(w=>{
-    const ex=w.exercises.find(e=>e.name===exName);
-    if(ex&&ex.kg){
-      const reqSets=parseInt((ex.sets||setsMap[exName]||'5×5').split('×')[1])||5;
-      const completed=(ex.setsDone||[]).length>=reqSets;
-      entries.push({n:w.n,kg:parseFloat(ex.kg),completed});
-    }
+// ФАЗА 2 — волновая периодизация (тяжёлая → средняя → лёгкая неделя, по кругу)
+const PHASE2_START=16; // тренировка, с которой начинается Фаза 2 (сразу после восстановительной недели 13-15)
+const PHASE2_LIFTS=['Присед со штангой','Становая тяга','Жим лёжа'];
+const WAVE_CYCLE=[
+  {label:'Тяжёлая',pct:0.92,reps:3,setsCount:5},
+  {label:'Средняя',pct:0.82,reps:5,setsCount:5},
+  {label:'Лёгкая',pct:0.72,reps:8,setsCount:3},
+];
+// Прирост базового веса (тренировочного максимума) за каждый полный круг волны (3 недели)
+const WAVE_CYCLE_INCREMENT=2.5;
+
+function getPhase2Base(name){
+  // Тренировочный максимум = лучший вес, показанный ДО начала Фазы 2
+  let best=0;
+  state.weeks.forEach(w=>{
+    if(w.n>=PHASE2_START)return;
+    const ex=w.exercises.find(e=>e.name===name);
+    if(ex&&parseFloat(ex.kg)>best)best=parseFloat(ex.kg);
   });
-  if(!entries.length)return{kg:cfg.start,advance:false};
-  const last=entries[entries.length-1];
-  let streak=0;
-  for(let i=entries.length-1;i>=0;i--){
-    if(entries[i].kg===last.kg&&entries[i].completed)streak++;
-    else break;
-  }
-  if(!last.completed)return{kg:last.kg,advance:false};
-  if(streak>=cfg.holds)return{kg:last.kg+cfg.inc,advance:true};
-  return{kg:last.kg,advance:false};
+  return best;
 }
 
-// Упражнения на собственном весе — в общий объём считаем вес тела (на дату тренировки) + доп.отягощение
-const BODYWEIGHT_EXERCISES=['Подтягивания','Отжимания на брусьях'];
-function getBodyweightKg(dateIso){
-  const log=state.weightLog;
-  if(!log||!log.length)return null;
-  const sorted=[...log].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  if(!dateIso)return sorted[sorted.length-1].kg;
-  const target=new Date(dateIso).getTime();
-  let candidate=sorted[0];
-  for(const e of sorted){if(new Date(e.date).getTime()<=target)candidate=e;}
-  return candidate.kg;
-}
-function getExerciseLoad(ex,dateIso){
-  const added=parseFloat(ex.kg)||0;
-  if(BODYWEIGHT_EXERCISES.includes(ex.name)){
-    const bw=getBodyweightKg(dateIso);
-    if(bw)return bw+added;
-  }
-  return added;
+function getWaveInfo(wn){
+  const weekGroup=Math.floor((wn-1)/3);
+  const startGroup=Math.floor((PHASE2_START-1)/3);
+  const offset=weekGroup-startGroup;
+  if(offset<0)return null;
+  const stage=WAVE_CYCLE[offset%3];
+  const cycleNumber=Math.floor(offset/3);
+  return{stage,cycleNumber};
 }
 
 let state={weeks:[],active:1,dark:false};
@@ -807,8 +793,7 @@ function updateSummary(){
 // Фазы тренировок
 const PHASES=[
   {from:12,to:14,type:'phase-complete',icon:'🏆',title:'Фаза 1 завершена! Время отдохнуть.',text:'Ты прошёл 12 тренировок базовой фазы. Следующие 3 тренировки — восстановительная неделя: снизь все веса до 60% и сосредоточься на технике.'},
-  {from:15,to:17,type:'phase-recovery',icon:'💆',title:'Восстановительная неделя',text:'Работай с 60% от рабочих весов. Больше внимания технике и растяжке. После этих 3 тренировок начнётся Фаза 2 — волновая периодизация.'},
-  {from:18,to:18,type:'phase-next',icon:'🚀',title:'Готов к Фазе 2!',text:'Восстановительная неделя завершена. Самое время перейти на волновую периодизацию: тяжёлая → средняя → лёгкая неделя по кругу. Обратись к дневнику за новой программой.'},
+  {from:15,to:15,type:'phase-next',icon:'🚀',title:'Фаза 2 началась — волновая периодизация!',text:'Восстановительная неделя позади. Для приседа, становой и жима теперь вес и повторы меняются по волне: тяжёлая неделя → средняя → лёгкая, и по кругу заново — дневник считает всё сам. Смотри план прямо в карточке упражнения.'},
 ];
 
 function getRecoveryWeights(){
@@ -837,7 +822,7 @@ function updatePhaseBanner(done){
 
   // Добавляем веса для восстановительной фазы
   let weightsHtml='';
-  if(phase.from===12||phase.from===15){
+  if(phase.from===12){
     const weights=getRecoveryWeights();
     if(weights.length){
       weightsHtml=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
@@ -892,13 +877,13 @@ function renderDiary(){
   const badgeCls=isDone?'badge-done':(firstUndone&&w.n===firstUndone.n?'badge-current':'badge-up');
   const badgeTxt=isDone?'Выполнена ✓':(firstUndone&&w.n===firstUndone.n?'Текущая':'Предстоит');
 
-  // Плановые веса — динамическая двойная прогрессия по факту закрытых подходов
-  const planMap={};
-  const planAdvance={};
-  Object.keys(PROGRESSION_CONFIG).forEach(name=>{
-    const r=calcNextWeight(name,w.n);
-    if(r){planMap[name]=r.kg+' кг';planAdvance[name]=r.advance;}
-  });
+  // Плановые веса из таблицы прогрессии для базовых упражнений
+  const planWeeks=PLAN.find(r=>r[0]===String(w.n));
+  const planMap={
+    'Присед со штангой': planWeeks?planWeeks[1]:'',
+    'Становая тяга': planWeeks?planWeeks[2]:'',
+    'Жим лёжа': planWeeks?planWeeks[3]:'',
+  };
 
   // Восстановительная фаза — 60% от последнего веса
   const doneCnt=state.weeks.filter(x=>x.done).length;
@@ -927,6 +912,22 @@ function renderDiary(){
     });
   }
 
+  // Фаза 2 — волновая периодизация для базовых упражнений
+  const waveInfo=getWaveInfo(w.n);
+  const planSetsMap={};
+  if(waveInfo){
+    const{stage,cycleNumber}=waveInfo;
+    PHASE2_LIFTS.forEach(name=>{
+      const base=getPhase2Base(name);
+      if(base>0){
+        const effectiveBase=base+cycleNumber*WAVE_CYCLE_INCREMENT;
+        const target=Math.round(effectiveBase*stage.pct/2.5)*2.5;
+        planMap[name]=target+' кг';
+        planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
+      }
+    });
+  }
+
   const exHtml=w.exercises.map((ex,i)=>{
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
     const totalSets=Math.max(5,(ex.setsDone||[]).length+1,(ex.extraSets||0)+5);
@@ -934,7 +935,7 @@ function renderDiary(){
     const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n!==w.n).pop();
     const planKg=planMap[ex.name]||'';
-    const planSets=setsMap[ex.name]||'12×3';
+    const planSets=planSetsMap[ex.name]||setsMap[ex.name]||'15×3';
     const kgPlaceholder=planKg?planKg.replace(' кг',''):'кг';
 
     // Сравнение с прошлой тренировкой
@@ -968,10 +969,10 @@ function renderDiary(){
           <label>Вес (кг)</label>
           <div class="num-row">
             <button class="num-btn" onclick="changeKg(${w.n},${i},-2.5)">−</button>
-            <input class="num-input" type="number" inputmode="decimal" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
+            <input class="num-input" type="number" inputmode="decimal" min="0" max="500" step="0.5" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
-          ${planKg?`<div class="plan-hint">план: ${planKg}${planAdvance[ex.name]?' 🔥 можно прибавить':''}</div>`:''}
+          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}
         </div>
         <div class="field">
           <label>Повторы</label>
@@ -1002,6 +1003,7 @@ function renderDiary(){
         <div class="week-meta">
           <div class="week-title">Тренировка ${w.n} · ${weekDay(w)}</div>
           <div class="week-date">${w.date||''}${extraInfo?' · '+extraInfo:''}</div>
+          ${waveInfo?`<div style="margin-top:4px"><span class="plan-hint" style="background:rgba(41,128,185,.14);color:#2980b9">🌊 ${waveInfo.stage.label} неделя${waveInfo.cycleNumber>0?' · круг '+(waveInfo.cycleNumber+1):''}</span></div>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge ${badgeCls}">${badgeTxt}</span>
@@ -1022,11 +1024,44 @@ function renderDiary(){
     </div>`;
 }
 
-window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);if(ex.setsDone.length===5)setTimeout(()=>startTimer(timer.preset),200);}scheduleSave();renderDiary();};
-window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10));scheduleSave();recheckPR(wn,i);renderDiary();};
-window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'12×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'12×3';scheduleSave();renderDiary();};
+window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);}scheduleSave();renderDiary();};
+window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.min(500,Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10)));scheduleSave();recheckPR(wn,i);renderDiary();};
+window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'15×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'15×3';scheduleSave();renderDiary();};
 window.recheckPR=function(wn,i){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.pr=checkPR(wn,i);scheduleSave();updateSummary();};
-window.updateEx=function(wn,i,f,v){const w=getWeek(wn);if(w&&w.exercises[i])w.exercises[i][f]=v;scheduleSave();};
+window.updateEx=function(wn,i,f,v){
+  const w=getWeek(wn);if(!w||!w.exercises[i])return;
+  const ex=w.exercises[i];
+  if(f==='kg'){
+    const t=String(v).trim().replace(',','.');
+    if(t===''){ex.kg='';scheduleSave();return;}
+    const n=parseFloat(t);
+    if(isNaN(n)||n<0||n>500){
+      alert('Введи вес от 0 до 500 кг');
+      renderDiary();
+      return;
+    }
+    ex.kg=String(Math.round(n*10)/10);
+    scheduleSave();
+    renderDiary();
+    return;
+  }
+  if(f==='sets'){
+    const t=String(v).trim();
+    if(t===''){ex.sets='';scheduleSave();return;}
+    const m=t.match(/^(\d{1,3})\s*[x×]\s*(\d{1,2})$/i);
+    if(!m||parseInt(m[1])<1||parseInt(m[2])<1){
+      alert('Формат: повторения×подходы, например 15×3');
+      renderDiary();
+      return;
+    }
+    ex.sets=`${parseInt(m[1])}×${parseInt(m[2])}`;
+    scheduleSave();
+    renderDiary();
+    return;
+  }
+  ex[f]=v;
+  scheduleSave();
+};
 window.updateNote=function(wn,v){const w=getWeek(wn);if(w)w.note=v;scheduleSave();};
 window.delEx=function(wn,i){const w=getWeek(wn);if(w){w.exercises.splice(i,1);scheduleSave();renderDiary();}};
 
@@ -1103,7 +1138,7 @@ window.deleteFromTrash=function(idx){
   scheduleSave();renderTrash();
 };
 window.doSave=async function(wn){await saveToFirebase();const el=document.getElementById('smsg');if(el){el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}updateSummary();};
-window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date)w.date=fmtDate(new Date());scheduleSave();updateSummary();renderTabs();renderDiary();if(document.getElementById('page-stats')?.classList.contains('active'))renderStats();}};
+window.toggleDone=function(wn){const w=getWeek(wn);if(w){w.done=!w.done;if(w.done&&!w.date){w.date=fmtDate(new Date());}if(w.done&&!w.finishedAt){w.finishedAt=new Date().toISOString();}scheduleSave();updateSummary();renderTabs();renderDiary();if(document.getElementById('page-stats')?.classList.contains('active'))renderStats();}};
 window.forceSave=async function(){await saveToFirebase();const m=document.getElementById('force-msg');if(m){m.classList.add('show');setTimeout(()=>m.classList.remove('show'),2000);}};
 
 // Finish workout modal
@@ -1120,7 +1155,6 @@ window.openFinishModal=function(wn){
   // Calculate duration
   const now=new Date();
   const duration=workoutStartTime?Math.round((now-workoutStartTime)/60000):0;
-  const durationStr=duration>0?`${Math.floor(duration/60)>0?Math.floor(duration/60)+'ч ':''} ${duration%60}мин`:'—';
 
   // Count sets done and volume
   let totalSets=0,totalVol=0,exDone=0;
@@ -1128,7 +1162,7 @@ window.openFinishModal=function(wn){
     const sets=(ex.setsDone||[]).length;
     totalSets+=sets;
     if(sets>0)exDone++;
-    const kg=getExerciseLoad(ex,now.toISOString());
+    const kg=parseFloat(ex.kg)||0;
     const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
     totalVol+=kg*sets*reps;
   });
@@ -1138,7 +1172,7 @@ window.openFinishModal=function(wn){
 
   document.getElementById('finish-sub').textContent=`${weekDay(w)} · Тренировка ${w.n} · ${fmtDate(now)}`;
   document.getElementById('finish-stats').innerHTML=`
-    <div class="finish-stat"><div class="finish-stat-val">${durationStr}</div><div class="finish-stat-label">Длительность</div></div>
+    <div class="finish-stat"><div class="finish-stat-val">${prs.length}</div><div class="finish-stat-label">Рекордов</div></div>
     <div class="finish-stat"><div class="finish-stat-val">${totalSets}</div><div class="finish-stat-label">Подходов</div></div>
     <div class="finish-stat"><div class="finish-stat-val">${exDone}</div><div class="finish-stat-label">Упражнений</div></div>
     <div class="finish-stat"><div class="finish-stat-val">${totalVol>0?Math.round(totalVol)+'кг':'—'}</div><div class="finish-stat-label">Объём</div></div>`;
@@ -1146,6 +1180,8 @@ window.openFinishModal=function(wn){
   // Clear pulse/kcal fields
   document.getElementById('finish-pulse').value='';
   document.getElementById('finish-kcal').value='';
+  // Подставляем авто-время только если оно правдоподобное
+  document.getElementById('finish-duration').value=(duration>=10&&duration<=240)?duration:'';
 
   const exList=w.exercises.map((ex,i)=>{
     const sets=(ex.setsDone||[]).length;
@@ -1174,7 +1210,7 @@ window.confirmFinish=async function(){
     w.done=true;
     w.date=fmtDate(new Date());
     w.finishedAt=new Date().toISOString();
-    w.duration=workoutStartTime?Math.round((new Date()-workoutStartTime)/60000):0;
+    w.duration=parseInt(document.getElementById('finish-duration').value)||0;
     w.pulse=parseInt(document.getElementById('finish-pulse').value)||0;
     w.kcal=parseInt(document.getElementById('finish-kcal').value)||0;
     workoutStartTime=new Date();
@@ -1197,7 +1233,7 @@ window.openAltModal=function(wn,i){
   document.getElementById('alt-list').innerHTML=alts.map(name=>`
     <div class="alt-item" onclick="applyAlt('${name.replace(/'/g,"\\'")}')">
       <span class="alt-item-name">${name}</span>
-      <span class="alt-item-sets">${setsMap[name]||'12×3'}</span>
+      <span class="alt-item-sets">${setsMap[name]||'15×3'}</span>
     </div>`).join('');
   document.getElementById('alt-modal-bg').classList.add('show');
 };
@@ -1227,7 +1263,7 @@ function renderStats(){
   const totalKcalStr=done.filter(w=>w.kcal).reduce((s,w)=>s+w.kcal,0);
   let totalVol=0;
   state.weeks.forEach(w=>w.exercises.forEach(ex=>{
-    const kg=getExerciseLoad(ex,w.finishedAt||null);
+    const kg=parseFloat(ex.kg)||0;
     const sets=(ex.setsDone||[]).length;
     const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
     totalVol+=kg*sets*reps;
@@ -1266,7 +1302,7 @@ function renderStats(){
   const weekVols=state.weeks.map(w=>{
     let vol=0;
     w.exercises.forEach(ex=>{
-      const kg=getExerciseLoad(ex,w.finishedAt||null);
+      const kg=parseFloat(ex.kg)||0;
       const sets=(ex.setsDone||[]).length||5;
       const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
       vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;
@@ -1274,10 +1310,63 @@ function renderStats(){
     return{n:w.n,vol:Math.round(vol)};
   });
 
+  // ДОЛГОСРОЧНАЯ АНАЛИТИКА — группировка по месяцам
+  const monthKey=iso=>{const d=new Date(iso);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+  const monthLabel=key=>{const[y,m]=key.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString('ru-RU',{month:'short',year:'2-digit'});};
+  const monthlyMap={};
+  done.forEach(w=>{
+    if(!w.finishedAt)return;
+    const key=monthKey(w.finishedAt);
+    if(!monthlyMap[key])monthlyMap[key]={vol:0,workouts:0,prs:0,kgByEx:{}};
+    const m=monthlyMap[key];
+    m.workouts++;
+    w.exercises.forEach(ex=>{
+      const kg=parseFloat(ex.kg)||0;
+      const sets=(ex.setsDone||[]).length;
+      const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;
+      m.vol+=kg*sets*reps;
+      if(ex.pr)m.prs++;
+      if(kg>0&&(!m.kgByEx[ex.name]||kg>m.kgByEx[ex.name]))m.kgByEx[ex.name]=kg;
+    });
+  });
+  const monthKeys=Object.keys(monthlyMap).sort();
+
+  // Скорость прогресса (кг/месяц) для базовых упражнений
+  const mainLifts=['Присед со штангой','Становая тяга','Жим лёжа'];
+  const progressRateHtml=mainLifts.map(name=>{
+    const pts=monthKeys.filter(k=>monthlyMap[k].kgByEx[name]!=null).map(k=>({key:k,kg:monthlyMap[k].kgByEx[name]}));
+    if(pts.length<2)return `<div class="finish-ex-item"><span class="finish-ex-name">${name}</span><span class="finish-ex-val" style="color:var(--text3)">мало данных</span></div>`;
+    const first=pts[0],last=pts[pts.length-1];
+    const[fy,fm]=first.key.split('-').map(Number);const[ly,lm]=last.key.split('-').map(Number);
+    let diffMonths=(ly-fy)*12+(lm-fm);if(diffMonths<1)diffMonths=1;
+    const rate=Math.round((last.kg-first.kg)/diffMonths*10)/10;
+    const rateColor=rate>0?'var(--green)':rate<0?'var(--red)':'var(--text3)';
+    const rateStr=rate>0?`+${rate}`:`${rate}`;
+    return `<div class="finish-ex-item"><span class="finish-ex-name">${name}</span><span class="finish-ex-val" style="color:${rateColor}">${rateStr} кг/мес</span></div>`;
+  }).join('');
+
+  // Сравнение месяцев: текущий vs предыдущий
+  const now=new Date();const currKey=monthKey(now.toISOString());
+  const prevD=new Date(now.getFullYear(),now.getMonth()-1,1);const prevKey=monthKey(prevD.toISOString());
+  const curr=monthlyMap[currKey]||{vol:0,workouts:0,prs:0};
+  const prev=monthlyMap[prevKey]||{vol:0,workouts:0,prs:0};
+  const pctDiff=(c,p)=>p>0?Math.round((c-p)/p*100):(c>0?100:0);
+  const compareRow=(label,c,p,unit)=>{
+    const diff=p>0?pctDiff(c,p):null;
+    const diffHtml=diff===null?'':`<span style="font-size:11px;color:${diff>=0?'var(--green)':'var(--red)'};margin-left:6px">${diff>=0?'▲':'▼'} ${Math.abs(diff)}%</span>`;
+    return `<div class="finish-ex-item"><span class="finish-ex-name">${label}</span><span class="finish-ex-val">${Math.round(c)}${unit}${diffHtml}</span></div>`;
+  };
+  const comparisonHtml=`
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${monthLabel(currKey)} vs ${monthLabel(prevKey)}</div>
+    ${compareRow('Объём (тоннаж)',curr.vol,prev.vol,' кг')}
+    ${compareRow('Тренировок',curr.workouts,prev.workouts,'')}
+    ${compareRow('Рекордов (ПР)',curr.prs,prev.prs,'')}`;
+
+
   // История тренировок
   const historyHtml=[...done].reverse().slice(0,10).map(w=>{
     const vol=w.exercises.reduce((s,ex)=>{
-      const kg=getExerciseLoad(ex,w.finishedAt||null);
+      const kg=parseFloat(ex.kg)||0;
       const sets=(ex.setsDone||[]).length;
       const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;
       return s+kg*sets*reps;
@@ -1342,17 +1431,37 @@ function renderStats(){
       <canvas id="statsVolChart" height="160"></canvas>
     </div>
     <div class="stat-big">
+      <h3>📆 Долгосрочная динамика</h3>
+      ${monthKeys.length?`<canvas id="statsMonthlyChart" height="160"></canvas>`:'<p style="color:var(--text3);font-size:13px;text-align:center;padding:12px">Нужно завершить хотя бы пару тренировок в разных месяцах</p>'}
+      <div style="margin-top:14px">
+        <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px">Скорость прогресса</div>
+        <div class="finish-ex-list">${progressRateHtml}</div>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px">Этот месяц vs прошлый</div>
+        <div class="finish-ex-list">${comparisonHtml}</div>
+      </div>
+    </div>
+    <div class="stat-big">
       <h3>📋 История тренировок</h3>
       ${done.length?historyHtml:'<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Нет завершённых тренировок</p>'}
     </div>`;
 
   setTimeout(()=>{
     const ctx=document.getElementById('statsVolChart')?.getContext('2d');
-    if(!ctx||!window.Chart)return;
-    new window.Chart(ctx,{type:'bar',data:{
-      labels:weekVols.map(v=>`Тр.${v.n}`),
-      datasets:[{label:'Объём кг',data:weekVols.map(v=>v.vol),backgroundColor:'rgba(233,69,96,.7)',borderRadius:6}]
-    },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
+    if(ctx&&window.Chart){
+      new window.Chart(ctx,{type:'bar',data:{
+        labels:weekVols.map(v=>`Тр.${v.n}`),
+        datasets:[{label:'Объём кг',data:weekVols.map(v=>v.vol),backgroundColor:'rgba(233,69,96,.7)',borderRadius:6}]
+      },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
+    }
+    const mctx=document.getElementById('statsMonthlyChart')?.getContext('2d');
+    if(mctx&&window.Chart&&monthKeys.length){
+      new window.Chart(mctx,{type:'bar',data:{
+        labels:monthKeys.map(monthLabel),
+        datasets:[{label:'Объём кг/мес',data:monthKeys.map(k=>Math.round(monthlyMap[k].vol)),backgroundColor:'rgba(41,128,185,.7)',borderRadius:6}]
+      },options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'кг'}},x:{}}}});
+    }
   },100);
 }
 
@@ -1424,7 +1533,7 @@ function renderChart(){
   if(volCtx){
     const weekVols=state.weeks.map(w=>{
       let vol=0;
-      w.exercises.forEach(ex=>{const kg=getExerciseLoad(ex,w.finishedAt||null);const sets=(ex.setsDone||[]).length||0;const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;});
+      w.exercises.forEach(ex=>{const kg=parseFloat(ex.kg)||0;const sets=(ex.setsDone||[]).length||0;const reps=parseInt((ex.sets||'5×5').split('×')[0])||5;const sets_cnt=parseInt((ex.sets||'5×5').split('×')[1])||5;vol+=kg*(ex.setsDone?.length||sets_cnt)*reps;});
       return{n:w.n,vol:Math.round(vol)};
     }).filter(v=>v.vol>0);
     if(window._volChart)window._volChart.destroy();
