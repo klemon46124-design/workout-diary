@@ -281,6 +281,14 @@ body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bo
 .wo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 14px;display:flex;flex-direction:column;gap:14px}
 .wo-exname{font-size:26px;font-weight:700;color:var(--text);line-height:1.2;text-align:center}
 .wo-plan{text-align:center;font-size:13px;color:var(--text3);margin-top:5px}
+.wo-ref{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wo-ref-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:10px 8px;text-align:center}
+.wo-ref-label{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
+.wo-ref-val{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);line-height:1.15}
+.wo-ref-box.empty .wo-ref-val{font-size:15px;font-weight:600;color:var(--text3)}
+.wo-ref-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.wo-delta{text-align:center;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.wo-why{text-align:center;font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4}
 .wo-kg{display:flex;align-items:center;gap:10px}
 .wo-kg-btn{width:64px;height:58px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:26px;cursor:pointer;flex-shrink:0;font-family:inherit}
 .wo-kg-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
@@ -661,7 +669,6 @@ const alternativesMap={
 };
 const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Тяга штанги в наклоне","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа","Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка","Разводка гантелей стоя","Подъём на бицепс","Планка","Жим ногами","Ягодичный мостик","Молотки на бицепс","Французский жим","Скручивания","Подтягивания","Велосипед","Подъём ног в висе"];
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
-const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
 
 // ===== ИДЕНТИЧНОСТЬ УПРАЖНЕНИЙ =====
 // Приводим написание к единому виду: регистр, ё, лишние пробелы и знаки
@@ -1080,6 +1087,94 @@ function calcStreak(){
 }
 
 // Начало текущей "недели" (группа из 3 тренировок) — один расчёт на всё приложение
+// ===== ПРОГРЕССИЯ =====
+// Сколько подходов запланировано по схеме (без учёта уже отмеченных)
+function basePlannedSets(ex){
+  const s=String(ex.sets||setsMap[ex.name]||'15×3');
+  const m=s.match(/(\d+)\s*[x×]\s*(\d+)/);
+  let c=3;
+  if(m)c=/[сcмm]\s*$/i.test(s)?parseInt(m[1]):parseInt(m[2]); // '3×60с' и '3×40м' — первое число это подходы
+  if(!c||c<1)c=3;
+  if(c>12)c=12;
+  return c+(ex.extraSets||0);
+}
+// Для интерфейса: не меньше, чем уже отмечено
+function plannedSets(ex){
+  return Math.max(basePlannedSets(ex),(ex.setsDone||[]).length);
+}
+// Закрыл ли все запланированные подходы
+function isExComplete(ex){
+  return (ex.setsDone||[]).length>=basePlannedSets(ex);
+}
+// Последнее выполнение этого упражнения до текущей тренировки
+function lastPerformance(w,exName){
+  const target=normName(canonName(exName));
+  const myPos=weekPos(w);
+  for(let k=myPos-1;k>=0;k--){
+    const ex=state.weeks[k].exercises.find(e=>normName(canonName(e.name))===target);
+    if(ex&&parseFloat(ex.kg)>0)return{ex,no:k+1};
+  }
+  return null;
+}
+// Шаг прибавки: мелкие веса это гантели, там блины по килограмму
+function progressionStep(kg){return kg<15?1:2.5;}
+
+// Плановые веса и схемы для тренировки: таблица прогрессии, восстановление, волна.
+// Используется и дневником, и режимом тренировки — считать в двух местах нельзя.
+function buildPlanMaps(w){
+  const planMap={},planSetsMap={},planWhy={};
+
+  // Основа: двойная прогрессия. Закрыл все подходы — добавляем вес, не закрыл — повторяем.
+  w.exercises.forEach(ex=>{
+    const prev=lastPerformance(w,ex.name);
+    if(!prev)return;
+    const pk=parseFloat(prev.ex.kg)||0;
+    if(pk<=0)return;
+    if(isExComplete(prev.ex)){
+      const inc=progressionStep(pk);
+      planMap[ex.name]=(Math.round((pk+inc)*10)/10)+' кг';
+      planWhy[ex.name]=`+${inc} кг — в Тр.${prev.no} закрыл все подходы`;
+    }else{
+      const donePrev=(prev.ex.setsDone||[]).length,needPrev=basePlannedSets(prev.ex);
+      planMap[ex.name]=pk+' кг';
+      planWhy[ex.name]=`повторить — в Тр.${prev.no} сделано ${donePrev} из ${needPrev}`;
+    }
+    // Схему повторов тянем ту, что реально была в прошлый раз
+    if(prev.ex.sets)planSetsMap[ex.name]=prev.ex.sets;
+  });
+
+  // Восстановительная неделя перебивает прогрессию: 60% и никакого роста
+  const doneCnt=state.weeks.filter(x=>x.done).length;
+  const isRecovery=doneCnt>=12&&doneCnt<=14;
+  if(isRecovery){
+    w.exercises.forEach(ex=>{
+      const prev=lastPerformance(w,ex.name);
+      const pk=prev?parseFloat(prev.ex.kg)||0:0;
+      if(pk>0){
+        planMap[ex.name]=Math.round(pk*0.6/2.5)*2.5+' кг';
+        planWhy[ex.name]='восстановление — 60% от рабочего';
+      }
+    });
+  }
+
+  // Фаза 2 перебивает всё для базовых упражнений
+  const waveInfo=getWaveInfo(weekNo(w));
+  if(waveInfo){
+    const{stage,cycleNumber}=waveInfo;
+    PHASE2_LIFTS.forEach(name=>{
+      const base=getPhase2Base(name);
+      if(base>0){
+        const effectiveBase=base+cycleNumber*WAVE_CYCLE_INCREMENT;
+        const target=Math.round(effectiveBase*stage.pct/2.5)*2.5;
+        planMap[name]=target+' кг';
+        planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
+        planWhy[name]=`${stage.label} неделя — ${Math.round(stage.pct*100)}% от ${effectiveBase} кг`;
+      }
+    });
+  }
+  return{planMap,planSetsMap,planWhy,waveInfo,isRecovery};
+}
+
 function weekGroupStart(){
   for(let i=0;i<state.weeks.length;i+=3){
     const g=state.weeks.slice(i,i+3);
@@ -1189,58 +1284,8 @@ function renderDiary(){
   const badgeCls=isDone?'badge-done':(firstUndone&&w.n===firstUndone.n?'badge-current':'badge-up');
   const badgeTxt=isDone?'Выполнена ✓':(firstUndone&&w.n===firstUndone.n?'Текущая':'Предстоит');
 
-  // Плановые веса из таблицы прогрессии для базовых упражнений
   const wNo=weekNo(w);
-  const planWeeks=PLAN.find(r=>r[0]===String(wNo));
-  const planMap={
-    'Присед со штангой': planWeeks?planWeeks[1]:'',
-    'Становая тяга': planWeeks?planWeeks[2]:'',
-    'Жим лёжа': planWeeks?planWeeks[3]:'',
-  };
-
-  // Восстановительная фаза — 60% от последнего веса
-  const doneCnt=state.weeks.filter(x=>x.done).length;
-  const isRecovery=doneCnt>=12&&doneCnt<=14;
-  if(isRecovery){
-    const getLastKg=(exName)=>{
-      let last=0;
-      const myPos=weekPos(w);
-      state.weeks.forEach((week,pos)=>{
-        if(pos>=myPos)return;
-        const ex=week.exercises.find(e=>e.name===exName);
-        if(ex&&parseFloat(ex.kg)>0)last=parseFloat(ex.kg);
-      });
-      return last;
-    };
-    // Базовые — 60%
-    ['Присед со штангой','Становая тяга','Жим лёжа'].forEach(name=>{
-      const last=getLastKg(name);
-      if(last>0)planMap[name]=Math.round(last*0.6/2.5)*2.5+' кг';
-    });
-    // Вспомогательные — тоже 60%
-    w.exercises.forEach(ex=>{
-      if(!planMap[ex.name]){
-        const last=getLastKg(ex.name);
-        if(last>0)planMap[ex.name]=Math.round(last*0.6/2.5)*2.5+' кг';
-      }
-    });
-  }
-
-  // Фаза 2 — волновая периодизация для базовых упражнений
-  const waveInfo=getWaveInfo(wNo);
-  const planSetsMap={};
-  if(waveInfo){
-    const{stage,cycleNumber}=waveInfo;
-    PHASE2_LIFTS.forEach(name=>{
-      const base=getPhase2Base(name);
-      if(base>0){
-        const effectiveBase=base+cycleNumber*WAVE_CYCLE_INCREMENT;
-        const target=Math.round(effectiveBase*stage.pct/2.5)*2.5;
-        planMap[name]=target+' кг';
-        planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
-      }
-    });
-  }
+  const{planMap,planSetsMap,planWhy,waveInfo,isRecovery}=buildPlanMaps(w);
 
   const exHtml=w.exercises.map((ex,i)=>{
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
@@ -1286,7 +1331,7 @@ function renderDiary(){
             <input class="num-input" type="number" inputmode="decimal" min="0" max="500" step="0.5" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
-          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}${exE1rm(ex)?`<span class="e1rm">≈1ПМ ${exE1rm(ex)} кг</span>`:''}
+          ${planKg?`<div class="plan-hint" title="${(planWhy[ex.name]||'').replace(/"/g,'&quot;')}">план: ${planKg}</div>`:''}${exE1rm(ex)?`<span class="e1rm">≈1ПМ ${exE1rm(ex)} кг</span>`:''}
         </div>
         <div class="field">
           <label>Повторы</label>
@@ -1302,7 +1347,6 @@ function renderDiary(){
     </div>`;
   }).join('');
 
-  const planRows=PLAN.map(r=>{const wM=state.weeks[parseInt(r[0])-1];const cls=r[0]===String(wNo)?'tr-current':(wM&&wM.done?'tr-done':'');return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}${r[4]==='pr'?'<span class="pr-tag">ПР</span>':''}</td></tr>`;}).join('');
 
   // Кнопка завершения только если тренировка не завершена
   const woBtn=isDone?'':`<button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);width:100%;margin-bottom:8px;font-size:14px" onclick="openWorkoutMode(${w.n})">▶️ Режим тренировки</button>`;
@@ -1641,21 +1685,10 @@ function unlockPageScroll(){
   window.scrollTo(0,woScrollY);
 }
 
-// Сколько подходов запланировано у упражнения
-function woSetsCount(ex){
-  const s=String(ex.sets||setsMap[ex.name]||'15×3');
-  const m=s.match(/(\d+)\s*[x×]\s*(\d+)/);
-  let c=3;
-  if(m)c=/[сcмm]\s*$/i.test(s)?parseInt(m[1]):parseInt(m[2]); // '3×60с' и '3×40м' — первое число это подходы
-  if(!c||c<1)c=3;
-  if(c>12)c=12;
-  return Math.max(c+(ex.extraSets||0),(ex.setsDone||[]).length);
-}
-
 window.openWorkoutMode=function(wn){
   const w=getWeek(wn);if(!w||!w.exercises.length)return;
   woWeekN=wn;woActive=true;
-  const i=w.exercises.findIndex(ex=>(ex.setsDone||[]).length<woSetsCount(ex));
+  const i=w.exercises.findIndex(ex=>(ex.setsDone||[]).length<plannedSets(ex));
   woIdx=i>-1?i:0;
   lockPageScroll();
   document.getElementById('wo').classList.add('show');
@@ -1677,8 +1710,33 @@ function renderWo(){
   if(!woActive)return;
   const w=getWeek(woWeekN);if(!w){closeWorkoutMode();return;}
   const ex=w.exercises[woIdx];if(!ex){closeWorkoutMode();return;}
-  const total=woSetsCount(ex),done=(ex.setsDone||[]).length;
-  const planSets=ex.sets||setsMap[ex.name]||'';
+  const total=plannedSets(ex),done=(ex.setsDone||[]).length;
+  const{planMap,planSetsMap,planWhy}=buildPlanMaps(w);
+  const planKg=planMap[ex.name]||'';
+  const planSets=ex.sets||planSetsMap[ex.name]||setsMap[ex.name]||'';
+  // Прошлый раз по этому же упражнению, не считая текущую тренировку
+  const lastH=getHistory(ex.name).filter(x=>x.id!==w.n).pop();
+
+  let deltaHtml='';
+  if(lastH&&ex.kg){
+    const d=Math.round((parseFloat(ex.kg)-lastH.kg)*10)/10;
+    const txt=d>0?`▲ +${d} кг к прошлому`:d<0?`▼ ${d} кг к прошлому`:'= как в прошлый раз';
+    const col=d>0?'var(--green)':d<0?'var(--red)':'var(--text3)';
+    deltaHtml=`<div class="wo-delta" style="color:${col}">${txt}</div>`;
+  }
+
+  const refHtml=`<div class="wo-ref">
+    <div class="wo-ref-box${lastH?'':' empty'}">
+      <div class="wo-ref-label">Прошлый раз</div>
+      <div class="wo-ref-val">${lastH?lastH.kg+' кг':'—'}</div>
+      <div class="wo-ref-sub">${lastH?'Тр.'+lastH.n:'первый подход'}</div>
+    </div>
+    <div class="wo-ref-box${planKg?'':' empty'}">
+      <div class="wo-ref-label">По плану</div>
+      <div class="wo-ref-val">${planKg||'—'}</div>
+      <div class="wo-ref-sub">${planSets||'схема свободная'}</div>
+    </div>
+  </div>${planWhy[ex.name]?`<div class="wo-why">${planWhy[ex.name]}</div>`:''}`;
 
   document.getElementById('wo-title').textContent=`Тренировка ${weekNo(w)} · ${weekDay(w)}`;
   document.getElementById('wo-sub').textContent=`Упражнение ${woIdx+1} из ${w.exercises.length}`;
@@ -1695,11 +1753,13 @@ function renderWo(){
       <div class="wo-exname">${ex.name}</div>
       <div class="wo-plan">${planSets?planSets+' · ':''}сделано ${done} из ${total}${ex.pr?' · 🏆 ПР':''}</div>
     </div>
+    ${refHtml}
     <div class="wo-kg">
       <button class="wo-kg-btn" onclick="woKg(-2.5)">−</button>
-      <input class="wo-kg-in" type="number" inputmode="decimal" step="0.5" min="0" max="500" placeholder="кг" value="${ex.kg}" onchange="woKgInput(this.value)">
+      <input class="wo-kg-in" type="number" inputmode="decimal" step="0.5" min="0" max="500" placeholder="${planKg?planKg.replace(' кг',''):'кг'}" value="${ex.kg}" onchange="woKgInput(this.value)">
       <button class="wo-kg-btn" onclick="woKg(2.5)">+</button>
     </div>
+    ${deltaHtml}
     <div class="wo-sets">${setsHtml}</div>`;
 
   document.getElementById('wo-prev').disabled=woIdx===0;
@@ -1749,7 +1809,7 @@ window.woKgInput=function(v){
 function woMarkNext(){
   const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
   if(!ex.setsDone)ex.setsDone=[];
-  const total=woSetsCount(ex);
+  const total=plannedSets(ex);
   for(let si=0;si<total;si++){
     if(!ex.setsDone.includes(si)){ex.setsDone.push(si);break;}
   }
@@ -1825,7 +1885,7 @@ function stopBgAudio(){
 function updateMediaSession(){
   if(!woLockOn||!('mediaSession' in navigator))return;
   const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
-  const total=woSetsCount(ex),done=(ex.setsDone||[]).length;
+  const total=plannedSets(ex),done=(ex.setsDone||[]).length;
   try{
     navigator.mediaSession.metadata=new MediaMetadata({
       title:ex.name,
