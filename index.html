@@ -17,7 +17,25 @@
 <title>Дневник тренировок</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#f0f0f0;--card:#fff;--hdr:#1a1a2e;--hdr2:#16213e;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e94560;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#e8f8f0;--pr-color:#1a7a4a;--timer-fixed:#1a1a2e}
+:root{--bg:#f0f0f0;--card:#fff;--hdr:#1a1a2e;--hdr2:#16213e;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e94560;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#e8f8f0;--pr-color:#1a7a4a;--timer-fixed:#1a1a2e;
+/* Дизайн-токены: меняешь здесь — меняется везде */
+--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;
+--r1:8px;--r2:12px;--r3:16px;--r-pill:999px;
+--t-xs:11px;--t-sm:13px;--t-md:15px;--t-lg:19px;--t-xl:26px;
+--shadow:0 1px 4px rgba(0,0,0,.07)}
+
+/* Утилиты — вместо повторяющихся инлайн-стилей */
+.u-label{font-size:var(--t-xs);color:var(--text3);display:block;margin-bottom:var(--s1)}
+.u-num{font-variant-numeric:tabular-nums}
+.u-grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
+.u-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--s2)}
+.u-row{display:flex;align-items:center;gap:var(--s2)}
+.u-empty{text-align:center;padding:var(--s5) var(--s3);color:var(--text3);font-size:var(--t-sm);line-height:1.6}
+.u-hint{font-size:var(--t-xs);color:var(--text3);margin-top:var(--s1)}
+.u-mb3{margin-bottom:var(--s3)}
+.input{width:100%;padding:10px;font-size:var(--t-md);border:1px solid var(--border);border-radius:var(--r1);background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;font-variant-numeric:tabular-nums}
+.input:focus{outline:none;border-color:var(--red)}
+.e1rm{display:inline-block;font-size:var(--t-xs);font-weight:700;background:rgba(41,128,185,.14);color:#2980b9;border-radius:5px;padding:2px 7px;margin-top:var(--s1);margin-left:var(--s1);font-variant-numeric:tabular-nums}
 body.dark{--bg:#0f0f0f;--card:#1c1c1e;--hdr:#000;--hdr2:#111;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--input:#2c2c2e;--input-bg:#2c2c2e;--tab-bg:#1c1c1e;--tab-border:#333;--chip-bg:#2c2c2e;--modal:#1c1c1e;--pr-bg:#0a2a1a;--pr-color:#4ade80;--timer-fixed:#000}
 body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;transition:background .2s,color .2s}
 
@@ -50,7 +68,7 @@ body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif
 
 .summary{display:grid;grid-template-columns:repeat(3,1fr);background:var(--hdr2)}
 .stat{text-align:center;padding:10px 4px}
-.stat-val{font-size:18px;font-weight:700;color:#fff}
+.stat-val{font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;color:#fff}
 .stat-label{font-size:10px;color:#aaaacc;margin-top:1px}
 .progress-bar{height:3px;background:#2a2a4a}
 .progress-fill{height:100%;background:var(--red);transition:width .4s}
@@ -136,7 +154,7 @@ canvas{width:100%!important;max-width:100%;display:block}
 .pr-list{display:flex;flex-direction:column;gap:6px}
 .pr-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--input-bg);border-radius:8px;font-size:13px}
 .pr-item-name{color:var(--text);font-weight:500}
-.pr-item-val{color:var(--pr-color);font-weight:700}
+.pr-item-val{font-variant-numeric:tabular-nums;color:var(--pr-color);font-weight:700}
 
 .export-wrap{padding:12px;display:flex;flex-direction:column;gap:10px}
 .export-card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
@@ -172,7 +190,7 @@ tr.tr-done td{color:var(--text3)}
 .finish-modal .finish-sub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:16px}
 .finish-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .finish-stat{background:var(--input-bg);border-radius:10px;padding:12px;text-align:center}
-.finish-stat-val{font-size:20px;font-weight:700;color:var(--red)}
+.finish-stat-val{font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;color:var(--red)}
 .finish-stat-label{font-size:11px;color:var(--text3);margin-top:2px}
 .finish-ex-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
 .finish-ex-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--input-bg);border-radius:8px;font-size:13px}
@@ -217,7 +235,7 @@ tr.tr-done td{color:var(--text3)}
 .stat-big h3{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
 .stat-box{background:var(--input-bg);border-radius:10px;padding:12px;text-align:center}
-.stat-box-val{font-size:22px;font-weight:700;color:var(--red)}
+.stat-box-val{font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:var(--red)}
 .stat-box-label{font-size:11px;color:var(--text3);margin-top:2px}
 .goal-bar-wrap{margin-top:8px}
 .goal-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px}
@@ -344,7 +362,14 @@ tr.tr-done td{color:var(--text3)}
   </div>
   <div class="page" id="page-chart">
     <div class="chart-wrap">
-      <div class="chart-card"><h3>Прогресс весов</h3><div class="chart-sel" id="chart-sel"></div><canvas id="myChart" height="220"></canvas></div>
+      <div class="chart-card"><h3>Прогресс весов</h3>
+        <div class="chart-sel" style="margin-bottom:8px">
+          <button class="chart-sel-btn active" id="cm-kg" onclick="setChartMode('kg')">Рабочий вес</button>
+          <button class="chart-sel-btn" id="cm-orm" onclick="setChartMode('orm')">Оценка 1ПМ</button>
+        </div>
+        <div class="chart-sel" id="chart-sel"></div><canvas id="myChart" height="220"></canvas>
+        <div class="u-hint" id="chart-note"></div>
+      </div>
       <div class="chart-card"><h3>Объём по тренировкам (кг)</h3><canvas id="volChart" height="180"></canvas></div>
       <div class="chart-card"><h3>🏆 Личные рекорды</h3><div class="pr-list" id="pr-list"></div></div>
     </div>
@@ -358,28 +383,25 @@ tr.tr-done td{color:var(--text3)}
           <button class="cardio-type-btn" id="ct-run" onclick="setCardioType('run',this)">🏃 Бег</button>
           <button class="cardio-type-btn" id="ct-walk" onclick="setCardioType('walk',this)">🚶 Ходьба</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div class="u-grid2 u-mb3">
           <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Длительность (мин)</label>
-            <input type="number" id="cardio-duration" inputmode="numeric" placeholder="мин"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+            <label class="u-label">Длительность (мин)</label>
+            <input class="input" type="number" id="cardio-duration" inputmode="numeric" placeholder="мин">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
-            <input type="number" id="cardio-pulse" inputmode="numeric" placeholder="BPM"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+            <label class="u-label">Средний пульс (BPM)</label>
+            <input class="input" type="number" id="cardio-pulse" inputmode="numeric" placeholder="BPM">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
-            <input type="number" id="cardio-kcal" inputmode="numeric" placeholder="ккал"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+            <label class="u-label">Калории (ккал)</label>
+            <input class="input" type="number" id="cardio-kcal" inputmode="numeric" placeholder="ккал">
           </div>
           <div>
-            <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Дистанция (км)</label>
-            <input type="number" id="cardio-dist" inputmode="decimal" step="0.1" placeholder="км"
-              style="width:100%;padding:10px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
+            <label class="u-label">Дистанция (км)</label>
+            <input class="input" type="number" id="cardio-dist" inputmode="decimal" step="0.1" placeholder="км">
           </div>
         </div>
+        <button class="btn btn-outline" style="width:100%;margin-bottom:8px" id="cardio-usual" onclick="fillUsualCardio()">⚡ Как обычно</button>
         <button class="btn btn-red" style="width:100%" onclick="addCardio()">Добавить</button>
         <span class="saved" id="cardio-msg" style="display:block;text-align:center;margin-top:8px">Добавлено ✓</span>
       </div>
@@ -398,11 +420,13 @@ tr.tr-done td{color:var(--text3)}
     <div class="chart-wrap">
       <div class="chart-card">
         <h3>⚖️ Вес тела</h3>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input type="number" id="weight-input" inputmode="decimal" placeholder="кг" step="0.1"
-            style="flex:1;padding:10px;font-size:16px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none">
-          <button class="btn btn-red" onclick="addWeight()" style="flex-shrink:0">Добавить</button>
+        <div class="u-row u-mb3">
+          <button class="num-btn" onclick="stepWeight(-0.1)">−</button>
+          <input class="input" type="number" id="weight-input" inputmode="decimal" step="0.1" placeholder="кг" style="text-align:center;font-size:22px;font-weight:700;padding:12px 0">
+          <button class="num-btn" onclick="stepWeight(0.1)">+</button>
         </div>
+        <button class="btn btn-red" style="width:100%" onclick="addWeight()">Записать вес</button>
+        <div class="u-hint" id="weight-hint" style="text-align:center"></div>
         <div class="goal-bar-wrap" style="margin-bottom:12px">
           <div class="goal-bar-label"><span>Цель: 90 кг</span><span id="weight-progress-label"></span></div>
           <div class="goal-bar"><div class="goal-bar-fill" id="weight-progress-bar" style="width:0%"></div></div>
@@ -422,6 +446,11 @@ tr.tr-done td{color:var(--text3)}
   <div class="page" id="page-export" style="display:none!important"></div>
   <div class="page" id="page-settings">
     <div class="export-wrap">
+      <div class="export-card">
+        <h3>🔗 Одинаковые упражнения</h3>
+        <p>Если одно упражнение записано по-разному, его история разбивается на части. Здесь можно склеить.</p>
+        <div id="merge-list"></div>
+      </div>
       <div class="export-card">
         <h3>🗑️ Корзина</h3>
         <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Удалённые тренировки хранятся 30 дней</p>
@@ -454,20 +483,17 @@ tr.tr-done td{color:var(--text3)}
     <div class="finish-sub" id="finish-sub"></div>
     <div class="finish-stats" id="finish-stats"></div>
     <div style="margin-bottom:10px">
-      <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Длительность (мин)</label>
-      <input type="number" id="finish-duration" inputmode="numeric" placeholder="мин"
-        style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
+      <label class="u-label">Длительность (мин)</label>
+      <input class="input" type="number" id="finish-duration" inputmode="numeric" placeholder="мин">
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    <div class="u-grid2" style="margin-bottom:14px">
       <div>
-        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Средний пульс (BPM)</label>
-        <input type="number" id="finish-pulse" inputmode="numeric" placeholder="BPM"
-          style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
+        <label class="u-label">Средний пульс (BPM)</label>
+        <input class="input" type="number" id="finish-pulse" inputmode="numeric" placeholder="BPM">
       </div>
       <div>
-        <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Калории (ккал)</label>
-        <input type="number" id="finish-kcal" inputmode="numeric" placeholder="ккал"
-          style="width:100%;padding:9px;font-size:15px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:inherit;-webkit-appearance:none">
+        <label class="u-label">Калории (ккал)</label>
+        <input class="input" type="number" id="finish-kcal" inputmode="numeric" placeholder="ккал">
       </div>
     </div>
     <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">Упражнения:</div>
@@ -492,6 +518,8 @@ tr.tr-done td{color:var(--text3)}
     <div class="tmpl-list" id="tmpl-list"></div>
   </div>
 </div>
+
+<datalist id="ex-names"></datalist>
 
 <div class="wo" id="wo">
   <div class="wo-top">
@@ -630,6 +658,85 @@ const PRESET_EX=["Присед со штангой","Становая тяга",
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
 const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
 
+// ===== ИДЕНТИЧНОСТЬ УПРАЖНЕНИЙ =====
+// Приводим написание к единому виду: регистр, ё, лишние пробелы и знаки
+function normName(s){
+  return String(s||'').toLowerCase().replace(/ё/g,'е').replace(/[^\wа-я0-9]+/gi,' ').trim().replace(/\s+/g,' ');
+}
+// state.exAliases: { нормализованный вариант: каноническое имя }
+function canonName(name){
+  if(!name)return name;
+  const a=state.exAliases||{};
+  return a[normName(name)]||name;
+}
+// Все названия, встречающиеся в истории и справочниках
+function allKnownExNames(){
+  const set=new Set(PRESET_EX);
+  Object.keys(setsMap).forEach(n=>set.add(n));
+  (state.weeks||[]).forEach(w=>w.exercises.forEach(e=>{if(e.name)set.add(canonName(e.name));}));
+  (state.trash||[]).forEach(w=>w.exercises.forEach(e=>{if(e.name)set.add(canonName(e.name));}));
+  return [...set].sort((a,b)=>a.localeCompare(b,'ru'));
+}
+// Названия, реально использованные в тренировках
+function usedExNames(){
+  const set=new Set();
+  (state.weeks||[]).forEach(w=>w.exercises.forEach(e=>{if(e.name)set.add(canonName(e.name));}));
+  return [...set].sort((a,b)=>a.localeCompare(b,'ru'));
+}
+// Кандидаты на объединение: одно название целиком входит в другое по словам
+function similarPairs(){
+  const names=usedExNames();
+  const toks=n=>new Set(normName(n).split(' ').filter(t=>t.length>2));
+  const out=[];
+  for(let i=0;i<names.length;i++)for(let j=i+1;j<names.length;j++){
+    const a=toks(names[i]),b=toks(names[j]);
+    if(!a.size||!b.size)continue;
+    const inter=[...a].filter(t=>b.has(t)).length;
+    const subset=inter===Math.min(a.size,b.size);
+    const jac=inter/(a.size+b.size-inter);
+    if(subset||jac>=0.7)out.push([names[i],names[j]]);
+  }
+  return out;
+}
+// Переименовать во всей истории и запомнить псевдоним
+window.mergeExercise=function(from,to){
+  if(!from||!to||from===to)return;
+  if(!state.exAliases)state.exAliases={};
+  state.exAliases[normName(from)]=to;
+  const rename=arr=>arr.forEach(w=>w.exercises.forEach(e=>{if(e.name===from)e.name=to;}));
+  rename(state.weeks||[]);
+  rename(state.trash||[]);
+  (state.customTemplates||[]).forEach(t=>{t.exercises=t.exercises.map(n=>n===from?to:n);});
+  recalcAllPRs();
+  scheduleSave();updateSummary();renderTabs();renderDiary();renderMerge();
+};
+// Разово прогоняем историю через сохранённые псевдонимы
+function applyAliases(){
+  const a=state.exAliases;
+  if(!a||!Object.keys(a).length)return false;
+  let changed=false;
+  const fix=arr=>arr.forEach(w=>w.exercises.forEach(e=>{
+    const c=canonName(e.name);
+    if(c!==e.name){e.name=c;changed=true;}
+  }));
+  fix(state.weeks||[]);fix(state.trash||[]);
+  return changed;
+}
+
+// ===== ОЦЕНКА ОДНОПОВТОРНОГО МАКСИМУМА (формула Эпли) =====
+function repsOf(ex){
+  const m=String(ex.sets||setsMap[ex.name]||'').match(/^(\d+)/);
+  return m?parseInt(m[1]):0;
+}
+function e1rm(kg,reps){
+  kg=parseFloat(kg)||0;
+  if(kg<=0||!reps||reps<1)return 0;
+  if(reps===1)return Math.round(kg*10)/10;
+  if(reps>15)return 0; // за 15 повторами формула врёт
+  return Math.round(kg*(1+reps/30)*10)/10;
+}
+function exE1rm(ex){return e1rm(ex.kg,repsOf(ex));}
+
 // ФАЗА 2 — волновая периодизация (тяжёлая → средняя → лёгкая неделя, по кругу)
 const PHASE2_START=16; // тренировка, с которой начинается Фаза 2 (сразу после восстановительной недели 13-15)
 const PHASE2_LIFTS=['Присед со штангой','Становая тяга','Жим лёжа'];
@@ -669,6 +776,7 @@ let timer={iv:null,rem:90,preset:90,running:false,endAt:0};
 let modalWeek=null;
 let chartInst=null;
 let chartEx='Присед со штангой';
+let chartMode='kg';
 let isRegMode=false;
 
 function fmtDate(d){return d.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});}
@@ -741,13 +849,35 @@ function loadLocalState(){
   }catch(e){}
   return false;
 }
+// Заполняем список автодополнения названий
+function refreshExDatalist(){
+  const el=document.getElementById('ex-names');if(!el)return;
+  el.innerHTML=allKnownExNames().map(n=>`<option value="${n.replace(/"/g,'&quot;')}">`).join('');
+}
+// Старые версии писали вес строкой вида "085" — приводим к числу
+function normalizeWeights(){
+  let changed=false;
+  const fix=arr=>arr.forEach(w=>w.exercises.forEach(e=>{
+    if(e.kg===''||e.kg==null)return;
+    const n=parseFloat(String(e.kg).replace(',','.'));
+    if(isNaN(n))return;
+    const s=String(Math.round(n*10)/10);
+    if(s!==String(e.kg)){e.kg=s;changed=true;}
+  }));
+  fix(state.weeks||[]);fix(state.trash||[]);
+  return changed;
+}
+
 function applyLoadedState(){
   if(state.dark)document.body.classList.add('dark');
   migrateTemplates();
+  const aliasChanged=applyAliases();
+  const kgChanged=normalizeWeights();
   // Разовая починка: старые pr считались по номеру строки, а не по упражнению
   const prChanged=recalcAllPRs();
   const trashChanged=purgeTrash();
-  if(prChanged||trashChanged)scheduleSave();
+  if(aliasChanged||kgChanged||prChanged||trashChanged)scheduleSave();
+  refreshExDatalist();
   updateDarkBtn();updateSummary();renderTabs();renderDiary();
 }
 
@@ -805,7 +935,7 @@ window.showPage=function(p){
   if(p==='cardio')renderCardio();
   if(p==='weight')renderWeight();
   if(p==='stats')renderStats();
-  if(p==='settings'){renderTrash();renderExport();}
+  if(p==='settings'){renderTrash();renderExport();renderMerge();}
 };
 
 window.setPreset=function(s){timer.preset=s;if(!timer.running){timer.rem=s;renderTimerUI();}[60,75,90,180].forEach(t=>{const b=document.getElementById('tp'+t);if(b)b.className='tp-btn'+(t===s?' sel':'');});};
@@ -842,10 +972,11 @@ function checkPR(wn,i){
   const ex=w.exercises[i];if(!ex||!ex.kg)return false;
   const kg=parseFloat(ex.kg);
   if(isNaN(kg)||kg<=0)return false; // вес 0 (брусья, планка) рекордом не считаем
+  const target=normName(canonName(ex.name));
   for(const ow of state.weeks){
     if(ow.n>=wn)continue;
     for(const oex of ow.exercises){
-      if(oex.name===ex.name&&parseFloat(oex.kg)>=kg)return false;
+      if(normName(canonName(oex.name))===target&&parseFloat(oex.kg)>=kg)return false;
     }
   }
   return true;
@@ -860,7 +991,14 @@ function recalcAllPRs(){
   return changed;
 }
 function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)t++;}));return t;}
-function getHistory(name){const h=[];state.weeks.forEach(w=>{const ex=w.exercises.find(e=>e.name===name);if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0});});return h;}
+function getHistory(name){
+  const h=[];const target=normName(canonName(name));
+  state.weeks.forEach(w=>{
+    const ex=w.exercises.find(e=>normName(canonName(e.name))===target);
+    if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0,orm:exE1rm(ex)});
+  });
+  return h;
+}
 
 // Обновляет упражнения в незавершённых тренировках под новые шаблоны
 function migrateTemplates(){
@@ -1096,7 +1234,7 @@ function renderDiary(){
           <button class="ex-move-btn" onclick="moveEx(${w.n},${i},-1)" ${i===0?'disabled':''}>▲</button>
           <button class="ex-move-btn" onclick="moveEx(${w.n},${i},1)" ${i===w.exercises.length-1?'disabled':''}>▼</button>
         </div>
-        <input type="text" class="ex-name-input" value="${ex.name}" onchange="updateEx(${w.n},${i},'name',this.value)" placeholder="Упражнение">
+        <input type="text" class="ex-name-input" list="ex-names" value="${ex.name}" onchange="updateEx(${w.n},${i},'name',this.value)" placeholder="Упражнение">
         ${pr?'<span class="ex-pr">🏆 ПР</span>':''}
         ${alternativesMap[ex.name]?`<button class="ex-alt-btn" onclick="openAltModal(${w.n},${i})" title="Аналоги">🔄</button>`:''}
         <button class="ex-del" onclick="delEx(${w.n},${i})">✕</button>
@@ -1110,7 +1248,7 @@ function renderDiary(){
             <input class="num-input" type="number" inputmode="decimal" min="0" max="500" step="0.5" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
-          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}
+          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}${exE1rm(ex)?`<span class="e1rm">≈1ПМ ${exE1rm(ex)} кг</span>`:''}
         </div>
         <div class="field">
           <label>Повторы</label>
@@ -1282,6 +1420,49 @@ function purgeTrash(){
   state.trash=trashVisible();
   return before!==state.trash.length;
 }
+
+function renderMerge(){
+  const el=document.getElementById('merge-list');if(!el)return;
+  const pairs=similarPairs();
+  const names=usedExNames();
+  const opts=n=>names.map(x=>`<option value="${x.replace(/"/g,'&quot;')}"${x===n?' selected':''}>${x}</option>`).join('');
+  let html='';
+  if(pairs.length){
+    html+='<div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:8px">Похоже на одно и то же</div>';
+    html+=pairs.map(([a,b])=>{
+      const ha=getHistory(a).length,hb=getHistory(b).length;
+      // Оставляем то название, у которого больше истории
+      const keep=ha>=hb?a:b, drop=ha>=hb?b:a;
+      return `<div class="trash-item">
+        <div class="trash-item-title">${drop}</div>
+        <div class="trash-item-meta">объединить с «${keep}» · ${ha+hb} записей суммарно</div>
+        <div class="trash-item-btns">
+          <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="mergeExercise('${drop.replace(/'/g,"\\'")}','${keep.replace(/'/g,"\\'")}')">Объединить</button>
+        </div>
+      </div>`;
+    }).join('');
+  }else{
+    html+='<p class="u-empty">Похожих названий не нашлось</p>';
+  }
+  if(names.length>1){
+    html+=`<div style="font-size:12px;color:var(--text2);font-weight:600;margin:14px 0 8px">Вручную</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <select class="input" id="merge-from">${opts(names[0])}</select>
+      <div style="text-align:center;font-size:12px;color:var(--text3)">переименовать в ↓</div>
+      <select class="input" id="merge-to">${opts(names[1])}</select>
+      <button class="btn btn-outline" onclick="doManualMerge()">Объединить</button>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+window.doManualMerge=function(){
+  const from=document.getElementById('merge-from')?.value;
+  const to=document.getElementById('merge-to')?.value;
+  if(!from||!to||from===to){alert('Выбери два разных упражнения');return;}
+  if(!confirm(`«${from}» станет «${to}» во всей истории. Продолжить?`))return;
+  mergeExercise(from,to);
+  refreshExDatalist();
+};
 
 function renderTrash(){
   const el=document.getElementById('trash-list');if(!el)return;
@@ -1638,7 +1819,7 @@ window.closeModal=function(e){if(!e||e.target===document.getElementById('modal-b
 window.addPresetEx=function(name){const w=getWeek(modalWeek);if(w){w.exercises.push({name,kg:'',sets:'',setsDone:[],pr:false});scheduleSave();renderDiary();}document.getElementById('modal-bg').classList.remove('show');};
 window.addCustomEx=function(){const v=document.getElementById('custom-ex').value.trim();if(!v)return;const w=getWeek(modalWeek);if(w){w.exercises.push({name:v,kg:'',sets:'',setsDone:[],pr:false});scheduleSave();renderDiary();}document.getElementById('modal-bg').classList.remove('show');};
 
-function getAllExNames(){const names=new Set();state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.name&&e.kg)names.add(e.name);}));return[...names];}
+function getAllExNames(){const names=new Set();state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.name&&e.kg)names.add(canonName(e.name));}));return[...names];}
 
 // STATS
 function renderStats(){
@@ -1906,8 +2087,14 @@ function renderChart(){
   if(!names.includes(chartEx))chartEx=names[0];
   if(sel)sel.innerHTML=names.map(n=>`<button class="chart-sel-btn${n===chartEx?' active':''}" onclick="selectChartEx('${n.replace(/'/g,"\\'")}')">${n}</button>`).join('');
   const hist=getHistory(chartEx);const ctx=document.getElementById('myChart')?.getContext('2d');if(!ctx)return;
+  const isOrm=chartMode==='orm';
+  const pts=isOrm?hist.filter(h=>h.orm>0):hist;
+  const note=document.getElementById('chart-note');
+  if(note)note.textContent=isOrm
+    ?'Оценка по формуле Эпли: вес × (1 + повторы/30). Позволяет сравнивать подходы с разным числом повторов.'
+    :'Рабочий вес на снаряде.';
   if(chartInst)chartInst.destroy();
-  chartInst=new window.Chart(ctx,{type:'line',data:{labels:hist.map(h=>`Тр.${h.n}`),datasets:[{label:chartEx,data:hist.map(h=>h.kg),borderColor:'#e94560',backgroundColor:'rgba(233,69,96,.1)',tension:0.3,pointBackgroundColor:'#e94560',pointRadius:5,fill:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,ticks:{callback:v=>v+'кг'}},x:{}}}});
+  chartInst=new window.Chart(ctx,{type:'line',data:{labels:pts.map(h=>`Тр.${h.n}`),datasets:[{label:chartEx,data:pts.map(h=>isOrm?h.orm:h.kg),borderColor:isOrm?'#2980b9':'#e94560',backgroundColor:isOrm?'rgba(41,128,185,.1)':'rgba(233,69,96,.1)',tension:0.3,pointBackgroundColor:isOrm?'#2980b9':'#e94560',pointRadius:5,fill:true}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,ticks:{callback:v=>v+'кг'}},x:{}}}});
 
   // Volume chart
   const volCtx=document.getElementById('volChart')?.getContext('2d');
@@ -1922,11 +2109,27 @@ function renderChart(){
   }
 
   const prList=document.getElementById('pr-list');const prs=[];
-  names.forEach(name=>{let best=0,bestW=0;state.weeks.forEach(w=>{const ex=w.exercises.find(e=>e.name===name);if(ex&&parseFloat(ex.kg)>best){best=parseFloat(ex.kg);bestW=w.n;}});if(best>0)prs.push({name,best,bestW});});
+  names.forEach(name=>{
+    const target=normName(canonName(name));
+    let best=0,bestW=0,bestOrm=0;
+    state.weeks.forEach(w=>{
+      const ex=w.exercises.find(e=>normName(canonName(e.name))===target);
+      if(!ex)return;
+      if(parseFloat(ex.kg)>best){best=parseFloat(ex.kg);bestW=w.n;}
+      const o=exE1rm(ex);if(o>bestOrm)bestOrm=o;
+    });
+    if(best>0)prs.push({name,best,bestW,bestOrm});
+  });
   prs.sort((a,b)=>b.best-a.best);
-  if(prList)prList.innerHTML=prs.length?prs.map(p=>`<div class="pr-item"><span class="pr-item-name">${p.name}</span><span class="pr-item-val">${p.best} кг · Тр.${p.bestW}</span></div>`).join(''):'<p style="color:var(--text3);font-size:13px">Данных пока нет</p>';
+  if(prList)prList.innerHTML=prs.length?prs.map(p=>`<div class="pr-item"><span class="pr-item-name">${p.name}${p.bestOrm?`<span class="e1rm">≈1ПМ ${p.bestOrm}</span>`:''}</span><span class="pr-item-val u-num">${p.best} кг · Тр.${p.bestW}</span></div>`).join(''):'<p class="u-empty">Данных пока нет</p>';
 }
 window.selectChartEx=function(name){chartEx=name;renderChart();};
+window.setChartMode=function(m){
+  chartMode=m;
+  document.getElementById('cm-kg')?.classList.toggle('active',m==='kg');
+  document.getElementById('cm-orm')?.classList.toggle('active',m==='orm');
+  renderChart();
+};
 
 // CARDIO
 let cardioType='bike';
@@ -1937,6 +2140,23 @@ window.setCardioType=function(type,btn){
   cardioType=type;
   document.querySelectorAll('.cardio-type-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+};
+
+// Медиана последних заездов того же типа — устойчивее среднего к разовым выбросам
+function median(arr){
+  const a=arr.filter(v=>v>0).sort((x,y)=>x-y);
+  if(!a.length)return 0;
+  const m=Math.floor(a.length/2);
+  return a.length%2?a[m]:Math.round((a[m-1]+a[m])/2*10)/10;
+}
+window.fillUsualCardio=function(){
+  const log=(state.cardioLog||[]).filter(e=>e.type===cardioType).slice(-8);
+  if(!log.length){alert('Пока нет истории для этого типа кардио');return;}
+  document.getElementById('cardio-duration').value=Math.round(median(log.map(e=>e.duration)))||'';
+  document.getElementById('cardio-pulse').value=Math.round(median(log.map(e=>e.pulse)))||'';
+  document.getElementById('cardio-kcal').value=Math.round(median(log.map(e=>e.kcal)))||'';
+  const d=median(log.map(e=>e.dist));
+  document.getElementById('cardio-dist').value=d||'';
 };
 
 window.addCardio=function(){
@@ -2031,6 +2251,25 @@ function renderExport(){const el=document.getElementById('export-text');if(el)el
 let weightChartInst=null;
 const WEIGHT_GOAL=90;
 
+// Подставляем последний вес, чтобы правка была в пару тапов
+function prefillWeight(){
+  const inp=document.getElementById('weight-input');if(!inp)return;
+  const log=[...(state.weightLog||[])].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!inp.value&&log.length)inp.value=log[log.length-1].kg;
+  const hint=document.getElementById('weight-hint');
+  if(hint){
+    const today=new Date().toDateString();
+    const todayRec=log.filter(e=>new Date(e.date).toDateString()===today);
+    hint.textContent=todayRec.length?`Сегодня уже записано: ${todayRec[todayRec.length-1].kg} кг`
+      :log.length?`Последний раз ${log[log.length-1].kg} кг`:'Первая запись';
+  }
+}
+window.stepWeight=function(d){
+  const inp=document.getElementById('weight-input');if(!inp)return;
+  const cur=parseFloat(inp.value)||0;
+  inp.value=(Math.round((cur+d)*10)/10).toFixed(1);
+};
+
 window.addWeight=function(){
   const val=parseFloat(document.getElementById('weight-input').value);
   if(isNaN(val)||val<30||val>300){alert('Введи корректный вес');return;}
@@ -2042,9 +2281,10 @@ window.addWeight=function(){
 };
 
 function renderWeight(){
+  prefillWeight();
   if(!state.weightLog||!state.weightLog.length){
     const wh=document.getElementById('weight-history');
-    if(wh)wh.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Ещё нет записей.<br>Введи сегодняшний вес выше.</p>';
+    if(wh)wh.innerHTML='<p class="u-empty">Ещё нет записей.<br>Введи сегодняшний вес выше.</p>';
     return;
   }
 
