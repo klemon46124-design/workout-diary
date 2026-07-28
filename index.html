@@ -6,13 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Тренировки">
-<link rel="apple-touch-icon" href="/workout-diary/icon.png">
-<link rel="apple-touch-icon" sizes="192x192" href="/workout-diary/icon.png">
-<link rel="icon" type="image/png" href="/workout-diary/icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1a2e">
 <title>Дневник тренировок</title>
 <style>
@@ -246,6 +246,36 @@ tr.tr-done td{color:var(--text3)}
 .phase-banner.phase-complete{background:linear-gradient(135deg,#1a7a4a,#27ae60);color:#fff}
 .phase-banner.phase-recovery{background:linear-gradient(135deg,#2980b9,#3498db);color:#fff}
 .phase-banner.phase-next{background:linear-gradient(135deg,#8e44ad,#9b59b6);color:#fff}
+
+/* РЕЖИМ ТРЕНИРОВКИ */
+.wo{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;display:none;flex-direction:column}
+.wo.show{display:flex}
+.wo-top{background:var(--hdr);color:#fff;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;flex-shrink:0}
+.wo-top-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wo-top-sub{font-size:11px;color:#aaaacc;margin-top:1px}
+.wo-x{background:rgba(255,255,255,.12);border:none;color:#fff;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0;font-family:inherit}
+.wo-toggle{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex-shrink:0;line-height:1;opacity:.45;font-family:inherit}
+.wo-toggle.on{background:var(--red);border-color:var(--red);opacity:1}
+.wo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px;display:flex;flex-direction:column;gap:14px}
+.wo-exname{font-size:26px;font-weight:700;color:var(--text);line-height:1.2;text-align:center}
+.wo-plan{text-align:center;font-size:13px;color:var(--text3);margin-top:5px}
+.wo-kg{display:flex;align-items:center;gap:10px}
+.wo-kg-btn{width:64px;height:58px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:26px;cursor:pointer;flex-shrink:0;font-family:inherit}
+.wo-kg-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
+.wo-kg-in{flex:1;min-width:0;text-align:center;font-size:26px;font-weight:700;padding:11px 0;border:1px solid var(--border);border-radius:14px;background:var(--card);color:var(--text);font-family:inherit;-webkit-appearance:none}
+.wo-kg-in:focus{outline:none;border-color:var(--red)}
+.wo-sets{display:grid;gap:10px}
+.wo-set{border-radius:14px;border:2px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;font-size:19px;font-weight:700;padding:20px 0;cursor:pointer}
+.wo-set.done{background:var(--red);border-color:var(--red);color:#fff}
+.wo-set-add{font-size:15px;font-weight:600;color:var(--red);border-style:dashed;border-color:var(--red);background:transparent;padding:13px 0}
+.wo-bottom{flex-shrink:0;background:var(--card);border-top:1px solid var(--border);padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
+.wo-nav{padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
+.wo-nav:disabled{opacity:.25}
+.wo-timer{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;min-width:0}
+.wo-time{font-size:29px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
+.wo-time.running{color:#27ae60}
+.wo-time.finished{color:var(--red)}
+.wo-tbtn{padding:11px 15px;border-radius:12px;border:none;background:var(--red);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
@@ -463,6 +493,27 @@ tr.tr-done td{color:var(--text3)}
   </div>
 </div>
 
+<div class="wo" id="wo">
+  <div class="wo-top">
+    <button class="wo-x" onclick="closeWorkoutMode()">✕</button>
+    <div style="flex:1;min-width:0">
+      <div class="wo-top-title" id="wo-title"></div>
+      <div class="wo-top-sub" id="wo-sub"></div>
+    </div>
+    <button class="wo-toggle" id="wo-wake" onclick="woToggleWake()" title="Не гасить экран">🔆</button>
+    <button class="wo-toggle" id="wo-lock" onclick="woToggleLock()" title="Управление с экрана блокировки">🔒</button>
+  </div>
+  <div class="wo-body" id="wo-body"></div>
+  <div class="wo-bottom">
+    <button class="wo-nav" id="wo-prev" onclick="woGo(-1)">←</button>
+    <div class="wo-timer">
+      <div class="wo-time" id="wo-time">1:30</div>
+      <button class="wo-tbtn" id="wo-tbtn" onclick="timerToggle()">Старт</button>
+    </div>
+    <button class="wo-nav" id="wo-next" onclick="woGo(1)">→</button>
+  </div>
+</div>
+
 <div class="timer-fixed" id="timer-fixed" style="display:none">
   <div id="tdisplay" class="timer-display">1:30</div>
   <div class="timer-presets">
@@ -494,6 +545,8 @@ tr.tr-done td{color:var(--text3)}
 const app=firebase.initializeApp({apiKey:"AIzaSyDyMT0e0UYfahOEWQUZFYLhLtmy6g-9gKk",authDomain:"workout-diary-6a593.firebaseapp.com",projectId:"workout-diary-6a593",storageBucket:"workout-diary-6a593.firebasestorage.app",messagingSenderId:"779535485715",appId:"1:779535485715:web:5c84a87a5601db20f468e6"});
 const auth=firebase.auth();
 const db=firebase.firestore();
+// Офлайн-кэш Firestore: данные переживают закрытие приложения без сети
+db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
 const DAYS=['Пн','Ср','Пт'];
 const TYPE_DAY={'A':'Пн','B':'Ср','C':'Пт'};
@@ -668,34 +721,59 @@ auth.onAuthStateChanged(async user=>{
   }
 });
 
+// Промис с ограничением по времени — чтобы не висеть на слабой связи
+function withTimeout(p,ms){
+  return Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+}
+function loadLocalState(){
+  try{
+    const s=localStorage.getItem('vl_'+currentUser.uid);
+    if(s){state=JSON.parse(s);return true;}
+  }catch(e){}
+  return false;
+}
+function applyLoadedState(){
+  if(state.dark)document.body.classList.add('dark');
+  migrateTemplates();
+  updateDarkBtn();updateSummary();renderTabs();renderDiary();
+}
+
 async function loadFromFirebase(){
   if(!currentUser)return;
+  // Без сети даже не пытаемся — сразу поднимаем локальную копию
+  if(!navigator.onLine){
+    if(!loadLocalState())state=initState();
+    applyLoadedState();
+    setSyncStatus('📴',false);
+    return;
+  }
   try{
     setSyncStatus('⟳',false);
-    const snap=await db.collection('users').doc(currentUser.uid).get();
+    const snap=await withTimeout(db.collection('users').doc(currentUser.uid).get(),10000);
     if(snap.exists){state=snap.data().state||initState();}
     else{state=initState();await saveToFirebase();}
-    if(state.dark)document.body.classList.add('dark');
-    migrateTemplates();
-    updateDarkBtn();updateSummary();renderTabs();renderDiary();
+    try{localStorage.setItem('vl_'+currentUser.uid,JSON.stringify(state));}catch(e){}
+    applyLoadedState();
     setSyncStatus('✓',true);
   }catch(e){
+    loadLocalState();
+    applyLoadedState();
     setSyncStatus('✗',false,true);
-    try{const s=localStorage.getItem('vl_'+currentUser.uid);if(s)state=JSON.parse(s);}catch(e2){}
-    updateSummary();renderTabs();renderDiary();
   }
 }
 
 async function saveToFirebase(){
   if(!currentUser)return;
+  // Локальная копия пишется ВСЕГДА и первой — до любых сетевых вызовов
+  try{localStorage.setItem('vl_'+currentUser.uid,JSON.stringify(state));}catch(e){}
+  if(!navigator.onLine){setSyncStatus('📴',false);return;}
   try{
     setSyncStatus('⟳',false);
-    await db.collection('users').doc(currentUser.uid).set({state,updatedAt:new Date().toISOString()});
-    try{localStorage.setItem('vl_'+currentUser.uid,JSON.stringify(state));}catch(e){}
+    await withTimeout(db.collection('users').doc(currentUser.uid).set({state,updatedAt:new Date().toISOString()}),10000);
     setSyncStatus('✓',true);
   }catch(e){
+    // Запись осталась в очереди Firestore и уйдёт сама, когда связь вернётся
     setSyncStatus('✗',false,true);
-    try{localStorage.setItem('vl_'+currentUser.uid,JSON.stringify(state));}catch(e2){}
   }
 }
 
@@ -722,7 +800,7 @@ window.timerToggle=function(){if(timer.running)stopTimer();else startTimer(timer
 function startTimer(s){if(timer.iv)clearInterval(timer.iv);timer.rem=s;timer.preset=s;timer.running=true;renderTimerUI();timer.iv=setInterval(()=>{timer.rem--;if(timer.rem<=0){timer.rem=0;timer.running=false;clearInterval(timer.iv);beep();}renderTimerUI();},1000);}
 function stopTimer(){if(timer.iv)clearInterval(timer.iv);timer.running=false;timer.rem=timer.preset;renderTimerUI();}
 function beep(){try{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(0.3,a.currentTime);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.6);o.start();o.stop(a.currentTime+0.6);}catch(e){}}
-function renderTimerUI(){const m=Math.floor(timer.rem/60),s=String(timer.rem%60).padStart(2,'0');const el=document.getElementById('tdisplay');if(el){el.textContent=`${m}:${s}`;el.className='timer-display'+(timer.running?' running':(!timer.rem?' finished':''));}const b=document.getElementById('tbtn');if(b)b.textContent=timer.running?'Стоп':'Старт';}
+function renderTimerUI(){const m=Math.floor(timer.rem/60),s=String(timer.rem%60).padStart(2,'0');const el=document.getElementById('tdisplay');if(el){el.textContent=`${m}:${s}`;el.className='timer-display'+(timer.running?' running':(!timer.rem?' finished':''));}const b=document.getElementById('tbtn');if(b)b.textContent=timer.running?'Стоп':'Старт';const wt=document.getElementById('wo-time');if(wt){wt.textContent=`${m}:${s}`;wt.className='wo-time'+(timer.running?' running':(!timer.rem?' finished':''));}const wb=document.getElementById('wo-tbtn');if(wb)wb.textContent=timer.running?'Стоп':'Старт';}
 
 function checkPR(wn,i){const w=getWeek(wn);if(!w)return false;const ex=w.exercises[i];if(!ex||!ex.kg)return false;const kg=parseFloat(ex.kg);if(isNaN(kg))return false;for(const ow of state.weeks){if(ow.n>=wn)continue;const oex=ow.exercises[i];if(oex&&parseFloat(oex.kg)>=kg)return false;}return true;}
 function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)t++;}));return t;}
@@ -991,6 +1069,7 @@ function renderDiary(){
   const planRows=PLAN.map(r=>{const wM=state.weeks.find(x=>x.n===parseInt(r[0]));const cls=r[0]===String(w.n)?'tr-current':(wM&&wM.done?'tr-done':'');return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}${r[4]==='pr'?'<span class="pr-tag">ПР</span>':''}</td></tr>`;}).join('');
 
   // Кнопка завершения только если тренировка не завершена
+  const woBtn=isDone?'':`<button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);width:100%;margin-bottom:8px;font-size:14px" onclick="openWorkoutMode(${w.n})">▶️ Режим тренировки</button>`;
   const finishBtn=isDone?'':`<button class="btn" style="background:var(--green);color:#fff;border-color:var(--green);width:100%;margin-bottom:8px;font-size:14px" onclick="openFinishModal(${w.n})">🏁 Завершить тренировку</button>`;
   const tmplBtn=`<button class="btn btn-outline" style="width:100%;font-size:13px" onclick="saveAsTemplate(${w.n})">⭐ Сохранить как шаблон</button>`;
 
@@ -1020,7 +1099,7 @@ function renderDiary(){
         <button class="btn btn-outline" onclick="doSave(${w.n})">Синхронизировать ☁️</button>
         <span class="saved" id="smsg">Сохранено ✓</span>
       </div>
-      <div style="margin-top:10px">${finishBtn}${tmplBtn}</div>
+      <div style="margin-top:10px">${woBtn}${finishBtn}${tmplBtn}</div>
     </div>`;
 }
 
@@ -1220,6 +1299,208 @@ window.confirmFinish=async function(){
   updateSummary();renderTabs();renderDiary();
   stopTimer();
 };
+// ===== РЕЖИМ ТРЕНИРОВКИ (WAKE LOCK + ЭКРАН БЛОКИРОВКИ) =====
+let woWeekN=null,woIdx=0,woActive=false;
+let wakeLock=null,woWakeOn=true,woLockOn=false,bgAudio=null;
+
+// Сколько подходов запланировано у упражнения
+function woSetsCount(ex){
+  const s=String(ex.sets||setsMap[ex.name]||'15×3');
+  const m=s.match(/(\d+)\s*[x×]\s*(\d+)/);
+  let c=3;
+  if(m)c=/[сcмm]\s*$/i.test(s)?parseInt(m[1]):parseInt(m[2]); // '3×60с' и '3×40м' — первое число это подходы
+  if(!c||c<1)c=3;
+  if(c>12)c=12;
+  return Math.max(c+(ex.extraSets||0),(ex.setsDone||[]).length);
+}
+
+window.openWorkoutMode=function(wn){
+  const w=getWeek(wn);if(!w||!w.exercises.length)return;
+  woWeekN=wn;woActive=true;
+  const i=w.exercises.findIndex(ex=>(ex.setsDone||[]).length<woSetsCount(ex));
+  woIdx=i>-1?i:0;
+  document.getElementById('wo').classList.add('show');
+  if(woWakeOn)requestWakeLock();
+  renderWo();
+};
+
+window.closeWorkoutMode=function(){
+  woActive=false;
+  document.getElementById('wo').classList.remove('show');
+  releaseWakeLock();
+  stopBgAudio();
+  woLockOn=false;
+  updateSummary();renderTabs();renderDiary();
+};
+
+function renderWo(){
+  if(!woActive)return;
+  const w=getWeek(woWeekN);if(!w){closeWorkoutMode();return;}
+  const ex=w.exercises[woIdx];if(!ex){closeWorkoutMode();return;}
+  const total=woSetsCount(ex),done=(ex.setsDone||[]).length;
+  const planSets=ex.sets||setsMap[ex.name]||'';
+
+  document.getElementById('wo-title').textContent=`Тренировка ${w.n} · ${weekDay(w)}`;
+  document.getElementById('wo-sub').textContent=`Упражнение ${woIdx+1} из ${w.exercises.length}`;
+  document.getElementById('wo-wake').classList.toggle('on',!!wakeLock);
+  document.getElementById('wo-lock').classList.toggle('on',woLockOn);
+
+  const setsHtml=Array.from({length:total},(_,si)=>{
+    const d=(ex.setsDone||[]).includes(si);
+    return `<button class="wo-set${d?' done':''}" onclick="woToggleSet(${si})">${d?'✓ ':''}Подход ${si+1}</button>`;
+  }).join('')+`<button class="wo-set wo-set-add" onclick="woAddSet()">+ ещё подход</button>`;
+
+  document.getElementById('wo-body').innerHTML=`
+    <div>
+      <div class="wo-exname">${ex.name}</div>
+      <div class="wo-plan">${planSets?planSets+' · ':''}сделано ${done} из ${total}${ex.pr?' · 🏆 ПР':''}</div>
+    </div>
+    <div class="wo-kg">
+      <button class="wo-kg-btn" onclick="woKg(-2.5)">−</button>
+      <input class="wo-kg-in" type="number" inputmode="decimal" step="0.5" min="0" max="500" placeholder="кг" value="${ex.kg}" onchange="woKgInput(this.value)">
+      <button class="wo-kg-btn" onclick="woKg(2.5)">+</button>
+    </div>
+    <div class="wo-sets">${setsHtml}</div>`;
+
+  document.getElementById('wo-prev').disabled=woIdx===0;
+  document.getElementById('wo-next').disabled=woIdx>=w.exercises.length-1;
+  renderTimerUI();
+  updateMediaSession();
+}
+
+window.woGo=function(d){
+  const w=getWeek(woWeekN);if(!w)return;
+  const n=woIdx+d;
+  if(n<0||n>=w.exercises.length)return;
+  woIdx=n;renderWo();
+};
+window.woToggleSet=function(si){
+  const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
+  if(!ex.setsDone)ex.setsDone=[];
+  const i=ex.setsDone.indexOf(si);
+  if(i>-1)ex.setsDone.splice(i,1);else ex.setsDone.push(si);
+  scheduleSave();renderWo();
+};
+window.woAddSet=function(){
+  const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
+  ex.extraSets=(ex.extraSets||0)+1;
+  scheduleSave();renderWo();
+};
+window.woKg=function(d){
+  const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
+  ex.kg=String(Math.min(500,Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10)));
+  ex.pr=checkPR(woWeekN,woIdx);
+  scheduleSave();updateSummary();renderWo();
+};
+window.woKgInput=function(v){
+  const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
+  const t=String(v).trim().replace(',','.');
+  if(t===''){ex.kg='';}
+  else{
+    const n=parseFloat(t);
+    if(isNaN(n)||n<0||n>500){alert('Введи вес от 0 до 500 кг');renderWo();return;}
+    ex.kg=String(Math.round(n*10)/10);
+  }
+  ex.pr=checkPR(woWeekN,woIdx);
+  scheduleSave();updateSummary();renderWo();
+};
+
+// Отметить/снять подход с экрана блокировки
+function woMarkNext(){
+  const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
+  if(!ex.setsDone)ex.setsDone=[];
+  const total=woSetsCount(ex);
+  for(let si=0;si<total;si++){
+    if(!ex.setsDone.includes(si)){ex.setsDone.push(si);break;}
+  }
+  scheduleSave();renderWo();
+  startTimer(timer.preset); // с локскрина таймер стартует сам
+}
+function woUndoLast(){
+  const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
+  if(!ex.setsDone||!ex.setsDone.length)return;
+  ex.setsDone.sort((a,b)=>a-b);
+  ex.setsDone.pop();
+  scheduleSave();renderWo();
+}
+
+// --- Wake Lock: не даём экрану гаснуть ---
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      wakeLock=await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release',()=>{
+        wakeLock=null;
+        const b=document.getElementById('wo-wake');if(b)b.classList.remove('on');
+      });
+    }
+  }catch(e){wakeLock=null;}
+  const b=document.getElementById('wo-wake');if(b)b.classList.toggle('on',!!wakeLock);
+}
+function releaseWakeLock(){try{if(wakeLock)wakeLock.release();}catch(e){}wakeLock=null;}
+window.woToggleWake=async function(){
+  if(wakeLock){woWakeOn=false;releaseWakeLock();}
+  else{woWakeOn=true;await requestWakeLock();}
+  const b=document.getElementById('wo-wake');if(b)b.classList.toggle('on',!!wakeLock);
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&woActive&&woWakeOn&&!wakeLock)requestWakeLock();
+});
+
+// --- Экран блокировки через Media Session ---
+// Почти беззвучный трек в цикле — iOS показывает карточку «плеера» на локскрине
+function makeQuietWavUrl(sec,rate){
+  const n=rate*sec,buf=new ArrayBuffer(44+n*2),v=new DataView(buf);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');
+  v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);
+  w(36,'data');v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++)v.setInt16(44+i*2,i%2?1:-1,true);
+  return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+}
+function startBgAudio(){
+  try{
+    if(!bgAudio){bgAudio=new Audio(makeQuietWavUrl(1,8000));bgAudio.loop=true;}
+    bgAudio.play().catch(()=>{});
+    if('mediaSession' in navigator){
+      navigator.mediaSession.playbackState='playing';
+      try{navigator.mediaSession.setActionHandler('nexttrack',()=>woMarkNext());}catch(e){}
+      try{navigator.mediaSession.setActionHandler('previoustrack',()=>woUndoLast());}catch(e){}
+      try{navigator.mediaSession.setActionHandler('play',()=>{bgAudio.play().catch(()=>{});navigator.mediaSession.playbackState='playing';});}catch(e){}
+      try{navigator.mediaSession.setActionHandler('pause',()=>{navigator.mediaSession.playbackState='playing';});}catch(e){}
+    }
+    updateMediaSession();
+  }catch(e){}
+}
+function stopBgAudio(){
+  try{
+    if(bgAudio)bgAudio.pause();
+    if('mediaSession' in navigator){
+      navigator.mediaSession.playbackState='none';
+      ['nexttrack','previoustrack','play','pause'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,null);}catch(e){}});
+    }
+  }catch(e){}
+}
+function updateMediaSession(){
+  if(!woLockOn||!('mediaSession' in navigator))return;
+  const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
+  const total=woSetsCount(ex),done=(ex.setsDone||[]).length;
+  try{
+    navigator.mediaSession.metadata=new MediaMetadata({
+      title:ex.name,
+      artist:`Подход ${Math.min(done+1,total)} из ${total}${ex.kg?' · '+ex.kg+' кг':''}`,
+      album:`Тренировка ${w.n} · ${weekDay(w)}`
+    });
+  }catch(e){}
+}
+window.woToggleLock=function(){
+  woLockOn=!woLockOn;
+  if(woLockOn)startBgAudio();else stopBgAudio();
+  const b=document.getElementById('wo-lock');if(b)b.classList.toggle('on',woLockOn);
+  renderWo();
+};
+
 window.openModal=function(wn){modalWeek=wn;const used=getWeek(wn)?.exercises.map(e=>e.name)||[];document.getElementById('ex-chips').innerHTML=PRESET_EX.filter(p=>!used.includes(p)).map(p=>`<button class="chip" onclick="addPresetEx('${p.replace(/'/g,"\\'")}')">${p}</button>`).join('');document.getElementById('custom-ex').value='';document.getElementById('modal-bg').classList.add('show');};
 
 // Alternatives modal
@@ -1745,20 +2026,17 @@ document.addEventListener('focusout',()=>{setTimeout(()=>document.body.classList
 const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';document.head.appendChild(s);
 renderTimerUI();
 
-// Register Service Worker
+// Слежение за сетью — независимо от того, зарегистрировался ли Service Worker
+window.addEventListener('online',()=>{if(currentUser)saveToFirebase();});
+window.addEventListener('offline',()=>{setSyncStatus('📴',false);});
+if(!navigator.onLine)setSyncStatus('📴',false);
+
+// Register Service Worker (путь относительный — сайт лежит в подпапке /workout-diary/)
 if('serviceWorker' in navigator){
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
-      console.log('SW registered');
-      // При появлении интернета — синхронизировать
-      window.addEventListener('online', () => {
-        if(currentUser) saveToFirebase();
-        setSyncStatus('✓ Синхронизировано',true);
-      });
-      window.addEventListener('offline', () => {
-        setSyncStatus('📴 Офлайн',false);
-      });
-    }).catch(e => console.log('SW error', e));
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg=>console.log('SW registered, scope:',reg.scope))
+      .catch(e=>console.log('SW error',e));
   });
 }
 </script>
