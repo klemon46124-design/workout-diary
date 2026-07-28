@@ -550,7 +550,16 @@ db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
 
 const DAYS=['Пн','Ср','Пт'];
 const TYPE_DAY={'A':'Пн','B':'Ср','C':'Пт'};
-function weekDay(w){return w.type?TYPE_DAY[w.type]||DAYS[(w.n-1)%3]:DAYS[(w.n-1)%3];}
+const WD_SHORT=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+// Настоящий день недели из даты завершения; если тренировка ещё не сделана — из типа/номера
+function weekDay(w){
+  if(w.finishedAt){
+    const d=new Date(w.finishedAt);
+    if(!isNaN(d.getTime()))return WD_SHORT[d.getDay()];
+  }
+  if(w.type&&TYPE_DAY[w.type])return TYPE_DAY[w.type];
+  return DAYS[(w.n-1)%3];
+}
 
 // Предустановленные подходы для каждого упражнения
 const setsMap={
@@ -656,7 +665,7 @@ function getWaveInfo(wn){
 let state={weeks:[],active:1,dark:false};
 let currentUser=null;
 let saveTO=null;
-let timer={iv:null,rem:90,preset:90,running:false};
+let timer={iv:null,rem:90,preset:90,running:false,endAt:0};
 let modalWeek=null;
 let chartInst=null;
 let chartEx='Присед со штангой';
@@ -735,6 +744,10 @@ function loadLocalState(){
 function applyLoadedState(){
   if(state.dark)document.body.classList.add('dark');
   migrateTemplates();
+  // Разовая починка: старые pr считались по номеру строки, а не по упражнению
+  const prChanged=recalcAllPRs();
+  const trashChanged=purgeTrash();
+  if(prChanged||trashChanged)scheduleSave();
   updateDarkBtn();updateSummary();renderTabs();renderDiary();
 }
 
@@ -795,14 +808,57 @@ window.showPage=function(p){
   if(p==='settings'){renderTrash();renderExport();}
 };
 
-window.setPreset=function(s){timer.preset=s;timer.rem=s;if(!timer.running)renderTimerUI();[60,75,90,180].forEach(t=>{const b=document.getElementById('tp'+t);if(b)b.className='tp-btn'+(t===s?' sel':'');});};
+window.setPreset=function(s){timer.preset=s;if(!timer.running){timer.rem=s;renderTimerUI();}[60,75,90,180].forEach(t=>{const b=document.getElementById('tp'+t);if(b)b.className='tp-btn'+(t===s?' sel':'');});};
 window.timerToggle=function(){if(timer.running)stopTimer();else startTimer(timer.preset);};
-function startTimer(s){if(timer.iv)clearInterval(timer.iv);timer.rem=s;timer.preset=s;timer.running=true;renderTimerUI();timer.iv=setInterval(()=>{timer.rem--;if(timer.rem<=0){timer.rem=0;timer.running=false;clearInterval(timer.iv);beep();}renderTimerUI();},1000);}
-function stopTimer(){if(timer.iv)clearInterval(timer.iv);timer.running=false;timer.rem=timer.preset;renderTimerUI();}
+// Остаток считается от метки окончания, поэтому фоновая заморозка setInterval не сбивает счёт
+function startTimer(s){
+  if(timer.iv)clearInterval(timer.iv);
+  timer.preset=s;timer.rem=s;timer.running=true;
+  timer.endAt=Date.now()+s*1000;
+  renderTimerUI();
+  timer.iv=setInterval(tickTimer,250);
+}
+function tickTimer(){
+  if(!timer.running)return;
+  const was=timer.rem;
+  timer.rem=Math.max(0,Math.ceil((timer.endAt-Date.now())/1000));
+  if(timer.rem<=0){
+    timer.running=false;
+    if(timer.iv)clearInterval(timer.iv);
+    timer.iv=null;
+    if(was>0)beep();
+  }
+  renderTimerUI();
+}
+function stopTimer(){if(timer.iv)clearInterval(timer.iv);timer.iv=null;timer.running=false;timer.rem=timer.preset;timer.endAt=0;renderTimerUI();}
+// Вернулись в приложение — сразу пересчитать, не дожидаясь тика
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')tickTimer();});
 function beep(){try{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(0.3,a.currentTime);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.6);o.start();o.stop(a.currentTime+0.6);}catch(e){}}
 function renderTimerUI(){const m=Math.floor(timer.rem/60),s=String(timer.rem%60).padStart(2,'0');const el=document.getElementById('tdisplay');if(el){el.textContent=`${m}:${s}`;el.className='timer-display'+(timer.running?' running':(!timer.rem?' finished':''));}const b=document.getElementById('tbtn');if(b)b.textContent=timer.running?'Стоп':'Старт';const wt=document.getElementById('wo-time');if(wt){wt.textContent=`${m}:${s}`;wt.className='wo-time'+(timer.running?' running':(!timer.rem?' finished':''));}const wb=document.getElementById('wo-tbtn');if(wb)wb.textContent=timer.running?'Стоп':'Старт';}
 
-function checkPR(wn,i){const w=getWeek(wn);if(!w)return false;const ex=w.exercises[i];if(!ex||!ex.kg)return false;const kg=parseFloat(ex.kg);if(isNaN(kg))return false;for(const ow of state.weeks){if(ow.n>=wn)continue;const oex=ow.exercises[i];if(oex&&parseFloat(oex.kg)>=kg)return false;}return true;}
+// Рекорд = вес строго больше лучшего для ЭТОГО ЖЕ упражнения во всех предыдущих тренировках
+function checkPR(wn,i){
+  const w=getWeek(wn);if(!w)return false;
+  const ex=w.exercises[i];if(!ex||!ex.kg)return false;
+  const kg=parseFloat(ex.kg);
+  if(isNaN(kg)||kg<=0)return false; // вес 0 (брусья, планка) рекордом не считаем
+  for(const ow of state.weeks){
+    if(ow.n>=wn)continue;
+    for(const oex of ow.exercises){
+      if(oex.name===ex.name&&parseFloat(oex.kg)>=kg)return false;
+    }
+  }
+  return true;
+}
+// Пересчитать флаги pr во всей истории (после смены логики или правки старых весов)
+function recalcAllPRs(){
+  let changed=false;
+  state.weeks.forEach(w=>w.exercises.forEach((ex,i)=>{
+    const pr=checkPR(w.n,i);
+    if(ex.pr!==pr){ex.pr=pr;changed=true;}
+  }));
+  return changed;
+}
 function countPRs(){let t=0;state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)t++;}));return t;}
 function getHistory(name){const h=[];state.weeks.forEach(w=>{const ex=w.exercises.find(e=>e.name===name);if(ex&&ex.kg)h.push({n:w.n,kg:parseFloat(ex.kg)||0});});return h;}
 
@@ -849,15 +905,19 @@ function calcStreak(){
   return streak;
 }
 
+// Начало текущей "недели" (группа из 3 тренировок) — один расчёт на всё приложение
+function weekGroupStart(){
+  for(let i=0;i<state.weeks.length;i+=3){
+    const g=state.weeks.slice(i,i+3);
+    if(g.length<3||g.some(w=>!w.done))return i;
+  }
+  return Math.floor(state.weeks.length/3)*3;
+}
+
 function updateSummary(){
   const done=state.weeks.filter(w=>w.done).length;
   const streak=calcStreak();
-  let weekStart=0;
-  for(let i=0;i<state.weeks.length;i+=3){
-    const group=state.weeks.slice(i,i+3);
-    if(group.some(w=>!w.done)){weekStart=i;break;}
-    weekStart=i+3;
-  }
+  const weekStart=weekGroupStart();
   const thisWeekDone=state.weeks.slice(weekStart,weekStart+3).filter(w=>w.done).length;
   const weekPct=Math.round(thisWeekDone/3*100);
   document.getElementById('s-done').textContent=done;
@@ -1076,6 +1136,27 @@ function renderDiary(){
   const extraInfo=isDone&&(w.pulse||w.kcal)?
     `${w.pulse?'♥ '+w.pulse+' BPM':''} ${w.kcal?'· '+w.kcal+' ккал':''}`.trim():'';
 
+  // Завершённую тренировку можно поправить: длительность, пульс, калории
+  const metaEdit=!isDone?'':`
+    <div class="ex-row" style="margin-bottom:12px">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Данные тренировки</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div>
+          <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Мин.</label>
+          <input class="num-input" type="number" inputmode="numeric" value="${w.duration||''}" placeholder="—" onchange="updateWorkoutMeta(${w.n},'duration',this.value)">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Пульс</label>
+          <input class="num-input" type="number" inputmode="numeric" value="${w.pulse||''}" placeholder="—" onchange="updateWorkoutMeta(${w.n},'pulse',this.value)">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Ккал</label>
+          <input class="num-input" type="number" inputmode="numeric" value="${w.kcal||''}" placeholder="—" onchange="updateWorkoutMeta(${w.n},'kcal',this.value)">
+        </div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:10px;font-size:12px;color:var(--text3)" onclick="toggleDone(${w.n})">↩️ Вернуть в работу</button>
+    </div>`;
+
   document.getElementById('diary-content').innerHTML=`
     <div class="card">
       <div class="week-header">
@@ -1090,6 +1171,7 @@ function renderDiary(){
         </div>
       </div>
       <div class="ex-list">${exHtml}</div>
+      ${metaEdit}
       <button class="btn btn-outline" style="width:100%;margin-bottom:12px" onclick="openModal(${w.n})">+ Добавить упражнение</button>
       <div class="note-wrap">
         <label>Заметки</label>
@@ -1106,7 +1188,7 @@ function renderDiary(){
 window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);}scheduleSave();renderDiary();};
 window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.min(500,Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10)));scheduleSave();recheckPR(wn,i);renderDiary();};
 window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'15×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'15×3';scheduleSave();renderDiary();};
-window.recheckPR=function(wn,i){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.pr=checkPR(wn,i);scheduleSave();updateSummary();};
+window.recheckPR=function(wn,i){recalcAllPRs();scheduleSave();updateSummary();};
 window.updateEx=function(wn,i,f,v){
   const w=getWeek(wn);if(!w||!w.exercises[i])return;
   const ex=w.exercises[i];
@@ -1140,6 +1222,19 @@ window.updateEx=function(wn,i,f,v){
   }
   ex[f]=v;
   scheduleSave();
+};
+window.updateWorkoutMeta=function(wn,f,v){
+  const w=getWeek(wn);if(!w)return;
+  const t=String(v).trim();
+  if(t===''){w[f]=0;}
+  else{
+    const n=parseInt(t);
+    const max={duration:600,pulse:250,kcal:5000}[f];
+    if(isNaN(n)||n<0||n>max){alert('Введи значение от 0 до '+max);renderDiary();return;}
+    w[f]=n;
+  }
+  scheduleSave();
+  if(document.getElementById('page-stats')?.classList.contains('active'))renderStats();
 };
 window.updateNote=function(wn,v){const w=getWeek(wn);if(w)w.note=v;scheduleSave();};
 window.delEx=function(wn,i){const w=getWeek(wn);if(w){w.exercises.splice(i,1);scheduleSave();renderDiary();}};
@@ -1175,45 +1270,56 @@ window.deleteWeek=function(wn){
   scheduleSave();updateSummary();renderTabs();renderDiary();
 };
 
-function renderTrash(){
-  const el=document.getElementById('trash-list');if(!el)return;
-  const trash=(state.trash||[]).filter(w=>{
-    const d=new Date(w.deletedAt);
-    return (new Date()-d)<30*24*60*60*1000;
-  });
-  if(!trash.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Корзина пуста</p>';return;}
-  el.innerHTML=[...trash].reverse().map((w,i)=>`
-    <div class="trash-item">
-      <div class="trash-item-title">Тренировка ${w.n} · ${w.type?(['A','B','C'].includes(w.type)?w.type:''):''}  ${w.date||''}</div>
-      <div class="trash-item-meta">${w.exercises.map(e=>e.name).slice(0,3).join(', ')}${w.exercises.length>3?'...':''}</div>
-      <div class="trash-item-btns">
-        <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="restoreWeek(${trash.length-1-i})">↩️ Восстановить</button>
-        <button class="btn" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)" onclick="deleteFromTrash(${trash.length-1-i})">Удалить навсегда</button>
-      </div>
-    </div>`).join('');
+// Корзина: работаем по уникальному ключу deletedAt, а не по индексу в массиве
+const TRASH_TTL=30*24*60*60*1000;
+function trashVisible(){
+  const now=Date.now();
+  return (state.trash||[]).filter(w=>w.deletedAt&&(now-new Date(w.deletedAt).getTime())<TRASH_TTL);
+}
+// Чистим протухшее, чтобы не копилось бесконечно
+function purgeTrash(){
+  const before=(state.trash||[]).length;
+  state.trash=trashVisible();
+  return before!==state.trash.length;
 }
 
-window.restoreWeek=function(idx){
-  const trash=(state.trash||[]);
-  const sorted=[...trash].reverse();
-  const w=sorted[idx];
+function renderTrash(){
+  const el=document.getElementById('trash-list');if(!el)return;
+  const trash=trashVisible();
+  if(!trash.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Корзина пуста</p>';return;}
+  el.innerHTML=[...trash].reverse().map(w=>{
+    const key=w.deletedAt;
+    const days=Math.max(0,30-Math.floor((Date.now()-new Date(key).getTime())/86400000));
+    return `
+    <div class="trash-item">
+      <div class="trash-item-title">Тренировка ${w.n}${['A','B','C'].includes(w.type)?' \u00b7 '+w.type:''} \u00b7 ${w.date||''}</div>
+      <div class="trash-item-meta">${w.exercises.map(e=>e.name).slice(0,3).join(', ')}${w.exercises.length>3?'...':''} \u00b7 удалится через ${days} дн.</div>
+      <div class="trash-item-btns">
+        <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="restoreWeek('${key}')">\u21a9\ufe0f Восстановить</button>
+        <button class="btn" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)" onclick="deleteFromTrash('${key}')">Удалить навсегда</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.restoreWeek=function(key){
+  const trash=state.trash||[];
+  const w=trash.find(x=>x.deletedAt===key);
   if(!w)return;
-  // Add back with new number
-  const newN=(state.weeks.length?state.weeks[state.weeks.length-1].n:0)+1;
-  w.n=newN;
+  const maxN=state.weeks.length?Math.max(...state.weeks.map(x=>x.n)):0;
+  w.n=maxN+1;
   delete w.deletedAt;
   state.weeks.push(w);
-  state.trash=trash.filter(x=>x.deletedAt!==undefined&&x!==w);
-  state.active=newN;
+  state.trash=trash.filter(x=>x!==w);
+  state.active=w.n;
+  recalcAllPRs();
   scheduleSave();updateSummary();renderTabs();renderDiary();
   showPage('diary');
 };
 
-window.deleteFromTrash=function(idx){
+window.deleteFromTrash=function(key){
   if(!confirm('Удалить навсегда?'))return;
-  const sorted=[...( state.trash||[])].reverse();
-  const w=sorted[idx];
-  state.trash=(state.trash||[]).filter(x=>x!==w);
+  state.trash=(state.trash||[]).filter(x=>x.deletedAt!==key);
   scheduleSave();renderTrash();
 };
 window.doSave=async function(wn){await saveToFirebase();const el=document.getElementById('smsg');if(el){el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);}updateSummary();};
@@ -1550,14 +1656,8 @@ function renderStats(){
     totalVol+=kg*sets*reps;
   }));
 
-  // Прогресс текущей недели — найти первую незавершённую группу из 3
-  let weekStart=0;
-  for(let i=0;i<state.weeks.length;i+=3){
-    const group=state.weeks.slice(i,i+3);
-    const allDone=group.length===3&&group.every(w=>w.done);
-    if(!allDone){weekStart=i;break;}
-    weekStart=i;
-  }
+  // Прогресс текущей недели — тот же расчёт, что и в шапке
+  const weekStart=weekGroupStart();
   const thisWeekDone=state.weeks.slice(weekStart,weekStart+3).filter(w=>w.done).length;
   const weekPct=Math.round(thisWeekDone/3*100);
 
