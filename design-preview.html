@@ -1,0 +1,652 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Дневник тренировок — стайлгайд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+/* ============================================================
+   ТОКЕНЫ. Единственное место, где живут значения.
+   Правило: в остальном файле не должно быть ни одного px
+   для кегля, радиуса и отступа — только var().
+   ============================================================ */
+:root{
+/* — Поверхности */
+--bg:#f1f1f4;--card:#fff;--modal:#fff;--input:#fff;--input-bg:#f6f6f9;--chip-bg:#f6f6f9;
+--tab-bg:#fff;--tab-border:#e8e8ee;--border:#e2e2e9;--line-strong:#cfcfd9;
+--hdr:#1a1a2e;--hdr2:#16213e;--hdr-ink:#fff;--hdr-ink2:#a8a8cc;--hdr-rail:#2a2a4a;
+--timer-fixed:#1a1a2e;
+
+/* — Текст. Контраст к белому: 15.9 / 6.5 / 4.95 */
+--text:#17171b;--text2:#54545f;--text3:#6f6f7d;
+
+/* — Роли. Один цвет = одна работа.
+     accent  действие и «здесь ты сейчас»
+     done    выполнено, рекорд, рост
+     info    производная величина (оценка 1ПМ)
+     warn    осторожно, разгрузка, снижение */
+--accent:#d92d4b;--accent-ink:#fff;--accent-bg:#fde9ed;--accent-line:#f4bcc7;
+--done:#0f7a4d;--done-ink:#fff;--done-bg:#e6f6ee;--done-line:#bde3d1;
+--info:#1d64d8;--info-bg:#e7effd;
+--warn:#a8560a;--warn-bg:#fdf0e0;
+
+/* — Совместимость: на эти имена завязаны инлайн-стили в JS */
+--red:var(--accent);--green:var(--done);--green-bg:var(--done-bg);--green-border:var(--done-line);
+--pr-bg:var(--done-bg);--pr-color:var(--done);
+
+/* — Шаг сетки 4 */
+--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;
+
+/* — Радиусы: 4 ступени, больше не заводим */
+--r1:8px;--r2:12px;--r3:16px;--r-pill:999px;
+
+/* — Кегль: 7 ступеней. --t-md=16 обязателен для полей ввода,
+     иначе iOS Safari зумит страницу при фокусе */
+--t-2xs:11px;--t-xs:12px;--t-sm:14px;--t-md:16px;--t-lg:20px;--t-xl:28px;--t-2xl:40px;
+
+/* — Зона касания. 44 — минимум, ниже палец промахивается */
+--tap:44px;--tap-sm:36px;
+
+/* — Глубина. В тёмной теме тень не видна, там работает граница */
+--shadow:0 1px 2px rgba(20,20,40,.06),0 2px 8px rgba(20,20,40,.05);
+--card-line:transparent;
+
+/* — Движение */
+--dur:.16s;--ease:cubic-bezier(.2,.7,.3,1);
+
+/* — Метка. Мелкий разреженный капс: подписи к числам */
+--label-track:.07em}
+
+body.dark{
+--bg:#0d0d10;--card:#18181c;--modal:#18181c;--input:#232329;--input-bg:#212127;--chip-bg:#232329;
+--tab-bg:#18181c;--tab-border:#2a2a31;--border:#2e2e37;--line-strong:#3d3d48;
+--hdr:#000;--hdr2:#0f0f14;--hdr-ink:#fff;--hdr-ink2:#8f8fa8;--hdr-rail:#2a2a34;
+--timer-fixed:#000;
+--text:#f2f2f5;--text2:#a8a8b4;--text3:#90909e;
+--accent:#ff5f7c;--accent-ink:#1a0508;--accent-bg:#2e1219;--accent-line:#4d1f29;
+--done:#34d399;--done-ink:#04180f;--done-bg:#0d2a1e;--done-line:#1c4735;
+--info:#6aa6ff;--info-bg:#12233f;
+--warn:#fbbf24;--warn-bg:#2e2410;
+--shadow:none;--card-line:var(--border);
+/* Алиасы обязаны быть объявлены и здесь: var() подставляется на том элементе,
+   где объявлен, а не там, где используется. Оставь их только в :root —
+   и в тёмной теме --red останется светлым. */
+--red:var(--accent);--green:var(--done);--green-bg:var(--done-bg);--green-border:var(--done-line);
+--pr-bg:var(--done-bg);--pr-color:var(--done)}
+
+@media (prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;
+font-size:var(--t-sm);line-height:1.45;
+transition:background var(--dur),color var(--dur);
+-webkit-font-smoothing:antialiased}
+
+/* Видимый фокус с клавиатуры — палец его не увидит, клавиатура увидит */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r1)}
+
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
+.u-label,.u-cap{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:var(--s1)}
+.u-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.u-grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
+.u-row{display:flex;align-items:center;gap:var(--s2)}
+.u-empty{text-align:center;padding:var(--s5) var(--s3);color:var(--text3);font-size:var(--t-sm);line-height:1.6}
+.u-hint{font-size:var(--t-xs);color:var(--text3);margin-top:var(--s1)}
+.u-mb3{margin-bottom:var(--s3)}
+
+.input{width:100%;padding:11px var(--s3);font-size:var(--t-md);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input);color:var(--text);font-family:inherit;
+-webkit-appearance:none;font-variant-numeric:tabular-nums;min-height:var(--tap)}
+.input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+
+/* Производная величина, не измеренная — отдельная роль, отдельный цвет */
+.e1rm{display:inline-block;font-size:var(--t-2xs);font-weight:700;background:var(--info-bg);
+color:var(--info);border-radius:var(--r1);padding:3px var(--s2);margin:var(--s1) 0 0 var(--s1);
+font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   ВХОД
+   ============================================================ */
+.login-screen{position:fixed;inset:0;background:var(--hdr);display:flex;flex-direction:column;
+align-items:center;justify-content:center;z-index:200;padding:var(--s5)}
+.login-logo{font-size:52px;margin-bottom:var(--s4)}
+.login-screen h1{color:var(--hdr-ink);font-size:var(--t-lg);font-weight:800;margin-bottom:var(--s1);text-align:center}
+.login-screen p{color:var(--hdr-ink2);font-size:var(--t-sm);text-align:center;margin-bottom:var(--s6)}
+.login-box{width:100%;max-width:320px;display:flex;flex-direction:column;gap:var(--s2)}
+.login-input{width:100%;padding:var(--s3) var(--s4);font-size:var(--t-md);min-height:var(--tap);
+border:1px solid rgba(255,255,255,.16);border-radius:var(--r2);background:rgba(255,255,255,.07);
+color:#fff;font-family:inherit;-webkit-appearance:none;outline:none}
+.login-input::placeholder{color:#7e7e96}
+.login-input:focus{border-color:var(--accent)}
+.login-btn{width:100%;padding:var(--s3);min-height:var(--tap);font-size:var(--t-md);font-weight:700;
+border:none;border-radius:var(--r2);cursor:pointer;font-family:inherit}
+.login-btn-main{background:var(--accent);color:var(--accent-ink)}
+.login-btn-sec{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.16)}
+.login-err{color:#ff8095;font-size:var(--t-xs);text-align:center;min-height:16px}
+.login-toggle{color:var(--hdr-ink2);font-size:var(--t-xs);text-align:center;margin-top:var(--s1);cursor:pointer}
+.login-toggle span{color:var(--accent);text-decoration:underline}
+
+/* ============================================================
+   ШАПКА
+   ============================================================ */
+.user-bar{display:flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s4);
+background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08)}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;
+align-items:center;justify-content:center;font-size:var(--t-xs);font-weight:800;color:var(--accent-ink);flex-shrink:0}
+.user-name{font-size:var(--t-xs);color:#d8d8e4;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sync-status{font-size:var(--t-2xs);color:var(--hdr-ink2);flex-shrink:0}
+.sync-status.ok{color:#4ade80}
+.sync-status.err{color:#ff8095}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.22);color:#c8c8d6;border-radius:var(--r1);
+padding:var(--s1) var(--s2);font-size:var(--t-2xs);cursor:pointer;font-family:inherit;min-height:var(--tap-sm)}
+
+.header{background:var(--hdr);color:var(--hdr-ink);padding:var(--s4) var(--s4) var(--s3);
+display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:var(--t-md);font-weight:700;letter-spacing:-.01em}
+.dark-toggle{background:none;border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:var(--r-pill);
+padding:var(--s2) var(--s3);font-size:var(--t-xs);cursor:pointer;font-family:inherit;min-height:var(--tap-sm)}
+
+/* Числа — герой приложения. Крупно, табличными цифрами, метка мелким капсом */
+.summary{display:grid;grid-template-columns:repeat(3,1fr);background:var(--hdr2)}
+.stat{text-align:center;padding:var(--s3) var(--s1);position:relative}
+.stat+.stat::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:1px;background:var(--hdr-rail)}
+.stat-val{font-variant-numeric:tabular-nums;font-size:var(--t-lg);font-weight:800;color:#fff;line-height:1.1}
+.stat-label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);text-transform:uppercase;
+color:var(--hdr-ink2);margin-top:3px}
+.progress-bar{height:3px;background:var(--hdr-rail)}
+.progress-fill{height:100%;background:var(--accent);transition:width .4s var(--ease)}
+
+/* ============================================================
+   НАВИГАЦИЯ. Подписи видны всегда, не только у активной вкладки
+   ============================================================ */
+.nav{display:flex;background:var(--tab-bg);border-bottom:1px solid var(--tab-border)}
+.nav-btn{flex:1;padding:var(--s2) var(--s1) 6px;color:var(--text3);border:none;background:none;
+cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px}
+.nav-btn::after{content:attr(data-label);font-size:var(--t-2xs);font-weight:600;line-height:1;white-space:nowrap}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.tabs{display:flex;overflow-x:auto;background:var(--tab-bg);border-bottom:1px solid var(--tab-border);
+-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:var(--s2) var(--s3);min-height:var(--tap);font-size:var(--t-xs);
+color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;
+white-space:nowrap;font-family:inherit;position:relative;line-height:1.35;text-align:center;font-weight:600}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:800}
+.tab .done-dot{position:absolute;top:6px;right:5px;width:6px;height:6px;background:var(--done);border-radius:50%}
+.tab-add{flex-shrink:0;padding:0 var(--s4);min-height:var(--tap);font-size:var(--t-lg);
+color:var(--accent);border:none;background:none;cursor:pointer;font-family:inherit}
+
+.page{display:none}.page.active{display:block}
+.content{padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
+
+/* ============================================================
+   КАРТОЧКИ
+   ============================================================ */
+.card,.chart-card,.export-card,.stat-big{background:var(--card);border-radius:var(--r3);
+box-shadow:var(--shadow);border:1px solid var(--card-line)}
+.card{padding:var(--s4)}
+.chart-card,.stat-big{padding:var(--s4)}
+.export-card{padding:var(--s4)}
+.week-header{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);margin-bottom:var(--s3)}
+.week-meta .week-title{font-size:var(--t-md);font-weight:800;color:var(--text);letter-spacing:-.01em}
+.week-meta .week-date{font-size:var(--t-xs);color:var(--text3);margin-top:2px}
+
+.badge{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);text-transform:uppercase;
+padding:var(--s1) var(--s2);border-radius:var(--r-pill);flex-shrink:0;white-space:nowrap}
+.badge-done{background:var(--done-bg);color:var(--done)}
+.badge-current{background:var(--accent-bg);color:var(--accent)}
+.badge-up{background:var(--input-bg);color:var(--text3)}
+
+/* ============================================================
+   УПРАЖНЕНИЕ
+   ============================================================ */
+.ex-list{display:flex;flex-direction:column;gap:var(--s2);margin-bottom:var(--s3)}
+.ex-row{background:var(--input-bg);border-radius:var(--r2);padding:var(--s3);border:1px solid var(--border)}
+.ex-top{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3)}
+.ex-name-input{flex:1;font-size:var(--t-md);font-weight:700;color:var(--text);border:none;
+background:transparent;font-family:inherit;padding:var(--s1) 0;
+border-bottom:1px dashed var(--line-strong);outline:none;-webkit-appearance:none;min-width:0}
+.ex-name-input:focus{border-bottom-color:var(--accent);border-bottom-style:solid}
+.ex-del,.ex-alt-btn{background:none;border:none;color:var(--text3);font-size:var(--t-md);cursor:pointer;
+flex-shrink:0;width:var(--tap-sm);height:var(--tap-sm);display:flex;align-items:center;justify-content:center;
+border-radius:var(--r1);font-family:inherit}
+.ex-del:active,.ex-alt-btn:active{background:var(--accent-bg);color:var(--accent)}
+.ex-pr{font-size:var(--t-2xs);font-weight:700;background:var(--done-bg);color:var(--done);
+padding:3px var(--s2);border-radius:var(--r-pill);flex-shrink:0;white-space:nowrap}
+.ex-move-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--r1);
+color:var(--text2);font-size:var(--t-xs);cursor:pointer;line-height:1;
+width:var(--tap-sm);height:30px;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.ex-move-btn:disabled{opacity:.22;cursor:default}
+.ex-move-btn:active:not(:disabled){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+
+/* ---- СИГНАТУРА: полоса подходов ----
+   Закрытый подход зелёный, а не красный. Красный в приложении
+   означает ровно одно: «нажми сюда». Зелёный: «уже сделано».
+   Раньше оба состояния были одного цвета и глаз их не различал. */
+.sets-wrap{display:block;margin-bottom:var(--s3)}
+.sets-label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px}
+.sets-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px}
+.set-btn{min-width:var(--tap);height:var(--tap);border-radius:var(--r2);border:1.5px solid var(--border);
+background:var(--input);color:var(--text3);font-size:var(--t-sm);font-weight:700;cursor:pointer;
+font-family:inherit;font-variant-numeric:tabular-nums;
+transition:transform var(--dur) var(--ease),background var(--dur),color var(--dur),border-color var(--dur)}
+.set-btn:active{transform:scale(.93)}
+.set-btn.done{background:var(--done);color:var(--done-ink);border-color:var(--done);font-weight:800}
+
+/* ============================================================
+   ЧИСЛОВОЙ ВВОД
+   ============================================================ */
+.ex-inputs{display:flex;flex-direction:column;gap:var(--s3)}
+.field label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:var(--s1)}
+.num-row{display:flex;align-items:center;gap:6px;width:100%}
+.num-btn{width:var(--tap);height:var(--tap);border-radius:var(--r2);border:1px solid var(--border);
+background:var(--input);color:var(--text);font-size:var(--t-lg);font-weight:600;cursor:pointer;
+flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:inherit;
+transition:transform var(--dur) var(--ease)}
+.num-btn:active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);transform:scale(.94)}
+.num-input{flex:1;height:var(--tap);padding:0 var(--s1);font-size:var(--t-lg);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;
+text-align:center;min-width:0;font-weight:800;font-variant-numeric:tabular-nums}
+.num-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.plan-hint{display:inline-block;font-size:var(--t-2xs);font-weight:700;background:var(--accent-bg);
+color:var(--accent);border-radius:var(--r1);padding:3px var(--s2);margin-top:var(--s1);
+letter-spacing:.02em;font-variant-numeric:tabular-nums}
+
+.note-wrap label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:var(--s1)}
+.note-wrap textarea{width:100%;padding:var(--s3);font-size:var(--t-md);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input);color:var(--text);font-family:inherit;resize:none}
+.note-wrap textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+
+/* ============================================================
+   КНОПКИ
+   ============================================================ */
+.btn-row{display:flex;gap:var(--s2);flex-wrap:wrap;align-items:center;margin-top:var(--s3)}
+.btn{padding:var(--s2) var(--s4);min-height:var(--tap);border-radius:var(--r2);border:1px solid var(--border);
+background:var(--card);color:var(--text);cursor:pointer;font-size:var(--t-sm);font-family:inherit;font-weight:700;
+display:inline-flex;align-items:center;justify-content:center;gap:6px;
+transition:transform var(--dur) var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-red{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn-green{background:var(--done-bg);color:var(--done);border-color:var(--done-line)}
+.btn-outline{border-color:var(--accent);color:var(--accent);background:transparent}
+.saved{font-size:var(--t-xs);color:var(--done);font-weight:700;display:none}
+.saved.show{display:inline}
+
+/* ============================================================
+   ТАЙМЕР
+   ============================================================ */
+.timer-fixed{position:fixed;bottom:0;left:0;right:0;background:var(--timer-fixed);
+padding:var(--s2) var(--s3);padding-bottom:calc(var(--s2) + env(safe-area-inset-bottom));
+display:flex;align-items:center;gap:var(--s2);z-index:50;border-top:1px solid rgba(255,255,255,.1);
+transition:transform var(--dur) var(--ease)}
+.keyboard-open .timer-fixed{transform:translateY(100%)}
+.timer-display{font-size:var(--t-xl);font-weight:800;color:#fff;font-variant-numeric:tabular-nums;
+min-width:74px;line-height:1}
+.timer-display.running{color:#4ade80}
+.timer-display.finished{color:#ff7a90}
+.timer-presets{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.tp-btn{padding:var(--s2) var(--s3);min-height:var(--tap-sm);border-radius:var(--r1);
+border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#fff;
+font-size:var(--t-xs);font-weight:600;cursor:pointer;font-family:inherit;font-variant-numeric:tabular-nums}
+.tp-btn.sel{background:rgba(255,255,255,.24);border-color:rgba(255,255,255,.5)}
+.timer-start{padding:var(--s2) var(--s4);min-height:var(--tap-sm);border-radius:var(--r2);border:none;
+background:var(--accent);color:var(--accent-ink);font-size:var(--t-sm);font-weight:700;cursor:pointer;
+font-family:inherit;flex-shrink:0}
+
+/* ============================================================
+   ГРАФИКИ И РЕКОРДЫ
+   ============================================================ */
+.chart-wrap,.export-wrap{padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
+.chart-card h3,.export-card h3,.stat-big h3{font-size:var(--t-sm);font-weight:800;color:var(--text);
+margin-bottom:var(--s3);letter-spacing:-.005em}
+.chart-sel{display:flex;gap:6px;margin-bottom:var(--s3);flex-wrap:wrap}
+.chart-sel-btn{padding:var(--s2) var(--s3);min-height:var(--tap-sm);border-radius:var(--r-pill);
+border:1px solid var(--border);background:var(--input-bg);color:var(--text2);font-size:var(--t-xs);
+font-weight:600;cursor:pointer;font-family:inherit}
+.chart-sel-btn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+canvas{width:100%!important;max-width:100%;display:block}
+.pr-list{display:flex;flex-direction:column;gap:6px}
+.pr-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);
+padding:var(--s2) var(--s3);background:var(--input-bg);border-radius:var(--r1);font-size:var(--t-sm)}
+.pr-item-name{color:var(--text);font-weight:600}
+.pr-item-val{font-variant-numeric:tabular-nums;color:var(--done);font-weight:800}
+
+.export-card p{font-size:var(--t-sm);color:var(--text2);margin-bottom:var(--s3);line-height:1.55}
+.export-textarea{width:100%;padding:var(--s3);font-size:var(--t-xs);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input-bg);color:var(--text);
+font-family:ui-monospace,SFMono-Regular,Menlo,monospace;resize:none;height:120px}
+
+table{width:100%;border-collapse:collapse;font-size:var(--t-xs);font-variant-numeric:tabular-nums}
+th{background:var(--hdr);color:#fff;padding:var(--s2) var(--s1);text-align:center;font-weight:700;
+font-size:var(--t-2xs);letter-spacing:var(--label-track);text-transform:uppercase}
+td{padding:var(--s2) var(--s1);text-align:center;border-bottom:1px solid var(--border);color:var(--text2)}
+tr.tr-current td{font-weight:800;color:var(--accent)}
+tr.tr-done td{color:var(--text3)}
+.pr-tag{font-size:var(--t-2xs);background:var(--done-bg);color:var(--done);padding:1px 5px;
+border-radius:var(--r1);margin-left:2px;font-weight:700}
+
+/* ============================================================
+   МОДАЛКИ
+   ============================================================ */
+.modal-bg,.alt-modal-bg,.tmpl-modal-bg{position:fixed;inset:0;background:rgba(6,6,12,.62);
+display:none;align-items:flex-end;z-index:100;backdrop-filter:blur(2px)}
+.alt-modal-bg,.tmpl-modal-bg{z-index:150}
+.modal-bg.show,.alt-modal-bg.show,.tmpl-modal-bg.show{display:flex}
+.modal,.alt-modal,.tmpl-modal{background:var(--modal);border-radius:var(--r3) var(--r3) 0 0;
+padding:var(--s5) var(--s4);padding-bottom:calc(var(--s5) + env(safe-area-inset-bottom));
+width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal{max-height:72vh}.alt-modal{max-height:64vh}.tmpl-modal{max-height:82vh}
+.modal h3,.alt-modal h3,.tmpl-modal h3{font-size:var(--t-lg);font-weight:800;margin-bottom:var(--s3);color:var(--text)}
+.alt-modal .alt-current{font-size:var(--t-sm);color:var(--text3);margin:calc(var(--s3) * -1 + var(--s1)) 0 var(--s4)}
+.modal-close{float:right;background:none;border:none;font-size:var(--t-lg);color:var(--text3);
+cursor:pointer;width:var(--tap-sm);height:var(--tap-sm);margin:-6px -6px 0 0;font-family:inherit}
+.ex-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--s3)}
+.chip{padding:var(--s2) var(--s3);min-height:var(--tap-sm);border-radius:var(--r-pill);
+border:1px solid var(--border);background:var(--chip-bg);font-size:var(--t-sm);color:var(--text);
+cursor:pointer;font-family:inherit;font-weight:600}
+.chip:active{border-color:var(--accent);color:var(--accent)}
+.custom-row{display:flex;gap:var(--s2)}
+.custom-row input{flex:1;padding:0 var(--s3);min-height:var(--tap);font-size:var(--t-md);
+border:1px solid var(--border);border-radius:var(--r2);font-family:inherit;background:var(--input);
+color:var(--text);-webkit-appearance:none}
+.custom-row input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.divider{font-size:var(--t-xs);color:var(--text3);text-align:center;margin:var(--s3) 0}
+
+.alt-list,.tmpl-list{display:flex;flex-direction:column;gap:var(--s2)}
+.alt-item,.tmpl-item{background:var(--input-bg);border-radius:var(--r2);border:1px solid var(--border);cursor:pointer}
+.alt-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);padding:var(--s3) var(--s4);min-height:var(--tap)}
+.tmpl-item{padding:var(--s4)}
+.alt-item:active,.tmpl-item:active{border-color:var(--accent);background:var(--accent-bg)}
+.alt-item-name,.tmpl-item-title{font-size:var(--t-sm);font-weight:700;color:var(--text)}
+.tmpl-item-title{margin-bottom:var(--s1)}
+.alt-item-sets{font-size:var(--t-xs);color:var(--text3);font-variant-numeric:tabular-nums;flex-shrink:0}
+.tmpl-item-exs{font-size:var(--t-xs);color:var(--text3);line-height:1.55}
+
+/* Завершение тренировки */
+.finish-modal-bg{position:fixed;inset:0;background:rgba(6,6,12,.72);display:none;align-items:center;
+justify-content:center;z-index:150;padding:var(--s4);backdrop-filter:blur(2px)}
+.finish-modal-bg.show{display:flex}
+.finish-modal{background:var(--card);border-radius:var(--r3);padding:var(--s5) var(--s4);width:100%;
+max-width:360px;max-height:90vh;overflow-y:auto;border:1px solid var(--card-line)}
+.finish-modal h2{font-size:var(--t-lg);font-weight:800;color:var(--text);text-align:center;margin-bottom:var(--s1)}
+.finish-modal .finish-sub{font-size:var(--t-sm);color:var(--text3);text-align:center;margin-bottom:var(--s4)}
+.finish-stats,.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
+.finish-stats{margin-bottom:var(--s4)}
+.finish-stat,.stat-box{background:var(--input-bg);border-radius:var(--r2);padding:var(--s3);text-align:center}
+.finish-stat-val,.stat-box-val{font-variant-numeric:tabular-nums;font-size:var(--t-xl);font-weight:800;
+color:var(--text);line-height:1.05;letter-spacing:-.02em}
+.finish-stat-label,.stat-box-label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);margin-top:var(--s1)}
+.finish-ex-list{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--s4)}
+.finish-ex-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);
+padding:var(--s2) var(--s3);background:var(--input-bg);border-radius:var(--r1);font-size:var(--t-sm)}
+.finish-ex-name{color:var(--text);font-weight:600}
+.finish-ex-val{color:var(--text2);font-variant-numeric:tabular-nums}
+.finish-ex-pr{font-size:var(--t-2xs);font-weight:700;background:var(--done-bg);color:var(--done);
+padding:1px var(--s2);border-radius:var(--r-pill);margin-left:6px}
+.btn-finish{width:100%;padding:var(--s3);min-height:var(--tap);border-radius:var(--r2);border:none;
+background:var(--done);color:var(--done-ink);font-size:var(--t-md);font-weight:800;cursor:pointer;
+font-family:inherit;margin-bottom:var(--s2)}
+.btn-finish-cancel{width:100%;padding:var(--s2);min-height:var(--tap);border-radius:var(--r2);
+border:1px solid var(--border);background:transparent;color:var(--text3);font-size:var(--t-sm);
+cursor:pointer;font-family:inherit;font-weight:600}
+
+/* ============================================================
+   КОРЗИНА, КАРДИО, ИТОГИ
+   ============================================================ */
+.trash-item{background:var(--input-bg);border-radius:var(--r2);padding:var(--s3);margin-bottom:var(--s2);
+border:1px solid var(--border)}
+.trash-item-title{font-size:var(--t-sm);font-weight:700;color:var(--text);margin-bottom:var(--s1)}
+.trash-item-meta{font-size:var(--t-xs);color:var(--text3);margin-bottom:var(--s2)}
+.trash-item-btns{display:flex;gap:var(--s2)}
+
+.cardio-type-btn{flex:1;padding:var(--s2) var(--s1);min-height:var(--tap);border-radius:var(--r2);
+border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:var(--t-sm);
+font-weight:600;cursor:pointer;font-family:inherit;transition:background var(--dur),color var(--dur),border-color var(--dur)}
+.cardio-type-btn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cardio-history-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);
+padding:var(--s3);background:var(--input-bg);border-radius:var(--r2);margin-bottom:6px}
+.cardio-history-left{display:flex;flex-direction:column;gap:2px}
+.cardio-history-type{font-size:var(--t-sm);font-weight:700;color:var(--text)}
+.cardio-history-date{font-size:var(--t-xs);color:var(--text3);font-variant-numeric:tabular-nums}
+.cardio-history-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.cardio-history-stat{font-size:var(--t-xs);color:var(--text2);font-variant-numeric:tabular-nums}
+.cardio-history-kcal{font-size:var(--t-sm);font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+
+.goal-bar-wrap{margin-top:var(--s3)}
+.goal-bar-label{display:flex;justify-content:space-between;font-size:var(--t-xs);color:var(--text2);
+margin-bottom:var(--s1);font-variant-numeric:tabular-nums}
+.goal-bar{height:10px;background:var(--border);border-radius:var(--r-pill);overflow:hidden}
+.goal-bar-fill{height:100%;background:var(--accent);border-radius:var(--r-pill);transition:width .4s var(--ease)}
+.goal-bar-fill.done{background:var(--done)}
+
+/* ============================================================
+   БАННЕР ФАЗЫ
+   ============================================================ */
+.phase-banner{padding:var(--s3) var(--s4);display:flex;align-items:flex-start;gap:var(--s3);position:relative}
+.phase-banner-icon{font-size:var(--t-lg);flex-shrink:0;margin-top:1px}
+.phase-banner-body{flex:1}
+.phase-banner-title{font-size:var(--t-sm);font-weight:800;margin-bottom:3px}
+.phase-banner-text{font-size:var(--t-xs);line-height:1.5;opacity:.92}
+.phase-banner-close{background:none;border:none;font-size:var(--t-md);cursor:pointer;opacity:.75;
+flex-shrink:0;width:var(--tap-sm);height:var(--tap-sm);color:inherit;font-family:inherit}
+.phase-banner.phase-complete{background:#0f7a4d;color:#fff}
+.phase-banner.phase-recovery{background:#1d64d8;color:#fff}
+.phase-banner.phase-next{background:#7b3fb8;color:#fff}
+
+/* ============================================================
+   РЕЖИМ ТРЕНИРОВКИ
+   ============================================================ */
+.wo{position:fixed;inset:0;background:var(--bg);z-index:300;display:none;flex-direction:column}
+.wo.show{display:flex}
+.wo-top{background:var(--hdr);color:#fff;padding:var(--s3) var(--s3);
+padding-top:calc(var(--s3) + env(safe-area-inset-top));display:flex;align-items:center;gap:var(--s2);flex-shrink:0}
+.wo-top-title{font-size:var(--t-sm);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wo-top-sub{font-size:var(--t-xs);color:var(--hdr-ink2);margin-top:1px;font-variant-numeric:tabular-nums}
+.wo-x,.wo-toggle{border-radius:var(--r2);width:var(--tap);height:var(--tap);font-size:var(--t-md);
+cursor:pointer;flex-shrink:0;font-family:inherit;line-height:1}
+.wo-x{background:rgba(255,255,255,.12);border:none;color:#fff}
+.wo-toggle{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;opacity:.45}
+.wo-toggle.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);opacity:1}
+.wo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:var(--s5) var(--s4);
+display:flex;flex-direction:column;gap:var(--s4)}
+.wo-exname{font-size:var(--t-xl);font-weight:800;color:var(--text);line-height:1.15;text-align:center;
+letter-spacing:-.02em;text-wrap:balance}
+.wo-plan{text-align:center;font-size:var(--t-xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);margin-top:6px}
+.wo-kg{display:flex;align-items:center;gap:var(--s3)}
+.wo-kg-btn{width:68px;height:64px;border-radius:var(--r3);border:1px solid var(--border);
+background:var(--card);color:var(--text);font-size:var(--t-xl);cursor:pointer;flex-shrink:0;
+font-family:inherit;transition:transform var(--dur) var(--ease)}
+.wo-kg-btn:active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);transform:scale(.95)}
+.wo-kg-in{flex:1;min-width:0;text-align:center;font-size:var(--t-2xl);font-weight:800;height:64px;
+padding:0;border:1px solid var(--border);border-radius:var(--r3);background:var(--card);color:var(--text);
+font-family:inherit;-webkit-appearance:none;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.wo-kg-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.wo-sets{display:grid;gap:var(--s3)}
+.wo-set{border-radius:var(--r3);border:2px solid var(--border);background:var(--card);color:var(--text);
+font-family:inherit;font-size:var(--t-lg);font-weight:800;padding:var(--s5) 0;cursor:pointer;
+transition:transform var(--dur) var(--ease),background var(--dur),border-color var(--dur),color var(--dur)}
+.wo-set:active{transform:scale(.98)}
+.wo-set.done{background:var(--done);border-color:var(--done);color:var(--done-ink)}
+.wo-set-add{font-size:var(--t-md);font-weight:700;color:var(--accent);border-style:dashed;
+border-color:var(--accent);background:transparent;padding:var(--s4) 0}
+.wo-bottom{flex-shrink:0;background:var(--card);border-top:1px solid var(--border);padding:var(--s2) var(--s3);
+padding-bottom:calc(var(--s2) + env(safe-area-inset-bottom));display:flex;align-items:center;gap:var(--s3)}
+.wo-nav{padding:0 var(--s4);height:52px;border-radius:var(--r2);border:1px solid var(--border);
+background:var(--input-bg);color:var(--text);font-size:var(--t-lg);font-weight:700;cursor:pointer;
+font-family:inherit;flex-shrink:0}
+.wo-nav:disabled{opacity:.25}
+.wo-timer{flex:1;display:flex;align-items:center;justify-content:center;gap:var(--s2);min-width:0}
+.wo-time{font-size:var(--t-xl);font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);
+line-height:1;letter-spacing:-.02em}
+.wo-time.running{color:var(--done)}
+.wo-time.finished{color:var(--accent)}
+.wo-tbtn{padding:0 var(--s4);height:var(--tap);border-radius:var(--r2);border:none;background:var(--accent);
+color:var(--accent-ink);font-size:var(--t-sm);font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+
+/* — только для этой страницы — */
+.sg{max-width:430px;margin:0 auto;padding:var(--s4)}
+.sg h2{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);text-transform:uppercase;
+color:var(--text3);margin:var(--s6) 0 var(--s3);padding-bottom:var(--s2);border-bottom:1px solid var(--border)}
+.sg h2:first-of-type{margin-top:0}
+.sg .note{font-size:var(--t-xs);color:var(--text2);line-height:1.6;margin:0 0 var(--s3)}
+.sw{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:var(--s2)}
+.sw div{border-radius:var(--r2);padding:var(--s2);font-size:var(--t-2xs);font-weight:700;
+border:1px solid var(--border);min-height:56px;display:flex;flex-direction:column;justify-content:flex-end}
+.scale{display:flex;flex-direction:column;gap:var(--s2)}
+.scale b{display:flex;align-items:baseline;gap:var(--s3);font-weight:800;color:var(--text)}
+.scale b i{font-style:normal;font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);width:64px;flex-shrink:0}
+.themebar{position:sticky;top:0;z-index:9;background:var(--bg);padding:var(--s3) 0;
+border-bottom:1px solid var(--border);display:flex;gap:var(--s2);align-items:center}
+.tapdemo{outline:1px dashed var(--accent-line);outline-offset:2px}
+</style></head><body>
+<div class="sg">
+ <div class="themebar">
+   <button class="btn btn-red" onclick="document.body.classList.toggle('dark')">Сменить тему</button>
+   <span class="u-hint" style="margin:0">Проверь оба режима</span>
+ </div>
+
+ <h2>Роли цвета</h2>
+ <p class="note">Одна работа на цвет. Красный означает только «нажми сюда». Зелёный — «сделано». Синий — величина, которую приложение посчитало, а не измерило.</p>
+ <div class="sw">
+  <div style="background:var(--accent-bg);color:var(--accent);border-color:var(--accent-line)">accent<br>действие</div>
+  <div style="background:var(--done-bg);color:var(--done);border-color:var(--done-line)">done<br>выполнено</div>
+  <div style="background:var(--info-bg);color:var(--info)">info<br>оценка 1ПМ</div>
+  <div style="background:var(--warn-bg);color:var(--warn)">warn<br>разгрузка</div>
+  <div style="background:var(--card);color:var(--text)">text<br>основной</div>
+  <div style="background:var(--card);color:var(--text2)">text2<br>вторичный</div>
+  <div style="background:var(--card);color:var(--text3)">text3<br>метки</div>
+  <div style="background:var(--input-bg);color:var(--text2)">input-bg<br>вложенное</div>
+ </div>
+
+ <h2>Кегль — 7 ступеней</h2>
+ <div class="scale">
+  <b><i>2xs 11</i><span style="font-size:var(--t-2xs)">МЕТКА НАД ЧИСЛОМ</span></b>
+  <b><i>xs 12</i><span style="font-size:var(--t-xs)">Подсказка, дата</span></b>
+  <b><i>sm 14</i><span style="font-size:var(--t-sm)">Основной текст</span></b>
+  <b><i>md 16</i><span style="font-size:var(--t-md)">Поля ввода</span></b>
+  <b><i>lg 20</i><span style="font-size:var(--t-lg)">Заголовок карточки</span></b>
+  <b><i>xl 28</i><span style="font-size:var(--t-xl)" class="u-num">142,5</span></b>
+  <b><i>2xl 40</i><span style="font-size:var(--t-2xl)" class="u-num">85</span></b>
+ </div>
+ <p class="note" style="margin-top:var(--s3)">16 px у полей ввода — не вкус, а требование: при меньшем кегле iOS Safari зумит страницу на фокусе. Раньше вес и повторы стояли на 13 px, и экран прыгал при каждом вводе.</p>
+
+ <h2>Подходы — сигнатура</h2>
+ <p class="note">Было: закрытый подход красный, как и кнопка «Завершить». Стало: зелёный. Красное в этой полосе ровно одно — «плюс», то есть единственное доступное действие.</p>
+ <div class="ex-row">
+  <div class="sets-wrap">
+   <span class="sets-label">Подходы</span>
+   <div class="sets-btns">
+    <button class="set-btn done">1</button><button class="set-btn done">2</button>
+    <button class="set-btn done">3</button><button class="set-btn">4</button>
+    <button class="set-btn">5</button>
+    <button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)">+</button>
+   </div>
+  </div>
+  <div class="ex-inputs">
+   <div class="field"><label>Вес (кг)</label>
+    <div class="num-row"><button class="num-btn">−</button>
+     <input class="num-input" value="85" type="text"><button class="num-btn">+</button></div>
+    <div class="plan-hint">план: 85 кг</div><span class="e1rm">≈1ПМ 95 кг</span>
+   </div>
+   <div class="field"><label>Повторы</label>
+    <div class="num-row"><button class="num-btn">−</button>
+     <input class="num-input" value="5×5" type="text"><button class="num-btn">+</button></div>
+   </div>
+  </div>
+ </div>
+
+ <h2>Зона касания</h2>
+ <p class="note">Пунктиром обведены зоны, по которым попадает палец. Было 34×34 у подходов, 32×34 у ±, 26×26 у стрелок. Стало 44 — минимум, ниже которого промах становится систематическим.</p>
+ <div class="u-row">
+  <button class="set-btn done tapdemo">1</button>
+  <button class="num-btn tapdemo">+</button>
+  <div style="display:flex;flex-direction:column;gap:2px">
+   <button class="ex-move-btn tapdemo">▲</button><button class="ex-move-btn tapdemo">▼</button>
+  </div>
+  <button class="btn btn-red tapdemo">Завершить</button>
+ </div>
+
+ <h2>Карточка тренировки</h2>
+ <div class="card">
+  <div class="week-header">
+   <div class="week-meta"><div class="week-title">Тренировка 17 · A</div>
+    <div class="week-date">Пн, 27 июля</div></div>
+   <span class="badge badge-current">Сейчас</span>
+  </div>
+  <div class="ex-list">
+   <div class="ex-row"><div class="ex-top">
+    <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0">
+     <button class="ex-move-btn" disabled>▲</button><button class="ex-move-btn">▼</button></div>
+    <input class="ex-name-input" value="Присед со штангой">
+    <span class="ex-pr">🏆 ПР</span><button class="ex-alt-btn">🔄</button><button class="ex-del">✕</button>
+   </div>
+   <div class="sets-wrap"><span class="sets-label">Подходы</span>
+    <div class="sets-btns"><button class="set-btn done">1</button><button class="set-btn done">2</button>
+     <button class="set-btn done">3</button><button class="set-btn done">4</button>
+     <button class="set-btn done">5</button></div></div>
+   </div>
+  </div>
+  <div class="btn-row"><button class="btn btn-red">Режим тренировки</button>
+   <button class="btn">Добавить</button><button class="btn btn-green">Завершить</button></div>
+ </div>
+
+ <h2>Числа и метки</h2>
+ <p class="note">Значение — Nunito 800, табличные цифры, минусовой трекинг. Подпись — мелкий разреженный капс, как маркировка на инвентаре. Разница по весу и кеглю делает работу, которую раньше делал цвет.</p>
+ <div class="stat-grid">
+  <div class="stat-box"><div class="stat-box-val">12&nbsp;450</div><div class="stat-box-label">Тоннаж, кг</div></div>
+  <div class="stat-box"><div class="stat-box-val">17</div><div class="stat-box-label">Тренировок</div></div>
+  <div class="stat-box"><div class="stat-box-val">96,4</div><div class="stat-box-label">Вес, кг</div></div>
+  <div class="stat-box"><div class="stat-box-val">6</div><div class="stat-box-label">Рекордов</div></div>
+ </div>
+
+ <h2>Баннеры фаз</h2>
+ <div class="phase-banner phase-recovery" style="border-radius:var(--r3);margin-bottom:var(--s2)">
+  <span class="phase-banner-icon">🌊</span>
+  <div class="phase-banner-body"><div class="phase-banner-title">Восстановительная неделя</div>
+   <div class="phase-banner-text">Веса снижены до 60 %. Три тренировки, потом фаза 2.</div></div>
+  <button class="phase-banner-close">✕</button></div>
+ <div class="phase-banner phase-complete" style="border-radius:var(--r3)">
+  <span class="phase-banner-icon">✅</span>
+  <div class="phase-banner-body"><div class="phase-banner-title">Фаза 1 закрыта</div>
+   <div class="phase-banner-text">Двенадцать тренировок линейной прогрессии позади.</div></div>
+  <button class="phase-banner-close">✕</button></div>
+
+ <h2>Режим тренировки</h2>
+ <div style="border:1px solid var(--border);border-radius:var(--r3);overflow:hidden">
+  <div class="wo-top" style="padding-top:var(--s3)">
+   <button class="wo-x">✕</button>
+   <div style="flex:1;min-width:0"><div class="wo-top-title">Тренировка 17 · A</div>
+    <div class="wo-top-sub">Упражнение 1 из 6</div></div>
+   <button class="wo-toggle on">🔆</button></div>
+  <div style="padding:var(--s5) var(--s4);display:flex;flex-direction:column;gap:var(--s4);background:var(--bg)">
+   <div><div class="wo-exname">Присед со штангой</div><div class="wo-plan">План 5×5 · 85 кг</div></div>
+   <div class="wo-kg"><button class="wo-kg-btn">−</button>
+    <input class="wo-kg-in" value="85" type="text"><button class="wo-kg-btn">+</button></div>
+   <div class="wo-sets"><button class="wo-set done">✓ Подход 1</button>
+    <button class="wo-set">Подход 2</button>
+    <button class="wo-set wo-set-add">+ ещё подход</button></div>
+  </div>
+  <div class="wo-bottom" style="padding-bottom:var(--s2)">
+   <button class="wo-nav" disabled>‹</button>
+   <div class="wo-timer"><span class="wo-time running">2:14</span>
+    <button class="wo-tbtn">Стоп</button></div>
+   <button class="wo-nav">›</button></div>
+ </div>
+
+ <h2>Что осталось за кадром</h2>
+ <p class="note">Стайлгайд — временный файл, в репозиторий его класть не обязательно. Он собран из настоящего блока &lt;style&gt; в index.html, так что расходиться с приложением не будет, пока ты его пересобираешь.</p>
+</div>
+</body></html>

@@ -11,301 +11,500 @@
 <link rel="icon" type="image/png" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a1a2e">
 <title>Дневник тренировок</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{--bg:#f0f0f0;--card:#fff;--hdr:#1a1a2e;--hdr2:#16213e;--text:#1a1a1a;--text2:#666;--text3:#999;--border:#ddd;--input:#fff;--input-bg:#f8f8f8;--red:#e94560;--green:#1a7a4a;--green-bg:#e8f8f0;--green-border:#c0e8d0;--tab-bg:#fff;--tab-border:#eee;--chip-bg:#f8f8f8;--modal:#fff;--pr-bg:#e8f8f0;--pr-color:#1a7a4a;--timer-fixed:#1a1a2e;
-/* Дизайн-токены: меняешь здесь — меняется везде */
---s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;
---r1:8px;--r2:12px;--r3:16px;--r-pill:999px;
---t-xs:11px;--t-sm:13px;--t-md:15px;--t-lg:19px;--t-xl:26px;
---shadow:0 1px 4px rgba(0,0,0,.07)}
 
-/* Утилиты — вместо повторяющихся инлайн-стилей */
-.u-label{font-size:var(--t-xs);color:var(--text3);display:block;margin-bottom:var(--s1)}
-.u-num{font-variant-numeric:tabular-nums}
+/* ============================================================
+   ТОКЕНЫ. Единственное место, где живут значения.
+   Правило: в остальном файле не должно быть ни одного px
+   для кегля, радиуса и отступа — только var().
+   ============================================================ */
+:root{
+/* — Поверхности */
+--bg:#f1f1f4;--card:#fff;--modal:#fff;--input:#fff;--input-bg:#f6f6f9;--chip-bg:#f6f6f9;
+--tab-bg:#fff;--tab-border:#e8e8ee;--border:#e2e2e9;--line-strong:#cfcfd9;
+--hdr:#1a1a2e;--hdr2:#16213e;--hdr-ink:#fff;--hdr-ink2:#a8a8cc;--hdr-rail:#2a2a4a;
+--timer-fixed:#1a1a2e;
+
+/* — Текст. Контраст к белому: 15.9 / 6.5 / 4.95 */
+--text:#17171b;--text2:#54545f;--text3:#6f6f7d;
+
+/* — Роли. Один цвет = одна работа.
+     accent  действие и «здесь ты сейчас»
+     done    выполнено, рекорд, рост
+     info    производная величина (оценка 1ПМ)
+     warn    осторожно, разгрузка, снижение */
+--accent:#d92d4b;--accent-ink:#fff;--accent-bg:#fde9ed;--accent-line:#f4bcc7;
+--done:#0f7a4d;--done-ink:#fff;--done-bg:#e6f6ee;--done-line:#bde3d1;
+--info:#1d64d8;--info-bg:#e7effd;
+--warn:#a8560a;--warn-bg:#fdf0e0;
+
+/* — Совместимость: на эти имена завязаны инлайн-стили в JS */
+--red:var(--accent);--green:var(--done);--green-bg:var(--done-bg);--green-border:var(--done-line);
+--pr-bg:var(--done-bg);--pr-color:var(--done);
+
+/* — Шаг сетки 4 */
+--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;
+
+/* — Радиусы: 4 ступени, больше не заводим */
+--r1:8px;--r2:12px;--r3:16px;--r-pill:999px;
+
+/* — Кегль: 7 ступеней. --t-md=16 обязателен для полей ввода,
+     иначе iOS Safari зумит страницу при фокусе */
+--t-2xs:11px;--t-xs:12px;--t-sm:14px;--t-md:16px;--t-lg:20px;--t-xl:28px;--t-2xl:40px;
+
+/* — Зона касания. 44 — минимум, ниже палец промахивается */
+--tap:44px;--tap-sm:36px;
+
+/* — Глубина. В тёмной теме тень не видна, там работает граница */
+--shadow:0 1px 2px rgba(20,20,40,.06),0 2px 8px rgba(20,20,40,.05);
+--card-line:transparent;
+
+/* — Движение */
+--dur:.16s;--ease:cubic-bezier(.2,.7,.3,1);
+
+/* — Метка. Мелкий разреженный капс: подписи к числам */
+--label-track:.07em}
+
+body.dark{
+--bg:#0d0d10;--card:#18181c;--modal:#18181c;--input:#232329;--input-bg:#212127;--chip-bg:#232329;
+--tab-bg:#18181c;--tab-border:#2a2a31;--border:#2e2e37;--line-strong:#3d3d48;
+--hdr:#000;--hdr2:#0f0f14;--hdr-ink:#fff;--hdr-ink2:#8f8fa8;--hdr-rail:#2a2a34;
+--timer-fixed:#000;
+--text:#f2f2f5;--text2:#a8a8b4;--text3:#90909e;
+--accent:#ff5f7c;--accent-ink:#1a0508;--accent-bg:#2e1219;--accent-line:#4d1f29;
+--done:#34d399;--done-ink:#04180f;--done-bg:#0d2a1e;--done-line:#1c4735;
+--info:#6aa6ff;--info-bg:#12233f;
+--warn:#fbbf24;--warn-bg:#2e2410;
+--shadow:none;--card-line:var(--border);
+/* Алиасы обязаны быть объявлены и здесь: var() подставляется на том элементе,
+   где объявлен, а не там, где используется. Оставь их только в :root —
+   и в тёмной теме --red останется светлым. */
+--red:var(--accent);--green:var(--done);--green-bg:var(--done-bg);--green-border:var(--done-line);
+--pr-bg:var(--done-bg);--pr-color:var(--done)}
+
+@media (prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;
+font-size:var(--t-sm);line-height:1.45;
+transition:background var(--dur),color var(--dur);
+-webkit-font-smoothing:antialiased}
+
+/* Видимый фокус с клавиатуры — палец его не увидит, клавиатура увидит */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r1)}
+
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
+.u-label,.u-cap{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:var(--s1)}
+.u-num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
 .u-grid2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
-.u-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--s2)}
 .u-row{display:flex;align-items:center;gap:var(--s2)}
 .u-empty{text-align:center;padding:var(--s5) var(--s3);color:var(--text3);font-size:var(--t-sm);line-height:1.6}
 .u-hint{font-size:var(--t-xs);color:var(--text3);margin-top:var(--s1)}
 .u-mb3{margin-bottom:var(--s3)}
-.input{width:100%;padding:10px;font-size:var(--t-md);border:1px solid var(--border);border-radius:var(--r1);background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;font-variant-numeric:tabular-nums}
-.input:focus{outline:none;border-color:var(--red)}
-.e1rm{display:inline-block;font-size:var(--t-xs);font-weight:700;background:rgba(41,128,185,.14);color:#2980b9;border-radius:5px;padding:2px 7px;margin-top:var(--s1);margin-left:var(--s1);font-variant-numeric:tabular-nums}
-body.dark{--bg:#0f0f0f;--card:#1c1c1e;--hdr:#000;--hdr2:#111;--text:#f0f0f0;--text2:#aaa;--text3:#666;--border:#333;--input:#2c2c2e;--input-bg:#2c2c2e;--tab-bg:#1c1c1e;--tab-border:#333;--chip-bg:#2c2c2e;--modal:#1c1c1e;--pr-bg:#0a2a1a;--pr-color:#4ade80;--timer-fixed:#000}
-body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;transition:background .2s,color .2s}
 
-.login-screen{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--hdr);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:24px}
-.login-logo{font-size:52px;margin-bottom:16px}
-.login-screen h1{color:#fff;font-size:22px;font-weight:700;margin-bottom:6px;text-align:center}
-.login-screen p{color:#aaaacc;font-size:13px;text-align:center;margin-bottom:28px}
-.login-box{width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px}
-.login-input{width:100%;padding:13px 14px;font-size:15px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font-family:inherit;-webkit-appearance:none;outline:none}
-.login-input::placeholder{color:#888}
-.login-input:focus{border-color:var(--red)}
-.login-btn{width:100%;padding:13px;font-size:15px;font-weight:600;border:none;border-radius:10px;cursor:pointer;font-family:inherit}
-.login-btn-main{background:var(--red);color:#fff}
-.login-btn-sec{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
-.login-err{color:#ff6b6b;font-size:12px;text-align:center;min-height:16px}
-.login-toggle{color:#aaaacc;font-size:12px;text-align:center;margin-top:4px;cursor:pointer}
-.login-toggle span{color:var(--red);text-decoration:underline}
+.input{width:100%;padding:11px var(--s3);font-size:var(--t-md);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input);color:var(--text);font-family:inherit;
+-webkit-appearance:none;font-variant-numeric:tabular-nums;min-height:var(--tap)}
+.input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
 
-.user-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(255,255,255,.08);border-top:1px solid rgba(255,255,255,.1)}
-.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
-.user-name{font-size:12px;color:#ddd;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sync-status{font-size:10px;color:#aaa;flex-shrink:0}
+/* Производная величина, не измеренная — отдельная роль, отдельный цвет */
+.e1rm{display:inline-block;font-size:var(--t-2xs);font-weight:700;background:var(--info-bg);
+color:var(--info);border-radius:var(--r1);padding:3px var(--s2);margin:var(--s1) 0 0 var(--s1);
+font-variant-numeric:tabular-nums}
+
+/* ============================================================
+   ВХОД
+   ============================================================ */
+.login-screen{position:fixed;inset:0;background:var(--hdr);display:flex;flex-direction:column;
+align-items:center;justify-content:center;z-index:200;padding:var(--s5)}
+.login-logo{font-size:52px;margin-bottom:var(--s4)}
+.login-screen h1{color:var(--hdr-ink);font-size:var(--t-lg);font-weight:800;margin-bottom:var(--s1);text-align:center}
+.login-screen p{color:var(--hdr-ink2);font-size:var(--t-sm);text-align:center;margin-bottom:var(--s6)}
+.login-box{width:100%;max-width:320px;display:flex;flex-direction:column;gap:var(--s2)}
+.login-input{width:100%;padding:var(--s3) var(--s4);font-size:var(--t-md);min-height:var(--tap);
+border:1px solid rgba(255,255,255,.16);border-radius:var(--r2);background:rgba(255,255,255,.07);
+color:#fff;font-family:inherit;-webkit-appearance:none;outline:none}
+.login-input::placeholder{color:#7e7e96}
+.login-input:focus{border-color:var(--accent)}
+.login-btn{width:100%;padding:var(--s3);min-height:var(--tap);font-size:var(--t-md);font-weight:700;
+border:none;border-radius:var(--r2);cursor:pointer;font-family:inherit}
+.login-btn-main{background:var(--accent);color:var(--accent-ink)}
+.login-btn-sec{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.16)}
+.login-err{color:#ff8095;font-size:var(--t-xs);text-align:center;min-height:16px}
+.login-toggle{color:var(--hdr-ink2);font-size:var(--t-xs);text-align:center;margin-top:var(--s1);cursor:pointer}
+.login-toggle span{color:var(--accent);text-decoration:underline}
+
+/* ============================================================
+   ШАПКА
+   ============================================================ */
+.user-bar{display:flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s4);
+background:rgba(255,255,255,.06);border-top:1px solid rgba(255,255,255,.08)}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:flex;
+align-items:center;justify-content:center;font-size:var(--t-xs);font-weight:800;color:var(--accent-ink);flex-shrink:0}
+.user-name{font-size:var(--t-xs);color:#d8d8e4;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sync-status{font-size:var(--t-2xs);color:var(--hdr-ink2);flex-shrink:0}
 .sync-status.ok{color:#4ade80}
-.sync-status.err{color:var(--red)}
-.btn-logout{background:none;border:1px solid rgba(255,255,255,.2);color:#aaa;border-radius:8px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit}
+.sync-status.err{color:#ff8095}
+.btn-logout{background:none;border:1px solid rgba(255,255,255,.22);color:#c8c8d6;border-radius:var(--r1);
+padding:var(--s1) var(--s2);font-size:var(--t-2xs);cursor:pointer;font-family:inherit;min-height:var(--tap-sm)}
 
-.header{background:var(--hdr);color:#fff;padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between}
-.header h1{font-size:17px;font-weight:600}
-.dark-toggle{background:none;border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+.header{background:var(--hdr);color:var(--hdr-ink);padding:var(--s4) var(--s4) var(--s3);
+display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:var(--t-md);font-weight:700;letter-spacing:-.01em}
+.dark-toggle{background:none;border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:var(--r-pill);
+padding:var(--s2) var(--s3);font-size:var(--t-xs);cursor:pointer;font-family:inherit;min-height:var(--tap-sm)}
 
+/* Числа — герой приложения. Крупно, табличными цифрами, метка мелким капсом */
 .summary{display:grid;grid-template-columns:repeat(3,1fr);background:var(--hdr2)}
-.stat{text-align:center;padding:10px 4px}
-.stat-val{font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;color:#fff}
-.stat-label{font-size:10px;color:#aaaacc;margin-top:1px}
-.progress-bar{height:3px;background:#2a2a4a}
-.progress-fill{height:100%;background:var(--red);transition:width .4s}
+.stat{text-align:center;padding:var(--s3) var(--s1);position:relative}
+.stat+.stat::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:1px;background:var(--hdr-rail)}
+.stat-val{font-variant-numeric:tabular-nums;font-size:var(--t-lg);font-weight:800;color:#fff;line-height:1.1}
+.stat-label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);text-transform:uppercase;
+color:var(--hdr-ink2);margin-top:3px}
+.progress-bar{height:3px;background:var(--hdr-rail)}
+.progress-fill{height:100%;background:var(--accent);transition:width .4s var(--ease)}
 
+/* ============================================================
+   НАВИГАЦИЯ. Подписи видны всегда, не только у активной вкладки
+   ============================================================ */
 .nav{display:flex;background:var(--tab-bg);border-bottom:1px solid var(--tab-border)}
-.nav-btn{flex:1;padding:10px 6px;color:var(--text3);border:none;background:none;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;position:relative;display:flex;align-items:center;justify-content:center}
-.nav-btn.active{color:var(--red);border-bottom-color:var(--red)}
-.nav-btn::after{content:attr(data-label);position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text3);white-space:nowrap;display:none}
-.nav-btn.active::after{display:block;color:var(--red)}
+.nav-btn{flex:1;padding:var(--s2) var(--s1) 6px;color:var(--text3);border:none;background:none;
+cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;
+display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px}
+.nav-btn::after{content:attr(data-label);font-size:var(--t-2xs);font-weight:600;line-height:1;white-space:nowrap}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
 
-.tabs{display:flex;overflow-x:auto;background:var(--tab-bg);border-bottom:1px solid var(--tab-border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs{display:flex;overflow-x:auto;background:var(--tab-bg);border-bottom:1px solid var(--tab-border);
+-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex-shrink:0;padding:9px 12px;font-size:11px;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:inherit;position:relative;line-height:1.4;text-align:center}
-.tab.active{color:var(--red);border-bottom-color:var(--red);font-weight:500}
-.tab .done-dot{position:absolute;top:6px;right:4px;width:5px;height:5px;background:#27ae60;border-radius:50%}
-.tab-add{flex-shrink:0;padding:9px 14px;font-size:20px;color:var(--red);border:none;background:none;cursor:pointer}
+.tab{flex-shrink:0;padding:var(--s2) var(--s3);min-height:var(--tap);font-size:var(--t-xs);
+color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;
+white-space:nowrap;font-family:inherit;position:relative;line-height:1.35;text-align:center;font-weight:600}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:800}
+.tab .done-dot{position:absolute;top:6px;right:5px;width:6px;height:6px;background:var(--done);border-radius:50%}
+.tab-add{flex-shrink:0;padding:0 var(--s4);min-height:var(--tap);font-size:var(--t-lg);
+color:var(--accent);border:none;background:none;cursor:pointer;font-family:inherit}
 
 .page{display:none}.page.active{display:block}
-.content{padding:12px;display:flex;flex-direction:column;gap:10px}
+.content{padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
 
-.card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
-.week-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.week-meta .week-title{font-size:15px;font-weight:600;color:var(--text)}
-.week-meta .week-date{font-size:11px;color:var(--text3);margin-top:2px}
-.badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
-.badge-done{background:var(--green-bg);color:var(--green)}
-.badge-current{background:#ffeaea;color:var(--red)}
+/* ============================================================
+   КАРТОЧКИ
+   ============================================================ */
+.card,.chart-card,.export-card,.stat-big{background:var(--card);border-radius:var(--r3);
+box-shadow:var(--shadow);border:1px solid var(--card-line)}
+.card{padding:var(--s4)}
+.chart-card,.stat-big{padding:var(--s4)}
+.export-card{padding:var(--s4)}
+.week-header{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);margin-bottom:var(--s3)}
+.week-meta .week-title{font-size:var(--t-md);font-weight:800;color:var(--text);letter-spacing:-.01em}
+.week-meta .week-date{font-size:var(--t-xs);color:var(--text3);margin-top:2px}
+
+.badge{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);text-transform:uppercase;
+padding:var(--s1) var(--s2);border-radius:var(--r-pill);flex-shrink:0;white-space:nowrap}
+.badge-done{background:var(--done-bg);color:var(--done)}
+.badge-current{background:var(--accent-bg);color:var(--accent)}
 .badge-up{background:var(--input-bg);color:var(--text3)}
 
-.ex-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.ex-row{background:var(--input-bg);border-radius:8px;padding:10px;border:1px solid var(--border)}
-.ex-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.ex-name-input{flex:1;font-size:13px;font-weight:600;color:var(--text);border:none;background:transparent;font-family:inherit;padding:0;border-bottom:1px dashed var(--border);outline:none;-webkit-appearance:none;min-width:0}
-.ex-name-input:focus{border-bottom-color:var(--red)}
-.ex-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:0 2px;flex-shrink:0}
-.ex-pr{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:2px 7px;border-radius:10px;flex-shrink:0}
+/* ============================================================
+   УПРАЖНЕНИЕ
+   ============================================================ */
+.ex-list{display:flex;flex-direction:column;gap:var(--s2);margin-bottom:var(--s3)}
+.ex-row{background:var(--input-bg);border-radius:var(--r2);padding:var(--s3);border:1px solid var(--border)}
+.ex-top{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s3)}
+.ex-name-input{flex:1;font-size:var(--t-md);font-weight:700;color:var(--text);border:none;
+background:transparent;font-family:inherit;padding:var(--s1) 0;
+border-bottom:1px dashed var(--line-strong);outline:none;-webkit-appearance:none;min-width:0}
+.ex-name-input:focus{border-bottom-color:var(--accent);border-bottom-style:solid}
+.ex-del,.ex-alt-btn{background:none;border:none;color:var(--text3);font-size:var(--t-md);cursor:pointer;
+flex-shrink:0;width:var(--tap-sm);height:var(--tap-sm);display:flex;align-items:center;justify-content:center;
+border-radius:var(--r1);font-family:inherit}
+.ex-del:active,.ex-alt-btn:active{background:var(--accent-bg);color:var(--accent)}
+.ex-pr{font-size:var(--t-2xs);font-weight:700;background:var(--done-bg);color:var(--done);
+padding:3px var(--s2);border-radius:var(--r-pill);flex-shrink:0;white-space:nowrap}
+.ex-move-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--r1);
+color:var(--text2);font-size:var(--t-xs);cursor:pointer;line-height:1;
+width:var(--tap-sm);height:30px;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.ex-move-btn:disabled{opacity:.22;cursor:default}
+.ex-move-btn:active:not(:disabled){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 
-.sets-wrap{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.sets-label{font-size:11px;color:var(--text3);flex-shrink:0}
-.sets-btns{display:flex;gap:5px}
-.set-btn{width:34px;height:34px;border-radius:7px;border:1.5px solid var(--border);background:var(--input);color:var(--text);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
-.set-btn.done{background:var(--red);color:#fff;border-color:var(--red)}
+/* ---- СИГНАТУРА: полоса подходов ----
+   Закрытый подход зелёный, а не красный. Красный в приложении
+   означает ровно одно: «нажми сюда». Зелёный: «уже сделано».
+   Раньше оба состояния были одного цвета и глаз их не различал. */
+.sets-wrap{display:block;margin-bottom:var(--s3)}
+.sets-label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px}
+.sets-btns{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px}
+.set-btn{min-width:var(--tap);height:var(--tap);border-radius:var(--r2);border:1.5px solid var(--border);
+background:var(--input);color:var(--text3);font-size:var(--t-sm);font-weight:700;cursor:pointer;
+font-family:inherit;font-variant-numeric:tabular-nums;
+transition:transform var(--dur) var(--ease),background var(--dur),color var(--dur),border-color var(--dur)}
+.set-btn:active{transform:scale(.93)}
+.set-btn.done{background:var(--done);color:var(--done-ink);border-color:var(--done);font-weight:800}
 
-.ex-inputs{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:11px;color:var(--text3);display:block;margin-bottom:4px}
-.num-row{display:flex;align-items:center;gap:3px;width:100%}
-.num-btn{width:32px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);font-size:16px;font-weight:500;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.num-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
-.num-input{flex:1;padding:6px 2px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;text-align:center;min-width:0;font-weight:600}
-.num-input:focus{outline:none;border-color:var(--red)}
-.hist-hint{font-size:10px;color:var(--text3);margin-top:3px}
-.plan-hint{display:inline-block;font-size:10px;font-weight:700;background:rgba(233,69,96,0.12);color:var(--red);border-radius:5px;padding:2px 7px;margin-top:4px;letter-spacing:0.2px}
+/* ============================================================
+   ЧИСЛОВОЙ ВВОД
+   ============================================================ */
+.ex-inputs{display:flex;flex-direction:column;gap:var(--s3)}
+.field label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:var(--s1)}
+.num-row{display:flex;align-items:center;gap:6px;width:100%}
+.num-btn{width:var(--tap);height:var(--tap);border-radius:var(--r2);border:1px solid var(--border);
+background:var(--input);color:var(--text);font-size:var(--t-lg);font-weight:600;cursor:pointer;
+flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:inherit;
+transition:transform var(--dur) var(--ease)}
+.num-btn:active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);transform:scale(.94)}
+.num-input{flex:1;height:var(--tap);padding:0 var(--s1);font-size:var(--t-lg);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input);color:var(--text);font-family:inherit;-webkit-appearance:none;
+text-align:center;min-width:0;font-weight:800;font-variant-numeric:tabular-nums}
+.num-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.plan-hint{display:inline-block;font-size:var(--t-2xs);font-weight:700;background:var(--accent-bg);
+color:var(--accent);border-radius:var(--r1);padding:3px var(--s2);margin-top:var(--s1);
+letter-spacing:.02em;font-variant-numeric:tabular-nums}
 
-.note-wrap label{font-size:12px;color:var(--text3);display:block;margin-bottom:4px}
-.note-wrap textarea{width:100%;padding:8px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--input);color:var(--text);font-family:inherit;resize:none}
-.note-wrap textarea:focus{outline:none;border-color:var(--red)}
+.note-wrap label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);display:block;margin-bottom:var(--s1)}
+.note-wrap textarea{width:100%;padding:var(--s3);font-size:var(--t-md);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input);color:var(--text);font-family:inherit;resize:none}
+.note-wrap textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
 
-.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
-.btn{padding:9px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;font-size:13px;font-family:inherit;font-weight:500}
-.btn-red{background:var(--red);color:#fff;border-color:var(--red)}
-.btn-green{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
-.btn-outline{border-color:var(--red);color:var(--red);background:transparent}
-.saved{font-size:12px;color:var(--green);display:none}
+/* ============================================================
+   КНОПКИ
+   ============================================================ */
+.btn-row{display:flex;gap:var(--s2);flex-wrap:wrap;align-items:center;margin-top:var(--s3)}
+.btn{padding:var(--s2) var(--s4);min-height:var(--tap);border-radius:var(--r2);border:1px solid var(--border);
+background:var(--card);color:var(--text);cursor:pointer;font-size:var(--t-sm);font-family:inherit;font-weight:700;
+display:inline-flex;align-items:center;justify-content:center;gap:6px;
+transition:transform var(--dur) var(--ease)}
+.btn:active{transform:scale(.97)}
+.btn-red{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn-green{background:var(--done-bg);color:var(--done);border-color:var(--done-line)}
+.btn-outline{border-color:var(--accent);color:var(--accent);background:transparent}
+.saved{font-size:var(--t-xs);color:var(--done);font-weight:700;display:none}
 .saved.show{display:inline}
 
-.timer-fixed{position:fixed;bottom:0;left:0;right:0;background:var(--timer-fixed);padding:10px 14px;display:flex;align-items:center;gap:10px;z-index:50;border-top:1px solid rgba(255,255,255,.1);transition:transform .2s}
+/* ============================================================
+   ТАЙМЕР
+   ============================================================ */
+.timer-fixed{position:fixed;bottom:0;left:0;right:0;background:var(--timer-fixed);
+padding:var(--s2) var(--s3);padding-bottom:calc(var(--s2) + env(safe-area-inset-bottom));
+display:flex;align-items:center;gap:var(--s2);z-index:50;border-top:1px solid rgba(255,255,255,.1);
+transition:transform var(--dur) var(--ease)}
 .keyboard-open .timer-fixed{transform:translateY(100%)}
-.timer-display{font-size:24px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;min-width:60px}
+.timer-display{font-size:var(--t-xl);font-weight:800;color:#fff;font-variant-numeric:tabular-nums;
+min-width:74px;line-height:1}
 .timer-display.running{color:#4ade80}
-.timer-display.finished{color:var(--red)}
+.timer-display.finished{color:#ff7a90}
 .timer-presets{display:flex;gap:5px;flex:1;flex-wrap:wrap}
-.tp-btn{padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;font-size:11px;cursor:pointer;font-family:inherit}
-.tp-btn.sel{background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5)}
-.timer-start{padding:7px 14px;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;flex-shrink:0}
+.tp-btn{padding:var(--s2) var(--s3);min-height:var(--tap-sm);border-radius:var(--r1);
+border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#fff;
+font-size:var(--t-xs);font-weight:600;cursor:pointer;font-family:inherit;font-variant-numeric:tabular-nums}
+.tp-btn.sel{background:rgba(255,255,255,.24);border-color:rgba(255,255,255,.5)}
+.timer-start{padding:var(--s2) var(--s4);min-height:var(--tap-sm);border-radius:var(--r2);border:none;
+background:var(--accent);color:var(--accent-ink);font-size:var(--t-sm);font-weight:700;cursor:pointer;
+font-family:inherit;flex-shrink:0}
 
-.chart-wrap{padding:12px;display:flex;flex-direction:column;gap:10px}
-.chart-card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
-.chart-card h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
-.chart-sel{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-.chart-sel-btn{padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--input-bg);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit}
-.chart-sel-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+/* ============================================================
+   ГРАФИКИ И РЕКОРДЫ
+   ============================================================ */
+.chart-wrap,.export-wrap{padding:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
+.chart-card h3,.export-card h3,.stat-big h3{font-size:var(--t-sm);font-weight:800;color:var(--text);
+margin-bottom:var(--s3);letter-spacing:-.005em}
+.chart-sel{display:flex;gap:6px;margin-bottom:var(--s3);flex-wrap:wrap}
+.chart-sel-btn{padding:var(--s2) var(--s3);min-height:var(--tap-sm);border-radius:var(--r-pill);
+border:1px solid var(--border);background:var(--input-bg);color:var(--text2);font-size:var(--t-xs);
+font-weight:600;cursor:pointer;font-family:inherit}
+.chart-sel-btn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 canvas{width:100%!important;max-width:100%;display:block}
 .pr-list{display:flex;flex-direction:column;gap:6px}
-.pr-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--input-bg);border-radius:8px;font-size:13px}
-.pr-item-name{color:var(--text);font-weight:500}
-.pr-item-val{font-variant-numeric:tabular-nums;color:var(--pr-color);font-weight:700}
+.pr-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);
+padding:var(--s2) var(--s3);background:var(--input-bg);border-radius:var(--r1);font-size:var(--t-sm)}
+.pr-item-name{color:var(--text);font-weight:600}
+.pr-item-val{font-variant-numeric:tabular-nums;color:var(--done);font-weight:800}
 
-.export-wrap{padding:12px;display:flex;flex-direction:column;gap:10px}
-.export-card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
-.export-card h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px}
-.export-card p{font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.5}
-.export-textarea{width:100%;padding:10px;font-size:11px;border:1px solid var(--border);border-radius:8px;background:var(--input-bg);color:var(--text);font-family:monospace;resize:none;height:120px}
+.export-card p{font-size:var(--t-sm);color:var(--text2);margin-bottom:var(--s3);line-height:1.55}
+.export-textarea{width:100%;padding:var(--s3);font-size:var(--t-xs);border:1px solid var(--border);
+border-radius:var(--r2);background:var(--input-bg);color:var(--text);
+font-family:ui-monospace,SFMono-Regular,Menlo,monospace;resize:none;height:120px}
 
-.plan-card h3{font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:var(--hdr);color:#fff;padding:7px 5px;text-align:center;font-weight:500}
-td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--border);color:var(--text2)}
-tr.tr-current td{font-weight:700;color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:var(--t-xs);font-variant-numeric:tabular-nums}
+th{background:var(--hdr);color:#fff;padding:var(--s2) var(--s1);text-align:center;font-weight:700;
+font-size:var(--t-2xs);letter-spacing:var(--label-track);text-transform:uppercase}
+td{padding:var(--s2) var(--s1);text-align:center;border-bottom:1px solid var(--border);color:var(--text2)}
+tr.tr-current td{font-weight:800;color:var(--accent)}
 tr.tr-done td{color:var(--text3)}
-.pr-tag{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:1px 5px;border-radius:8px;margin-left:2px}
+.pr-tag{font-size:var(--t-2xs);background:var(--done-bg);color:var(--done);padding:1px 5px;
+border-radius:var(--r1);margin-left:2px;font-weight:700}
 
-.modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;z-index:100}
-.modal-bg.show{display:flex}
-.modal{background:var(--modal);border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:70vh;overflow-y:auto}
-.modal h3{font-size:15px;font-weight:600;margin-bottom:12px;color:var(--text)}
-.modal-close{float:right;background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer;margin-top:-4px}
-.ex-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.chip{padding:7px 13px;border-radius:20px;border:1px solid var(--border);background:var(--chip-bg);font-size:12px;color:var(--text);cursor:pointer;font-family:inherit}
-.custom-row{display:flex;gap:8px}
-.custom-row input{flex:1;padding:9px;font-size:13px;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:var(--input);color:var(--text);-webkit-appearance:none}
-.custom-row input:focus{outline:none;border-color:var(--red)}
-.divider{font-size:11px;color:var(--text3);text-align:center;margin:10px 0}
+/* ============================================================
+   МОДАЛКИ
+   ============================================================ */
+.modal-bg,.alt-modal-bg,.tmpl-modal-bg{position:fixed;inset:0;background:rgba(6,6,12,.62);
+display:none;align-items:flex-end;z-index:100;backdrop-filter:blur(2px)}
+.alt-modal-bg,.tmpl-modal-bg{z-index:150}
+.modal-bg.show,.alt-modal-bg.show,.tmpl-modal-bg.show{display:flex}
+.modal,.alt-modal,.tmpl-modal{background:var(--modal);border-radius:var(--r3) var(--r3) 0 0;
+padding:var(--s5) var(--s4);padding-bottom:calc(var(--s5) + env(safe-area-inset-bottom));
+width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal{max-height:72vh}.alt-modal{max-height:64vh}.tmpl-modal{max-height:82vh}
+.modal h3,.alt-modal h3,.tmpl-modal h3{font-size:var(--t-lg);font-weight:800;margin-bottom:var(--s3);color:var(--text)}
+.alt-modal .alt-current{font-size:var(--t-sm);color:var(--text3);margin:calc(var(--s3) * -1 + var(--s1)) 0 var(--s4)}
+.modal-close{float:right;background:none;border:none;font-size:var(--t-lg);color:var(--text3);
+cursor:pointer;width:var(--tap-sm);height:var(--tap-sm);margin:-6px -6px 0 0;font-family:inherit}
+.ex-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--s3)}
+.chip{padding:var(--s2) var(--s3);min-height:var(--tap-sm);border-radius:var(--r-pill);
+border:1px solid var(--border);background:var(--chip-bg);font-size:var(--t-sm);color:var(--text);
+cursor:pointer;font-family:inherit;font-weight:600}
+.chip:active{border-color:var(--accent);color:var(--accent)}
+.custom-row{display:flex;gap:var(--s2)}
+.custom-row input{flex:1;padding:0 var(--s3);min-height:var(--tap);font-size:var(--t-md);
+border:1px solid var(--border);border-radius:var(--r2);font-family:inherit;background:var(--input);
+color:var(--text);-webkit-appearance:none}
+.custom-row input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.divider{font-size:var(--t-xs);color:var(--text3);text-align:center;margin:var(--s3) 0}
 
-/* Finish modal */
-.finish-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:150;padding:16px}
+.alt-list,.tmpl-list{display:flex;flex-direction:column;gap:var(--s2)}
+.alt-item,.tmpl-item{background:var(--input-bg);border-radius:var(--r2);border:1px solid var(--border);cursor:pointer}
+.alt-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);padding:var(--s3) var(--s4);min-height:var(--tap)}
+.tmpl-item{padding:var(--s4)}
+.alt-item:active,.tmpl-item:active{border-color:var(--accent);background:var(--accent-bg)}
+.alt-item-name,.tmpl-item-title{font-size:var(--t-sm);font-weight:700;color:var(--text)}
+.tmpl-item-title{margin-bottom:var(--s1)}
+.alt-item-sets{font-size:var(--t-xs);color:var(--text3);font-variant-numeric:tabular-nums;flex-shrink:0}
+.tmpl-item-exs{font-size:var(--t-xs);color:var(--text3);line-height:1.55}
+
+/* Завершение тренировки */
+.finish-modal-bg{position:fixed;inset:0;background:rgba(6,6,12,.72);display:none;align-items:center;
+justify-content:center;z-index:150;padding:var(--s4);backdrop-filter:blur(2px)}
 .finish-modal-bg.show{display:flex}
-.finish-modal{background:var(--card);border-radius:16px;padding:20px;width:100%;max-width:340px;max-height:90vh;overflow-y:auto}
-.finish-modal h2{font-size:18px;font-weight:700;color:var(--text);text-align:center;margin-bottom:4px}
-.finish-modal .finish-sub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:16px}
-.finish-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.finish-stat{background:var(--input-bg);border-radius:10px;padding:12px;text-align:center}
-.finish-stat-val{font-variant-numeric:tabular-nums;font-size:20px;font-weight:700;color:var(--red)}
-.finish-stat-label{font-size:11px;color:var(--text3);margin-top:2px}
-.finish-ex-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-.finish-ex-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--input-bg);border-radius:8px;font-size:13px}
-.finish-ex-name{color:var(--text);font-weight:500}
-.finish-ex-val{color:var(--text2)}
-.finish-ex-pr{font-size:10px;background:var(--pr-bg);color:var(--pr-color);padding:1px 6px;border-radius:8px;margin-left:6px}
-.btn-finish{width:100%;padding:13px;border-radius:10px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px}
-.btn-finish-cancel{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit}
-.ex-move-btn{background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;cursor:pointer;padding:3px 6px;line-height:1.2;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
-.ex-move-btn:disabled{opacity:0.2;cursor:default}
-.ex-move-btn:active:not(:disabled){background:var(--red);color:#fff;border-color:var(--red)}
-.ex-alt-btn{background:none;border:none;font-size:15px;cursor:pointer;padding:0 2px;flex-shrink:0;opacity:0.7}
-.ex-alt-btn:active{opacity:1}
-.trash-item{background:var(--input-bg);border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border)}
-.trash-item-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
-.trash-item-meta{font-size:11px;color:var(--text3);margin-bottom:8px}
-.trash-item-btns{display:flex;gap:8px}
-.ex-alt-btn:active{opacity:1}
-.alt-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;z-index:150}
-.alt-modal-bg.show{display:flex}
-.alt-modal{background:var(--modal);border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:60vh;overflow-y:auto}
-.alt-modal h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
-.alt-modal .alt-current{font-size:12px;color:var(--text3);margin-bottom:14px}
-.alt-list{display:flex;flex-direction:column;gap:8px}
-.alt-item{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;background:var(--input-bg);border-radius:10px;border:1px solid var(--border);cursor:pointer}
-.alt-item:active{border-color:var(--red)}
-.alt-item-name{font-size:13px;font-weight:500;color:var(--text)}
-.alt-item-sets{font-size:11px;color:var(--text3)}
+.finish-modal{background:var(--card);border-radius:var(--r3);padding:var(--s5) var(--s4);width:100%;
+max-width:360px;max-height:90vh;overflow-y:auto;border:1px solid var(--card-line)}
+.finish-modal h2{font-size:var(--t-lg);font-weight:800;color:var(--text);text-align:center;margin-bottom:var(--s1)}
+.finish-modal .finish-sub{font-size:var(--t-sm);color:var(--text3);text-align:center;margin-bottom:var(--s4)}
+.finish-stats,.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2)}
+.finish-stats{margin-bottom:var(--s4)}
+.finish-stat,.stat-box{background:var(--input-bg);border-radius:var(--r2);padding:var(--s3);text-align:center}
+.finish-stat-val,.stat-box-val{font-variant-numeric:tabular-nums;font-size:var(--t-xl);font-weight:800;
+color:var(--text);line-height:1.05;letter-spacing:-.02em}
+.finish-stat-label,.stat-box-label{font-size:var(--t-2xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);margin-top:var(--s1)}
+.finish-ex-list{display:flex;flex-direction:column;gap:6px;margin-bottom:var(--s4)}
+.finish-ex-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);
+padding:var(--s2) var(--s3);background:var(--input-bg);border-radius:var(--r1);font-size:var(--t-sm)}
+.finish-ex-name{color:var(--text);font-weight:600}
+.finish-ex-val{color:var(--text2);font-variant-numeric:tabular-nums}
+.finish-ex-pr{font-size:var(--t-2xs);font-weight:700;background:var(--done-bg);color:var(--done);
+padding:1px var(--s2);border-radius:var(--r-pill);margin-left:6px}
+.btn-finish{width:100%;padding:var(--s3);min-height:var(--tap);border-radius:var(--r2);border:none;
+background:var(--done);color:var(--done-ink);font-size:var(--t-md);font-weight:800;cursor:pointer;
+font-family:inherit;margin-bottom:var(--s2)}
+.btn-finish-cancel{width:100%;padding:var(--s2);min-height:var(--tap);border-radius:var(--r2);
+border:1px solid var(--border);background:transparent;color:var(--text3);font-size:var(--t-sm);
+cursor:pointer;font-family:inherit;font-weight:600}
 
-.cardio-type-btn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-size:12px;cursor:pointer;font-family:inherit;transition:all .15s}
-.cardio-type-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
-.cardio-history-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--input-bg);border-radius:10px;margin-bottom:6px}
+/* ============================================================
+   КОРЗИНА, КАРДИО, ИТОГИ
+   ============================================================ */
+.trash-item{background:var(--input-bg);border-radius:var(--r2);padding:var(--s3);margin-bottom:var(--s2);
+border:1px solid var(--border)}
+.trash-item-title{font-size:var(--t-sm);font-weight:700;color:var(--text);margin-bottom:var(--s1)}
+.trash-item-meta{font-size:var(--t-xs);color:var(--text3);margin-bottom:var(--s2)}
+.trash-item-btns{display:flex;gap:var(--s2)}
+
+.cardio-type-btn{flex:1;padding:var(--s2) var(--s1);min-height:var(--tap);border-radius:var(--r2);
+border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:var(--t-sm);
+font-weight:600;cursor:pointer;font-family:inherit;transition:background var(--dur),color var(--dur),border-color var(--dur)}
+.cardio-type-btn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cardio-history-item{display:flex;justify-content:space-between;align-items:center;gap:var(--s2);
+padding:var(--s3);background:var(--input-bg);border-radius:var(--r2);margin-bottom:6px}
 .cardio-history-left{display:flex;flex-direction:column;gap:2px}
-.cardio-history-type{font-size:13px;font-weight:600;color:var(--text)}
-.cardio-history-date{font-size:11px;color:var(--text3)}
+.cardio-history-type{font-size:var(--t-sm);font-weight:700;color:var(--text)}
+.cardio-history-date{font-size:var(--t-xs);color:var(--text3);font-variant-numeric:tabular-nums}
 .cardio-history-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
-.cardio-history-stat{font-size:12px;color:var(--text2)}
-.cardio-history-kcal{font-size:13px;font-weight:600;color:var(--red)}
+.cardio-history-stat{font-size:var(--t-xs);color:var(--text2);font-variant-numeric:tabular-nums}
+.cardio-history-kcal{font-size:var(--t-sm);font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
 
-/* Stats */
-.stat-big{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:0}
-.stat-big h3{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
-.stat-box{background:var(--input-bg);border-radius:10px;padding:12px;text-align:center}
-.stat-box-val{font-variant-numeric:tabular-nums;font-size:22px;font-weight:700;color:var(--red)}
-.stat-box-label{font-size:11px;color:var(--text3);margin-top:2px}
-.goal-bar-wrap{margin-top:8px}
-.goal-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px}
-.goal-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
-.goal-bar-fill{height:100%;background:var(--red);border-radius:4px;transition:width .4s}
-.goal-bar-fill.done{background:var(--green)}
+.goal-bar-wrap{margin-top:var(--s3)}
+.goal-bar-label{display:flex;justify-content:space-between;font-size:var(--t-xs);color:var(--text2);
+margin-bottom:var(--s1);font-variant-numeric:tabular-nums}
+.goal-bar{height:10px;background:var(--border);border-radius:var(--r-pill);overflow:hidden}
+.goal-bar-fill{height:100%;background:var(--accent);border-radius:var(--r-pill);transition:width .4s var(--ease)}
+.goal-bar-fill.done{background:var(--done)}
 
-/* Template modal */
-.tmpl-modal-bg{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;z-index:150}
-.tmpl-modal-bg.show{display:flex}
-.tmpl-modal{background:var(--modal);border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto}
-.tmpl-modal h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:14px}
-.tmpl-list{display:flex;flex-direction:column;gap:8px}
-.tmpl-item{background:var(--input-bg);border-radius:10px;padding:12px;cursor:pointer;border:1.5px solid var(--border)}
-.tmpl-item:active{border-color:var(--red)}
-.tmpl-item-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
-.tmpl-item-exs{font-size:11px;color:var(--text3);line-height:1.5}
-
-/* Phase banner */
-.phase-banner{padding:12px 16px;display:flex;align-items:flex-start;gap:10px;position:relative}
-.phase-banner-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+/* ============================================================
+   БАННЕР ФАЗЫ
+   ============================================================ */
+.phase-banner{padding:var(--s3) var(--s4);display:flex;align-items:flex-start;gap:var(--s3);position:relative}
+.phase-banner-icon{font-size:var(--t-lg);flex-shrink:0;margin-top:1px}
 .phase-banner-body{flex:1}
-.phase-banner-title{font-size:14px;font-weight:700;margin-bottom:3px}
-.phase-banner-text{font-size:12px;line-height:1.5;opacity:0.9}
-.phase-banner-close{background:none;border:none;font-size:18px;cursor:pointer;opacity:0.7;flex-shrink:0;padding:0}
-.phase-banner.phase-complete{background:linear-gradient(135deg,#1a7a4a,#27ae60);color:#fff}
-.phase-banner.phase-recovery{background:linear-gradient(135deg,#2980b9,#3498db);color:#fff}
-.phase-banner.phase-next{background:linear-gradient(135deg,#8e44ad,#9b59b6);color:#fff}
+.phase-banner-title{font-size:var(--t-sm);font-weight:800;margin-bottom:3px}
+.phase-banner-text{font-size:var(--t-xs);line-height:1.5;opacity:.92}
+.phase-banner-close{background:none;border:none;font-size:var(--t-md);cursor:pointer;opacity:.75;
+flex-shrink:0;width:var(--tap-sm);height:var(--tap-sm);color:inherit;font-family:inherit}
+.phase-banner.phase-complete{background:#0f7a4d;color:#fff}
+.phase-banner.phase-recovery{background:#1d64d8;color:#fff}
+.phase-banner.phase-next{background:#7b3fb8;color:#fff}
 
-/* Пока открыт режим тренировки — страница под ним не прокручивается.
-   На iOS одного overflow:hidden мало, нужен position:fixed со смещением. */
-body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bottom:0}
-
-/* РЕЖИМ ТРЕНИРОВКИ */
-.wo{position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:300;display:none;flex-direction:column}
+/* ============================================================
+   РЕЖИМ ТРЕНИРОВКИ
+   ============================================================ */
+.wo{position:fixed;inset:0;background:var(--bg);z-index:300;display:none;flex-direction:column}
 .wo.show{display:flex}
-.wo-top{background:var(--hdr);color:#fff;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;flex-shrink:0}
-.wo-top-title{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wo-top-sub{font-size:11px;color:#aaaacc;margin-top:1px}
-.wo-x{background:rgba(255,255,255,.12);border:none;color:#fff;border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0;font-family:inherit}
-.wo-toggle{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex-shrink:0;line-height:1;opacity:.45;font-family:inherit}
-.wo-toggle.on{background:var(--red);border-color:var(--red);opacity:1}
-.wo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 14px;display:flex;flex-direction:column;gap:14px}
-.wo-exname{font-size:26px;font-weight:700;color:var(--text);line-height:1.2;text-align:center}
-.wo-plan{text-align:center;font-size:13px;color:var(--text3);margin-top:5px}
-.wo-ref{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.wo-ref-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:10px 8px;text-align:center}
-.wo-ref-label{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--text3);margin-bottom:3px}
-.wo-ref-val{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);line-height:1.15}
-.wo-ref-box.empty .wo-ref-val{font-size:15px;font-weight:600;color:var(--text3)}
-.wo-ref-sub{font-size:11px;color:var(--text3);margin-top:2px}
-.wo-delta{text-align:center;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
-.wo-why{text-align:center;font-size:11px;color:var(--text3);margin-top:8px;line-height:1.4}
-.wo-kg{display:flex;align-items:center;gap:10px}
-.wo-kg-btn{width:64px;height:58px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:26px;cursor:pointer;flex-shrink:0;font-family:inherit}
-.wo-kg-btn:active{background:var(--red);color:#fff;border-color:var(--red)}
-.wo-kg-in{flex:1;min-width:0;text-align:center;font-size:26px;font-weight:700;padding:11px 0;border:1px solid var(--border);border-radius:14px;background:var(--card);color:var(--text);font-family:inherit;-webkit-appearance:none}
-.wo-kg-in:focus{outline:none;border-color:var(--red)}
-.wo-sets{display:grid;gap:10px}
-.wo-set{border-radius:14px;border:2px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;font-size:19px;font-weight:700;padding:20px 0;cursor:pointer}
-.wo-set.done{background:var(--red);border-color:var(--red);color:#fff}
-.wo-set-add{font-size:15px;font-weight:600;color:var(--red);border-style:dashed;border-color:var(--red);background:transparent;padding:13px 0}
-.wo-bottom{flex-shrink:0;background:var(--card);border-top:1px solid var(--border);padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:10px}
-.wo-nav{padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:16px;font-weight:600;cursor:pointer;font-family:inherit;flex-shrink:0}
+.wo-top{background:var(--hdr);color:#fff;padding:var(--s3) var(--s3);
+padding-top:calc(var(--s3) + env(safe-area-inset-top));display:flex;align-items:center;gap:var(--s2);flex-shrink:0}
+.wo-top-title{font-size:var(--t-sm);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wo-top-sub{font-size:var(--t-xs);color:var(--hdr-ink2);margin-top:1px;font-variant-numeric:tabular-nums}
+.wo-x,.wo-toggle{border-radius:var(--r2);width:var(--tap);height:var(--tap);font-size:var(--t-md);
+cursor:pointer;flex-shrink:0;font-family:inherit;line-height:1}
+.wo-x{background:rgba(255,255,255,.12);border:none;color:#fff}
+.wo-toggle{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);color:#fff;opacity:.45}
+.wo-toggle.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);opacity:1}
+.wo-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:var(--s5) var(--s4);
+display:flex;flex-direction:column;gap:var(--s4)}
+.wo-exname{font-size:var(--t-xl);font-weight:800;color:var(--text);line-height:1.15;text-align:center;
+letter-spacing:-.02em;text-wrap:balance}
+.wo-plan{text-align:center;font-size:var(--t-xs);font-weight:700;letter-spacing:var(--label-track);
+text-transform:uppercase;color:var(--text3);margin-top:6px}
+.wo-kg{display:flex;align-items:center;gap:var(--s3)}
+.wo-kg-btn{width:68px;height:64px;border-radius:var(--r3);border:1px solid var(--border);
+background:var(--card);color:var(--text);font-size:var(--t-xl);cursor:pointer;flex-shrink:0;
+font-family:inherit;transition:transform var(--dur) var(--ease)}
+.wo-kg-btn:active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);transform:scale(.95)}
+.wo-kg-in{flex:1;min-width:0;text-align:center;font-size:var(--t-2xl);font-weight:800;height:64px;
+padding:0;border:1px solid var(--border);border-radius:var(--r3);background:var(--card);color:var(--text);
+font-family:inherit;-webkit-appearance:none;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.wo-kg-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.wo-sets{display:grid;gap:var(--s3)}
+.wo-set{border-radius:var(--r3);border:2px solid var(--border);background:var(--card);color:var(--text);
+font-family:inherit;font-size:var(--t-lg);font-weight:800;padding:var(--s5) 0;cursor:pointer;
+transition:transform var(--dur) var(--ease),background var(--dur),border-color var(--dur),color var(--dur)}
+.wo-set:active{transform:scale(.98)}
+.wo-set.done{background:var(--done);border-color:var(--done);color:var(--done-ink)}
+.wo-set-add{font-size:var(--t-md);font-weight:700;color:var(--accent);border-style:dashed;
+border-color:var(--accent);background:transparent;padding:var(--s4) 0}
+.wo-bottom{flex-shrink:0;background:var(--card);border-top:1px solid var(--border);padding:var(--s2) var(--s3);
+padding-bottom:calc(var(--s2) + env(safe-area-inset-bottom));display:flex;align-items:center;gap:var(--s3)}
+.wo-nav{padding:0 var(--s4);height:52px;border-radius:var(--r2);border:1px solid var(--border);
+background:var(--input-bg);color:var(--text);font-size:var(--t-lg);font-weight:700;cursor:pointer;
+font-family:inherit;flex-shrink:0}
 .wo-nav:disabled{opacity:.25}
-.wo-timer{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;min-width:0}
-.wo-time{font-size:29px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text)}
-.wo-time.running{color:#27ae60}
-.wo-time.finished{color:var(--red)}
-.wo-tbtn{padding:11px 15px;border-radius:12px;border:none;background:var(--red);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.wo-timer{flex:1;display:flex;align-items:center;justify-content:center;gap:var(--s2);min-width:0}
+.wo-time{font-size:var(--t-xl);font-weight:800;font-variant-numeric:tabular-nums;color:var(--text);
+line-height:1;letter-spacing:-.02em}
+.wo-time.running{color:var(--done)}
+.wo-time.finished{color:var(--accent)}
+.wo-tbtn{padding:0 var(--s4);height:var(--tap);border-radius:var(--r2);border:none;background:var(--accent);
+color:var(--accent-ink);font-size:var(--t-sm);font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
 </style>
 </head>
 <body>
@@ -434,7 +633,7 @@ body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bo
         <h3>⚖️ Вес тела</h3>
         <div class="u-row u-mb3">
           <button class="num-btn" onclick="stepWeight(-0.1)">−</button>
-          <input class="input" type="number" id="weight-input" inputmode="decimal" step="0.1" placeholder="кг" style="text-align:center;font-size:22px;font-weight:700;padding:12px 0">
+          <input class="input" type="number" id="weight-input" inputmode="decimal" step="0.1" placeholder="кг" style="text-align:center;font-size:var(--t-lg);font-weight:700;padding:12px 0">
           <button class="num-btn" onclick="stepWeight(0.1)">+</button>
         </div>
         <button class="btn btn-red" style="width:100%" onclick="addWeight()">Записать вес</button>
@@ -465,7 +664,7 @@ body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bo
       </div>
       <div class="export-card">
         <h3>🗑️ Корзина</h3>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Удалённые тренировки хранятся 30 дней</p>
+        <p style="font-size:var(--t-sm);color:var(--text2);margin-bottom:12px">Удалённые тренировки хранятся 30 дней</p>
         <div id="trash-list"></div>
       </div>
       <div class="export-card">
@@ -508,7 +707,7 @@ body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bo
         <input class="input" type="number" id="finish-kcal" inputmode="numeric" placeholder="ккал">
       </div>
     </div>
-    <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">Упражнения:</div>
+    <div style="font-size:var(--t-xs);font-weight:600;color:var(--text);margin-bottom:8px">Упражнения:</div>
     <div class="finish-ex-list" id="finish-ex-list"></div>
     <button class="btn-finish" onclick="confirmFinish()">Сохранить и завершить</button>
     <button class="btn-finish-cancel" onclick="closeFinishModal()">Отмена</button>
@@ -516,7 +715,7 @@ body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bo
 </div>
 <div class="alt-modal-bg" id="alt-modal-bg" onclick="closeAltModal(event)">
   <div class="alt-modal">
-    <button class="modal-close" onclick="closeAltModal()" style="float:right;background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer">×</button>
+    <button class="modal-close" onclick="closeAltModal()" style="float:right;background:none;border:none;font-size:var(--t-lg);color:var(--text3);cursor:pointer">×</button>
     <h3>🔄 Аналоги упражнения</h3>
     <div class="alt-current" id="alt-current"></div>
     <div class="alt-list" id="alt-list"></div>
@@ -525,7 +724,7 @@ body.wo-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;padding-bo
 
 <div class="tmpl-modal-bg" id="tmpl-modal-bg" onclick="closeTmplModal(event)">
   <div class="tmpl-modal">
-    <button class="modal-close" onclick="closeTmplModal()" style="float:right;background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer">×</button>
+    <button class="modal-close" onclick="closeTmplModal()" style="float:right;background:none;border:none;font-size:var(--t-lg);color:var(--text3);cursor:pointer">×</button>
     <h3>Выбери шаблон</h3>
     <div class="tmpl-list" id="tmpl-list"></div>
   </div>
@@ -669,6 +868,7 @@ const alternativesMap={
 };
 const PRESET_EX=["Присед со штангой","Становая тяга","Жим лёжа","Тяга штанги в наклоне","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа","Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка","Разводка гантелей стоя","Подъём на бицепс","Планка","Жим ногами","Ягодичный мостик","Молотки на бицепс","Французский жим","Скручивания","Подтягивания","Велосипед","Подъём ног в висе"];
 const DEF_EX=[["Присед со штангой","Жим лёжа","Тяга штанги в наклоне","Разводка гантелей стоя","Подъём на бицепс","Планка"],["Становая тяга","Тяга верхнего блока","Жим гантелей на наклонной скамье","Обратная разводка в блоке","Сгибания ног в тренажёре","Разгибания на трицепс","Подъём ног лёжа"],["Румынская тяга","Разгибания ног","Отжимания на брусьях","Разводка гантелей лёжа","Тяга в хаммере одной рукой","Тяга к подбородку","Фермерская прогулка"]];
+const PLAN=[["1","85 кг","105 кг","90 кг",""],["2","85 кг","110 кг","95 кг",""],["3","90 кг","115 кг","100 кг",""],["4","95 кг","120 кг","105 кг","pr"],["5+","100 кг","122.5 кг","107.5 кг","pr"]];
 
 // ===== ИДЕНТИЧНОСТЬ УПРАЖНЕНИЙ =====
 // Приводим написание к единому виду: регистр, ё, лишние пробелы и знаки
@@ -1087,94 +1287,6 @@ function calcStreak(){
 }
 
 // Начало текущей "недели" (группа из 3 тренировок) — один расчёт на всё приложение
-// ===== ПРОГРЕССИЯ =====
-// Сколько подходов запланировано по схеме (без учёта уже отмеченных)
-function basePlannedSets(ex){
-  const s=String(ex.sets||setsMap[ex.name]||'15×3');
-  const m=s.match(/(\d+)\s*[x×]\s*(\d+)/);
-  let c=3;
-  if(m)c=/[сcмm]\s*$/i.test(s)?parseInt(m[1]):parseInt(m[2]); // '3×60с' и '3×40м' — первое число это подходы
-  if(!c||c<1)c=3;
-  if(c>12)c=12;
-  return c+(ex.extraSets||0);
-}
-// Для интерфейса: не меньше, чем уже отмечено
-function plannedSets(ex){
-  return Math.max(basePlannedSets(ex),(ex.setsDone||[]).length);
-}
-// Закрыл ли все запланированные подходы
-function isExComplete(ex){
-  return (ex.setsDone||[]).length>=basePlannedSets(ex);
-}
-// Последнее выполнение этого упражнения до текущей тренировки
-function lastPerformance(w,exName){
-  const target=normName(canonName(exName));
-  const myPos=weekPos(w);
-  for(let k=myPos-1;k>=0;k--){
-    const ex=state.weeks[k].exercises.find(e=>normName(canonName(e.name))===target);
-    if(ex&&parseFloat(ex.kg)>0)return{ex,no:k+1};
-  }
-  return null;
-}
-// Шаг прибавки: мелкие веса это гантели, там блины по килограмму
-function progressionStep(kg){return kg<15?1:2.5;}
-
-// Плановые веса и схемы для тренировки: таблица прогрессии, восстановление, волна.
-// Используется и дневником, и режимом тренировки — считать в двух местах нельзя.
-function buildPlanMaps(w){
-  const planMap={},planSetsMap={},planWhy={};
-
-  // Основа: двойная прогрессия. Закрыл все подходы — добавляем вес, не закрыл — повторяем.
-  w.exercises.forEach(ex=>{
-    const prev=lastPerformance(w,ex.name);
-    if(!prev)return;
-    const pk=parseFloat(prev.ex.kg)||0;
-    if(pk<=0)return;
-    if(isExComplete(prev.ex)){
-      const inc=progressionStep(pk);
-      planMap[ex.name]=(Math.round((pk+inc)*10)/10)+' кг';
-      planWhy[ex.name]=`+${inc} кг — в Тр.${prev.no} закрыл все подходы`;
-    }else{
-      const donePrev=(prev.ex.setsDone||[]).length,needPrev=basePlannedSets(prev.ex);
-      planMap[ex.name]=pk+' кг';
-      planWhy[ex.name]=`повторить — в Тр.${prev.no} сделано ${donePrev} из ${needPrev}`;
-    }
-    // Схему повторов тянем ту, что реально была в прошлый раз
-    if(prev.ex.sets)planSetsMap[ex.name]=prev.ex.sets;
-  });
-
-  // Восстановительная неделя перебивает прогрессию: 60% и никакого роста
-  const doneCnt=state.weeks.filter(x=>x.done).length;
-  const isRecovery=doneCnt>=12&&doneCnt<=14;
-  if(isRecovery){
-    w.exercises.forEach(ex=>{
-      const prev=lastPerformance(w,ex.name);
-      const pk=prev?parseFloat(prev.ex.kg)||0:0;
-      if(pk>0){
-        planMap[ex.name]=Math.round(pk*0.6/2.5)*2.5+' кг';
-        planWhy[ex.name]='восстановление — 60% от рабочего';
-      }
-    });
-  }
-
-  // Фаза 2 перебивает всё для базовых упражнений
-  const waveInfo=getWaveInfo(weekNo(w));
-  if(waveInfo){
-    const{stage,cycleNumber}=waveInfo;
-    PHASE2_LIFTS.forEach(name=>{
-      const base=getPhase2Base(name);
-      if(base>0){
-        const effectiveBase=base+cycleNumber*WAVE_CYCLE_INCREMENT;
-        const target=Math.round(effectiveBase*stage.pct/2.5)*2.5;
-        planMap[name]=target+' кг';
-        planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
-        planWhy[name]=`${stage.label} неделя — ${Math.round(stage.pct*100)}% от ${effectiveBase} кг`;
-      }
-    });
-  }
-  return{planMap,planSetsMap,planWhy,waveInfo,isRecovery};
-}
-
 function weekGroupStart(){
   for(let i=0;i<state.weeks.length;i+=3){
     const g=state.weeks.slice(i,i+3);
@@ -1233,7 +1345,7 @@ function updatePhaseBanner(done){
     const weights=getRecoveryWeights();
     if(weights.length){
       weightsHtml=`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
-        ${weights.map(w=>`<div style="display:flex;justify-content:space-between;background:rgba(255,255,255,.15);border-radius:6px;padding:5px 10px;font-size:12px">
+        ${weights.map(w=>`<div style="display:flex;justify-content:space-between;background:rgba(255,255,255,.15);border-radius:var(--r1);padding:5px 10px;font-size:var(--t-xs)">
           <span>${w.name}</span>
           <span><s style="opacity:0.6">${w.best} кг</s> → <b>${w.rec} кг</b></span>
         </div>`).join('')}
@@ -1267,7 +1379,7 @@ function renderTabs(){
   state.weeks.forEach((w,idx)=>{
     if(idx%3===0){
       const weekNum=Math.floor(idx/3)+1;
-      html+=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 6px 0 ${idx===0?'6':'12'}px;flex-shrink:0"><span style="font-size:9px;color:var(--text3);white-space:nowrap;padding-bottom:2px">Нед.${weekNum}</span><div style="height:16px;width:1px;background:${idx===0?'transparent':'var(--border)'}"></div></div>`;
+      html+=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 6px 0 ${idx===0?'6':'12'}px;flex-shrink:0"><span style="font-size:var(--t-2xs);color:var(--text3);white-space:nowrap;padding-bottom:2px">Нед.${weekNum}</span><div style="height:16px;width:1px;background:${idx===0?'transparent':'var(--border)'}"></div></div>`;
     }
     html+=`<button class="tab${w.n===state.active?' active':''}" onclick="setTab(${w.n})">${weekDay(w)}${w.type?' '+w.type:''}<br>Тр.${idx+1}${w.done?'<span class="done-dot"></span>':''}</button>`;
   });
@@ -1284,8 +1396,58 @@ function renderDiary(){
   const badgeCls=isDone?'badge-done':(firstUndone&&w.n===firstUndone.n?'badge-current':'badge-up');
   const badgeTxt=isDone?'Выполнена ✓':(firstUndone&&w.n===firstUndone.n?'Текущая':'Предстоит');
 
+  // Плановые веса из таблицы прогрессии для базовых упражнений
   const wNo=weekNo(w);
-  const{planMap,planSetsMap,planWhy,waveInfo,isRecovery}=buildPlanMaps(w);
+  const planWeeks=PLAN.find(r=>r[0]===String(wNo));
+  const planMap={
+    'Присед со штангой': planWeeks?planWeeks[1]:'',
+    'Становая тяга': planWeeks?planWeeks[2]:'',
+    'Жим лёжа': planWeeks?planWeeks[3]:'',
+  };
+
+  // Восстановительная фаза — 60% от последнего веса
+  const doneCnt=state.weeks.filter(x=>x.done).length;
+  const isRecovery=doneCnt>=12&&doneCnt<=14;
+  if(isRecovery){
+    const getLastKg=(exName)=>{
+      let last=0;
+      const myPos=weekPos(w);
+      state.weeks.forEach((week,pos)=>{
+        if(pos>=myPos)return;
+        const ex=week.exercises.find(e=>e.name===exName);
+        if(ex&&parseFloat(ex.kg)>0)last=parseFloat(ex.kg);
+      });
+      return last;
+    };
+    // Базовые — 60%
+    ['Присед со штангой','Становая тяга','Жим лёжа'].forEach(name=>{
+      const last=getLastKg(name);
+      if(last>0)planMap[name]=Math.round(last*0.6/2.5)*2.5+' кг';
+    });
+    // Вспомогательные — тоже 60%
+    w.exercises.forEach(ex=>{
+      if(!planMap[ex.name]){
+        const last=getLastKg(ex.name);
+        if(last>0)planMap[ex.name]=Math.round(last*0.6/2.5)*2.5+' кг';
+      }
+    });
+  }
+
+  // Фаза 2 — волновая периодизация для базовых упражнений
+  const waveInfo=getWaveInfo(wNo);
+  const planSetsMap={};
+  if(waveInfo){
+    const{stage,cycleNumber}=waveInfo;
+    PHASE2_LIFTS.forEach(name=>{
+      const base=getPhase2Base(name);
+      if(base>0){
+        const effectiveBase=base+cycleNumber*WAVE_CYCLE_INCREMENT;
+        const target=Math.round(effectiveBase*stage.pct/2.5)*2.5;
+        planMap[name]=target+' кг';
+        planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
+      }
+    });
+  }
 
   const exHtml=w.exercises.map((ex,i)=>{
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
@@ -1303,12 +1465,12 @@ function renderDiary(){
       const diff=Math.round((parseFloat(ex.kg)-lastH.kg)*10)/10;
       const diffStr=diff>0?`▲ +${diff} кг`:diff<0?`▼ ${diff} кг`:'= без изм.';
       const diffColor=diff>0?'var(--green)':diff<0?'var(--red)':'var(--text3)';
-      compareHtml=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:11px">
+      compareHtml=`<div style="display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:var(--t-2xs)">
         <span style="color:var(--text3)">Прошлый: ${lastH.kg} кг</span>
         <span style="color:${diffColor};font-weight:600">${diffStr}</span>
       </div>`;
     }else if(lastH){
-      compareHtml=`<div style="padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:11px;color:var(--text3)">Прошлый раз: ${lastH.kg} кг</div>`;
+      compareHtml=`<div style="padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:var(--t-2xs);color:var(--text3)">Прошлый раз: ${lastH.kg} кг</div>`;
     }
 
     return `<div class="ex-row">
@@ -1331,7 +1493,7 @@ function renderDiary(){
             <input class="num-input" type="number" inputmode="decimal" min="0" max="500" step="0.5" placeholder="${kgPlaceholder}" value="${ex.kg}" onchange="updateEx(${w.n},${i},'kg',this.value);recheckPR(${w.n},${i})">
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
-          ${planKg?`<div class="plan-hint" title="${(planWhy[ex.name]||'').replace(/"/g,'&quot;')}">план: ${planKg}</div>`:''}${exE1rm(ex)?`<span class="e1rm">≈1ПМ ${exE1rm(ex)} кг</span>`:''}
+          ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}${exE1rm(ex)?`<span class="e1rm">≈1ПМ ${exE1rm(ex)} кг</span>`:''}
         </div>
         <div class="field">
           <label>Повторы</label>
@@ -1347,11 +1509,12 @@ function renderDiary(){
     </div>`;
   }).join('');
 
+  const planRows=PLAN.map(r=>{const wM=state.weeks[parseInt(r[0])-1];const cls=r[0]===String(wNo)?'tr-current':(wM&&wM.done?'tr-done':'');return `<tr class="${cls}"><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}${r[4]==='pr'?'<span class="pr-tag">ПР</span>':''}</td></tr>`;}).join('');
 
   // Кнопка завершения только если тренировка не завершена
-  const woBtn=isDone?'':`<button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);width:100%;margin-bottom:8px;font-size:14px" onclick="openWorkoutMode(${w.n})">▶️ Режим тренировки</button>`;
-  const finishBtn=isDone?'':`<button class="btn" style="background:var(--green);color:#fff;border-color:var(--green);width:100%;margin-bottom:8px;font-size:14px" onclick="openFinishModal(${w.n})">🏁 Завершить тренировку</button>`;
-  const tmplBtn=`<button class="btn btn-outline" style="width:100%;font-size:13px" onclick="saveAsTemplate(${w.n})">⭐ Сохранить как шаблон</button>`;
+  const woBtn=isDone?'':`<button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);width:100%;margin-bottom:8px;font-size:var(--t-sm)" onclick="openWorkoutMode(${w.n})">▶️ Режим тренировки</button>`;
+  const finishBtn=isDone?'':`<button class="btn" style="background:var(--green);color:#fff;border-color:var(--green);width:100%;margin-bottom:8px;font-size:var(--t-sm)" onclick="openFinishModal(${w.n})">🏁 Завершить тренировку</button>`;
+  const tmplBtn=`<button class="btn btn-outline" style="width:100%;font-size:var(--t-sm)" onclick="saveAsTemplate(${w.n})">⭐ Сохранить как шаблон</button>`;
 
   const extraInfo=isDone&&(w.pulse||w.kcal)?
     `${w.pulse?'♥ '+w.pulse+' BPM':''} ${w.kcal?'· '+w.kcal+' ккал':''}`.trim():'';
@@ -1359,22 +1522,22 @@ function renderDiary(){
   // Завершённую тренировку можно поправить: длительность, пульс, калории
   const metaEdit=!isDone?'':`
     <div class="ex-row" style="margin-bottom:12px">
-      <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Данные тренировки</div>
+      <div style="font-size:var(--t-xs);color:var(--text3);margin-bottom:8px">Данные тренировки</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
         <div>
-          <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Мин.</label>
+          <label style="font-size:var(--t-2xs);color:var(--text3);display:block;margin-bottom:4px">Мин.</label>
           <input class="num-input" type="number" inputmode="numeric" value="${w.duration||''}" placeholder="—" onchange="updateWorkoutMeta(${w.n},'duration',this.value)">
         </div>
         <div>
-          <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Пульс</label>
+          <label style="font-size:var(--t-2xs);color:var(--text3);display:block;margin-bottom:4px">Пульс</label>
           <input class="num-input" type="number" inputmode="numeric" value="${w.pulse||''}" placeholder="—" onchange="updateWorkoutMeta(${w.n},'pulse',this.value)">
         </div>
         <div>
-          <label style="font-size:11px;color:var(--text3);display:block;margin-bottom:4px">Ккал</label>
+          <label style="font-size:var(--t-2xs);color:var(--text3);display:block;margin-bottom:4px">Ккал</label>
           <input class="num-input" type="number" inputmode="numeric" value="${w.kcal||''}" placeholder="—" onchange="updateWorkoutMeta(${w.n},'kcal',this.value)">
         </div>
       </div>
-      <button class="btn" style="width:100%;margin-top:10px;font-size:12px;color:var(--text3)" onclick="toggleDone(${w.n})">↩️ Вернуть в работу</button>
+      <button class="btn" style="width:100%;margin-top:10px;font-size:var(--t-xs);color:var(--text3)" onclick="toggleDone(${w.n})">↩️ Вернуть в работу</button>
     </div>`;
 
   document.getElementById('diary-content').innerHTML=`
@@ -1387,7 +1550,7 @@ function renderDiary(){
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge ${badgeCls}">${badgeTxt}</span>
-          <button onclick="deleteWeek(${w.n})" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--text3)" title="Удалить тренировку">🗑️</button>
+          <button onclick="deleteWeek(${w.n})" style="background:none;border:none;font-size:var(--t-lg);cursor:pointer;color:var(--text3)" title="Удалить тренировку">🗑️</button>
         </div>
       </div>
       <div class="ex-list">${exHtml}</div>
@@ -1512,7 +1675,7 @@ function renderMerge(){
   const opts=n=>names.map(x=>`<option value="${x.replace(/"/g,'&quot;')}"${x===n?' selected':''}>${x}</option>`).join('');
   let html='';
   if(pairs.length){
-    html+='<div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:8px">Похоже на одно и то же</div>';
+    html+='<div style="font-size:var(--t-xs);color:var(--text2);font-weight:600;margin-bottom:8px">Похоже на одно и то же</div>';
     html+=pairs.map(([a,b])=>{
       const ha=getHistory(a).length,hb=getHistory(b).length;
       // Оставляем то название, у которого больше истории
@@ -1521,7 +1684,7 @@ function renderMerge(){
         <div class="trash-item-title">${drop}</div>
         <div class="trash-item-meta">объединить с «${keep}» · ${ha+hb} записей суммарно</div>
         <div class="trash-item-btns">
-          <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="mergeExercise('${drop.replace(/'/g,"\\'")}','${keep.replace(/'/g,"\\'")}')">Объединить</button>
+          <button class="btn btn-green" style="font-size:var(--t-xs);padding:6px 12px" onclick="mergeExercise('${drop.replace(/'/g,"\\'")}','${keep.replace(/'/g,"\\'")}')">Объединить</button>
         </div>
       </div>`;
     }).join('');
@@ -1529,10 +1692,10 @@ function renderMerge(){
     html+='<p class="u-empty">Похожих названий не нашлось</p>';
   }
   if(names.length>1){
-    html+=`<div style="font-size:12px;color:var(--text2);font-weight:600;margin:14px 0 8px">Вручную</div>
+    html+=`<div style="font-size:var(--t-xs);color:var(--text2);font-weight:600;margin:14px 0 8px">Вручную</div>
     <div style="display:flex;flex-direction:column;gap:8px">
       <select class="input" id="merge-from">${opts(names[0])}</select>
-      <div style="text-align:center;font-size:12px;color:var(--text3)">переименовать в ↓</div>
+      <div style="text-align:center;font-size:var(--t-xs);color:var(--text3)">переименовать в ↓</div>
       <select class="input" id="merge-to">${opts(names[1])}</select>
       <button class="btn btn-outline" onclick="doManualMerge()">Объединить</button>
     </div>`;
@@ -1551,7 +1714,7 @@ window.doManualMerge=function(){
 function renderTrash(){
   const el=document.getElementById('trash-list');if(!el)return;
   const trash=trashVisible();
-  if(!trash.length){el.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Корзина пуста</p>';return;}
+  if(!trash.length){el.innerHTML='<p style="color:var(--text3);font-size:var(--t-sm);text-align:center;padding:20px">Корзина пуста</p>';return;}
   el.innerHTML=[...trash].reverse().map(w=>{
     const key=w.deletedAt;
     const days=Math.max(0,30-Math.floor((Date.now()-new Date(key).getTime())/86400000));
@@ -1560,8 +1723,8 @@ function renderTrash(){
       <div class="trash-item-title">Тренировка ${w.n}${['A','B','C'].includes(w.type)?' \u00b7 '+w.type:''} \u00b7 ${w.date||''}</div>
       <div class="trash-item-meta">${w.exercises.map(e=>e.name).slice(0,3).join(', ')}${w.exercises.length>3?'...':''} \u00b7 удалится через ${days} дн.</div>
       <div class="trash-item-btns">
-        <button class="btn btn-green" style="font-size:12px;padding:6px 12px" onclick="restoreWeek('${key}')">\u21a9\ufe0f Восстановить</button>
-        <button class="btn" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)" onclick="deleteFromTrash('${key}')">Удалить навсегда</button>
+        <button class="btn btn-green" style="font-size:var(--t-xs);padding:6px 12px" onclick="restoreWeek('${key}')">\u21a9\ufe0f Восстановить</button>
+        <button class="btn" style="font-size:var(--t-xs);padding:6px 12px;color:var(--red);border-color:var(--red)" onclick="deleteFromTrash('${key}')">Удалить навсегда</button>
       </div>
     </div>`;
   }).join('');
@@ -1670,27 +1833,25 @@ window.confirmFinish=async function(){
   stopTimer();
 };
 // ===== РЕЖИМ ТРЕНИРОВКИ (WAKE LOCK + ЭКРАН БЛОКИРОВКИ) =====
-let woWeekN=null,woIdx=0,woActive=false,woScrollY=0;
+let woWeekN=null,woIdx=0,woActive=false;
 let wakeLock=null,woWakeOn=true,woLockOn=false,bgAudio=null;
 
-// Фиксируем страницу под оверлеем и запоминаем, куда вернуть
-function lockPageScroll(){
-  woScrollY=window.scrollY||window.pageYOffset||0;
-  document.body.style.top=`-${woScrollY}px`;
-  document.body.classList.add('wo-open');
-}
-function unlockPageScroll(){
-  document.body.classList.remove('wo-open');
-  document.body.style.top='';
-  window.scrollTo(0,woScrollY);
+// Сколько подходов запланировано у упражнения
+function woSetsCount(ex){
+  const s=String(ex.sets||setsMap[ex.name]||'15×3');
+  const m=s.match(/(\d+)\s*[x×]\s*(\d+)/);
+  let c=3;
+  if(m)c=/[сcмm]\s*$/i.test(s)?parseInt(m[1]):parseInt(m[2]); // '3×60с' и '3×40м' — первое число это подходы
+  if(!c||c<1)c=3;
+  if(c>12)c=12;
+  return Math.max(c+(ex.extraSets||0),(ex.setsDone||[]).length);
 }
 
 window.openWorkoutMode=function(wn){
   const w=getWeek(wn);if(!w||!w.exercises.length)return;
   woWeekN=wn;woActive=true;
-  const i=w.exercises.findIndex(ex=>(ex.setsDone||[]).length<plannedSets(ex));
+  const i=w.exercises.findIndex(ex=>(ex.setsDone||[]).length<woSetsCount(ex));
   woIdx=i>-1?i:0;
-  lockPageScroll();
   document.getElementById('wo').classList.add('show');
   if(woWakeOn)requestWakeLock();
   renderWo();
@@ -1699,7 +1860,6 @@ window.openWorkoutMode=function(wn){
 window.closeWorkoutMode=function(){
   woActive=false;
   document.getElementById('wo').classList.remove('show');
-  unlockPageScroll();
   releaseWakeLock();
   stopBgAudio();
   woLockOn=false;
@@ -1710,33 +1870,8 @@ function renderWo(){
   if(!woActive)return;
   const w=getWeek(woWeekN);if(!w){closeWorkoutMode();return;}
   const ex=w.exercises[woIdx];if(!ex){closeWorkoutMode();return;}
-  const total=plannedSets(ex),done=(ex.setsDone||[]).length;
-  const{planMap,planSetsMap,planWhy}=buildPlanMaps(w);
-  const planKg=planMap[ex.name]||'';
-  const planSets=ex.sets||planSetsMap[ex.name]||setsMap[ex.name]||'';
-  // Прошлый раз по этому же упражнению, не считая текущую тренировку
-  const lastH=getHistory(ex.name).filter(x=>x.id!==w.n).pop();
-
-  let deltaHtml='';
-  if(lastH&&ex.kg){
-    const d=Math.round((parseFloat(ex.kg)-lastH.kg)*10)/10;
-    const txt=d>0?`▲ +${d} кг к прошлому`:d<0?`▼ ${d} кг к прошлому`:'= как в прошлый раз';
-    const col=d>0?'var(--green)':d<0?'var(--red)':'var(--text3)';
-    deltaHtml=`<div class="wo-delta" style="color:${col}">${txt}</div>`;
-  }
-
-  const refHtml=`<div class="wo-ref">
-    <div class="wo-ref-box${lastH?'':' empty'}">
-      <div class="wo-ref-label">Прошлый раз</div>
-      <div class="wo-ref-val">${lastH?lastH.kg+' кг':'—'}</div>
-      <div class="wo-ref-sub">${lastH?'Тр.'+lastH.n:'первый подход'}</div>
-    </div>
-    <div class="wo-ref-box${planKg?'':' empty'}">
-      <div class="wo-ref-label">По плану</div>
-      <div class="wo-ref-val">${planKg||'—'}</div>
-      <div class="wo-ref-sub">${planSets||'схема свободная'}</div>
-    </div>
-  </div>${planWhy[ex.name]?`<div class="wo-why">${planWhy[ex.name]}</div>`:''}`;
+  const total=woSetsCount(ex),done=(ex.setsDone||[]).length;
+  const planSets=ex.sets||setsMap[ex.name]||'';
 
   document.getElementById('wo-title').textContent=`Тренировка ${weekNo(w)} · ${weekDay(w)}`;
   document.getElementById('wo-sub').textContent=`Упражнение ${woIdx+1} из ${w.exercises.length}`;
@@ -1753,13 +1888,11 @@ function renderWo(){
       <div class="wo-exname">${ex.name}</div>
       <div class="wo-plan">${planSets?planSets+' · ':''}сделано ${done} из ${total}${ex.pr?' · 🏆 ПР':''}</div>
     </div>
-    ${refHtml}
     <div class="wo-kg">
       <button class="wo-kg-btn" onclick="woKg(-2.5)">−</button>
-      <input class="wo-kg-in" type="number" inputmode="decimal" step="0.5" min="0" max="500" placeholder="${planKg?planKg.replace(' кг',''):'кг'}" value="${ex.kg}" onchange="woKgInput(this.value)">
+      <input class="wo-kg-in" type="number" inputmode="decimal" step="0.5" min="0" max="500" placeholder="кг" value="${ex.kg}" onchange="woKgInput(this.value)">
       <button class="wo-kg-btn" onclick="woKg(2.5)">+</button>
     </div>
-    ${deltaHtml}
     <div class="wo-sets">${setsHtml}</div>`;
 
   document.getElementById('wo-prev').disabled=woIdx===0;
@@ -1809,7 +1942,7 @@ window.woKgInput=function(v){
 function woMarkNext(){
   const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
   if(!ex.setsDone)ex.setsDone=[];
-  const total=plannedSets(ex);
+  const total=woSetsCount(ex);
   for(let si=0;si<total;si++){
     if(!ex.setsDone.includes(si)){ex.setsDone.push(si);break;}
   }
@@ -1885,7 +2018,7 @@ function stopBgAudio(){
 function updateMediaSession(){
   if(!woLockOn||!('mediaSession' in navigator))return;
   const w=getWeek(woWeekN),ex=w&&w.exercises[woIdx];if(!ex)return;
-  const total=plannedSets(ex),done=(ex.setsDone||[]).length;
+  const total=woSetsCount(ex),done=(ex.setsDone||[]).length;
   try{
     navigator.mediaSession.metadata=new MediaMetadata({
       title:ex.name,
@@ -1971,7 +2104,7 @@ function renderStats(){
   const prCount={};
   state.weeks.forEach(w=>w.exercises.forEach(e=>{if(e.pr)prCount[e.name]=(prCount[e.name]||0)+1;}));
   const topEx=Object.entries(prCount).sort((a,b)=>b[1]-a[1]).slice(0,3);
-  const topExHtml=topEx.length?topEx.map(([n,c])=>`<div class="finish-ex-item"><span class="finish-ex-name">${n}</span><span class="finish-ex-val">${c} ПР</span></div>`).join(''):'<p style="color:var(--text3);font-size:13px">Данных пока нет</p>';
+  const topExHtml=topEx.length?topEx.map(([n,c])=>`<div class="finish-ex-item"><span class="finish-ex-name">${n}</span><span class="finish-ex-val">${c} ПР</span></div>`).join(''):'<p style="color:var(--text3);font-size:var(--t-sm)">Данных пока нет</p>';
 
   // Weekly volume for chart
   const weekVols=state.weeks.map((w,pos)=>{
@@ -2028,11 +2161,11 @@ function renderStats(){
   const pctDiff=(c,p)=>p>0?Math.round((c-p)/p*100):(c>0?100:0);
   const compareRow=(label,c,p,unit)=>{
     const diff=p>0?pctDiff(c,p):null;
-    const diffHtml=diff===null?'':`<span style="font-size:11px;color:${diff>=0?'var(--green)':'var(--red)'};margin-left:6px">${diff>=0?'▲':'▼'} ${Math.abs(diff)}%</span>`;
+    const diffHtml=diff===null?'':`<span style="font-size:var(--t-2xs);color:${diff>=0?'var(--green)':'var(--red)'};margin-left:6px">${diff>=0?'▲':'▼'} ${Math.abs(diff)}%</span>`;
     return `<div class="finish-ex-item"><span class="finish-ex-name">${label}</span><span class="finish-ex-val">${Math.round(c)}${unit}${diffHtml}</span></div>`;
   };
   const comparisonHtml=`
-    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${monthLabel(currKey)} vs ${monthLabel(prevKey)}</div>
+    <div style="font-size:var(--t-2xs);color:var(--text3);margin-bottom:8px">${monthLabel(currKey)} vs ${monthLabel(prevKey)}</div>
     ${compareRow('Объём (тоннаж)',curr.vol,prev.vol,' кг')}
     ${compareRow('Тренировок',curr.workouts,prev.workouts,'')}
     ${compareRow('Рекордов (ПР)',curr.prs,prev.prs,'')}`;
@@ -2064,9 +2197,9 @@ function renderStats(){
     <div class="stat-big">
       <h3>📅 Прогресс текущей недели</h3>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-        <div style="font-size:28px;font-weight:700;color:var(--red)">${thisWeekDone}/3</div>
+        <div style="font-size:var(--t-xl);font-weight:700;color:var(--red)">${thisWeekDone}/3</div>
         <div style="flex:1">
-          <div style="font-size:12px;color:var(--text2);margin-bottom:4px">тренировок выполнено</div>
+          <div style="font-size:var(--t-xs);color:var(--text2);margin-bottom:4px">тренировок выполнено</div>
           <div class="goal-bar"><div class="goal-bar-fill" style="width:${weekPct}%"></div></div>
         </div>
       </div>
@@ -2075,9 +2208,9 @@ function renderStats(){
           const w=state.weeks[weekStart+i];
           const color=w?(w.done?'var(--green)':'var(--red)'):'var(--border)';
           const bg=w?(w.done?'var(--green-bg)':'#ffeaea'):'var(--input-bg)';
-          return `<div style="flex:1;text-align:center;padding:8px;border-radius:8px;background:${bg};border:1px solid ${color}">
-            <div style="font-size:11px;font-weight:600;color:${color}">${label}</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:2px">${w?(w.done?'✓ '+w.date:'Ожидает'):'—'}</div>
+          return `<div style="flex:1;text-align:center;padding:8px;border-radius:var(--r1);background:${bg};border:1px solid ${color}">
+            <div style="font-size:var(--t-2xs);font-weight:600;color:${color}">${label}</div>
+            <div style="font-size:var(--t-2xs);color:var(--text3);margin-top:2px">${w?(w.done?'✓ '+w.date:'Ожидает'):'—'}</div>
           </div>`;
         }).join('')}
       </div>
@@ -2107,19 +2240,19 @@ function renderStats(){
     </div>
     <div class="stat-big">
       <h3>📆 Долгосрочная динамика</h3>
-      ${monthKeys.length?`<canvas id="statsMonthlyChart" height="160"></canvas>`:'<p style="color:var(--text3);font-size:13px;text-align:center;padding:12px">Нужно завершить хотя бы пару тренировок в разных месяцах</p>'}
+      ${monthKeys.length?`<canvas id="statsMonthlyChart" height="160"></canvas>`:'<p style="color:var(--text3);font-size:var(--t-sm);text-align:center;padding:12px">Нужно завершить хотя бы пару тренировок в разных месяцах</p>'}
       <div style="margin-top:14px">
-        <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px">Скорость прогресса</div>
+        <div style="font-size:var(--t-xs);color:var(--text2);font-weight:600;margin-bottom:6px">Скорость прогресса</div>
         <div class="finish-ex-list">${progressRateHtml}</div>
       </div>
       <div style="margin-top:14px">
-        <div style="font-size:12px;color:var(--text2);font-weight:600;margin-bottom:6px">Этот месяц vs прошлый</div>
+        <div style="font-size:var(--t-xs);color:var(--text2);font-weight:600;margin-bottom:6px">Этот месяц vs прошлый</div>
         <div class="finish-ex-list">${comparisonHtml}</div>
       </div>
     </div>
     <div class="stat-big">
       <h3>📋 История тренировок</h3>
-      ${done.length?historyHtml:'<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Нет завершённых тренировок</p>'}
+      ${done.length?historyHtml:'<p style="color:var(--text3);font-size:var(--t-sm);text-align:center;padding:20px">Нет завершённых тренировок</p>'}
     </div>`;
 
   setTimeout(()=>{
@@ -2147,7 +2280,7 @@ window.openTmplModal=function(){
   const custom=(state.customTemplates||[]).map((t,i)=>({id:'custom_'+i,label:t.label,exercises:t.exercises}));
   const el=document.getElementById('tmpl-list');
   if(!custom.length){
-    el.innerHTML=`<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">
+    el.innerHTML=`<div style="text-align:center;padding:24px;color:var(--text3);font-size:var(--t-sm)">
       Нет сохранённых шаблонов.<br><br>
       Создай тренировку вручную, добавь упражнения<br>и нажми ⭐ Сохранить как шаблон.
     </div>`;
@@ -2158,7 +2291,7 @@ window.openTmplModal=function(){
           <div class="tmpl-item-title">${t.label}</div>
           <div class="tmpl-item-exs">${t.exercises.slice(0,4).join(', ')}${t.exercises.length>4?'...':''}</div>
         </div>
-        <button onclick="deleteTmpl(${t.id.replace('custom_','')})" style="background:none;border:none;font-size:18px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:4px">🗑️</button>
+        <button onclick="deleteTmpl(${t.id.replace('custom_','')})" style="background:none;border:none;font-size:var(--t-lg);color:var(--text3);cursor:pointer;flex-shrink:0;padding:4px">🗑️</button>
       </div>`).join('');
   }
   document.getElementById('tmpl-modal-bg').classList.add('show');
@@ -2195,7 +2328,7 @@ window.saveAsTemplate=function(wn){
 };
 function renderChart(){
   const names=getAllExNames();const sel=document.getElementById('chart-sel');
-  if(!names.length){if(sel)sel.innerHTML='<p style="color:var(--text3);font-size:13px">Нет данных. Введи веса в дневнике.</p>';return;}
+  if(!names.length){if(sel)sel.innerHTML='<p style="color:var(--text3);font-size:var(--t-sm)">Нет данных. Введи веса в дневнике.</p>';return;}
   if(!names.includes(chartEx))chartEx=names[0];
   if(sel)sel.innerHTML=names.map(n=>`<button class="chart-sel-btn${n===chartEx?' active':''}" onclick="selectChartEx('${n.replace(/'/g,"\\'")}')">${n}</button>`).join('');
   const hist=getHistory(chartEx);const ctx=document.getElementById('myChart')?.getContext('2d');if(!ctx)return;
@@ -2292,7 +2425,7 @@ window.addCardio=function(){
 function renderCardio(){
   if(!state.cardioLog||!state.cardioLog.length){
     const ch=document.getElementById('cardio-history');
-    if(ch)ch.innerHTML='<p style="color:var(--text3);font-size:13px;text-align:center;padding:20px">Ещё нет записей.<br>Добавь первое кардио выше.</p>';
+    if(ch)ch.innerHTML='<p style="color:var(--text3);font-size:var(--t-sm);text-align:center;padding:20px">Ещё нет записей.<br>Добавь первое кардио выше.</p>';
     const cs=document.getElementById('cardio-stats');
     if(cs)cs.innerHTML='';
     return;
@@ -2343,7 +2476,7 @@ function renderCardio(){
           <div class="cardio-history-stat">${e.duration} мин${e.dist?' · '+e.dist+' км':''}</div>
           ${e.pulse?`<div class="cardio-history-stat">♥ ${e.pulse} BPM</div>`:''}
           ${e.kcal?`<div class="cardio-history-kcal">${e.kcal} ккал</div>`:''}
-          <button onclick="deleteCardio(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;margin-top:4px">🗑️</button>
+          <button onclick="deleteCardio(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:var(--t-sm);margin-top:4px">🗑️</button>
         </div>
       </div>`).join('');
   }
@@ -2441,20 +2574,20 @@ function renderWeight(){
       const diffColor=diff>0?'var(--red)':diff<0?'var(--green)':'var(--text3)';
       return `<div class="finish-ex-item" style="margin-bottom:6px">
         <div>
-          <div style="font-size:13px;font-weight:500;color:var(--text)">${e.kg} кг</div>
-          <div style="font-size:11px;color:var(--text3)">${new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</div>
+          <div style="font-size:var(--t-sm);font-weight:500;color:var(--text)">${e.kg} кг</div>
+          <div style="font-size:var(--t-2xs);color:var(--text3)">${new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;color:${diffColor}">${diffStr}</span>
-          <button onclick="deleteWeight(${log.length-1-i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px">✕</button>
+          <span style="font-size:var(--t-xs);color:${diffColor}">${diffStr}</span>
+          <button onclick="deleteWeight(${log.length-1-i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:var(--t-sm)">✕</button>
         </div>
       </div>`;
     }).join('');
 
     if(lost>0){
-      wh.innerHTML=`<div style="background:var(--green-bg);border-radius:10px;padding:10px 12px;margin-bottom:12px;text-align:center">
-        <div style="font-size:13px;color:var(--green);font-weight:600">Сброшено ${lost} кг 💪</div>
-        <div style="font-size:11px;color:var(--green);margin-top:2px">с ${first} кг до ${last} кг</div>
+      wh.innerHTML=`<div style="background:var(--green-bg);border-radius:var(--r2);padding:10px 12px;margin-bottom:12px;text-align:center">
+        <div style="font-size:var(--t-sm);color:var(--green);font-weight:600">Сброшено ${lost} кг 💪</div>
+        <div style="font-size:var(--t-2xs);color:var(--green);margin-top:2px">с ${first} кг до ${last} кг</div>
       </div>`+wh.innerHTML;
     }
   }
