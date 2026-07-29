@@ -5,6 +5,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 
 /* ============================================================
@@ -80,10 +81,15 @@ body.dark{
 *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 body{font-family:'Nunito',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:120px;
+background:var(--bg);color:var(--text);min-height:100vh;
 font-size:var(--t-sm);line-height:1.45;
 transition:background var(--dur),color var(--dur);
--webkit-font-smoothing:antialiased}
+-webkit-font-smoothing:antialiased;
+padding-bottom:calc(var(--s5) + env(safe-area-inset-bottom))}
+/* Запасной резерв под таймер на случай, если измерение в JS не сработало.
+   Точное значение выставляет reserveForTimer(). Порядок важен: .timer-open после .has-timer */
+body.has-timer{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+body.timer-open{padding-bottom:calc(100px + env(safe-area-inset-bottom))}
 
 /* Видимый фокус с клавиатуры — палец его не увидит, клавиатура увидит */
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:var(--r1)}
@@ -283,25 +289,53 @@ transition:transform var(--dur) var(--ease)}
 .saved.show{display:inline}
 
 /* ============================================================
-   ТАЙМЕР
+   ТАЙМЕР ОТДЫХА
+   Два состояния одного элемента:
+     свёрнуто — пилюля в правом нижнем углу, отсчёт не идёт
+     .open    — полоса во всю ширину, отсчёт идёт или его настраивают
+   Виден только на «Дневнике»: на графике веса отдыхать не от чего.
    ============================================================ */
-.timer-fixed{position:fixed;bottom:0;left:0;right:0;background:var(--timer-fixed);
+.timer-fixed{position:fixed;z-index:50;display:flex;align-items:center;
+background:var(--timer-fixed);
+transition:transform var(--dur) var(--ease),border-radius var(--dur) var(--ease)}
+/* уезжает целиком, а не на свою высоту — иначе пилюля выглядывает над клавиатурой */
+.keyboard-open .timer-fixed{transform:translateY(calc(100% + var(--s5) + env(safe-area-inset-bottom)))}
+
+/* — свёрнуто */
+.timer-fixed{right:var(--s3);bottom:calc(var(--s3) + env(safe-area-inset-bottom));left:auto;
+gap:var(--s1);padding:var(--s1);border-radius:var(--r-pill);
+box-shadow:0 4px 18px rgba(8,8,20,.32)}
+.timer-face{display:flex;align-items:center;gap:6px;height:var(--tap);
+padding:0 var(--s1) 0 var(--s3);border:none;background:none;border-radius:var(--r-pill);
+color:#fff;font-family:inherit;cursor:pointer}
+.timer-ico{font-size:var(--t-sm);opacity:.7;line-height:1}
+.timer-presets{display:none}
+.timer-fixed .timer-display{font-size:var(--t-md);font-weight:800;color:#fff;
+font-variant-numeric:tabular-nums;line-height:1}
+.timer-fixed .timer-display.running{color:#4ade80}
+.timer-fixed .timer-display.finished{color:#ff7a90}
+/* текст «Старт» скрыт кеглем, а не display — экранный диктор его читает */
+.timer-fixed .timer-start{width:var(--tap);height:var(--tap);padding:0;border-radius:50%;
+border:none;background:var(--accent);color:var(--accent-ink);font-size:0;flex-shrink:0;
+cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center}
+.timer-fixed .timer-start::after{content:"▶";font-size:var(--t-sm);margin-left:2px}
+
+/* — развёрнуто */
+.timer-fixed.open{left:0;right:0;bottom:0;gap:var(--s2);border-radius:0;
 padding:var(--s2) var(--s3);padding-bottom:calc(var(--s2) + env(safe-area-inset-bottom));
-display:flex;align-items:center;gap:var(--s2);z-index:50;border-top:1px solid rgba(255,255,255,.1);
-transition:transform var(--dur) var(--ease)}
-.keyboard-open .timer-fixed{transform:translateY(100%)}
-.timer-display{font-size:var(--t-xl);font-weight:800;color:#fff;font-variant-numeric:tabular-nums;
-min-width:74px;line-height:1}
-.timer-display.running{color:#4ade80}
-.timer-display.finished{color:#ff7a90}
-.timer-presets{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+border-top:1px solid rgba(255,255,255,.1);box-shadow:none}
+.timer-fixed.open .timer-face{height:auto;padding:0}
+.timer-fixed.open .timer-ico{display:none}
+.timer-fixed.open .timer-display{font-size:var(--t-xl);min-width:74px}
+.timer-fixed.open .timer-presets{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.timer-fixed.open .timer-start{width:auto;height:var(--tap-sm);padding:0 var(--s4);
+border-radius:var(--r2);font-size:var(--t-sm);font-weight:700}
+.timer-fixed.open .timer-start::after{content:none}
+
 .tp-btn{padding:var(--s2) var(--s3);min-height:var(--tap-sm);border-radius:var(--r1);
 border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#fff;
 font-size:var(--t-xs);font-weight:600;cursor:pointer;font-family:inherit;font-variant-numeric:tabular-nums}
 .tp-btn.sel{background:rgba(255,255,255,.24);border-color:rgba(255,255,255,.5)}
-.timer-start{padding:var(--s2) var(--s4);min-height:var(--tap-sm);border-radius:var(--r2);border:none;
-background:var(--accent);color:var(--accent-ink);font-size:var(--t-sm);font-weight:700;cursor:pointer;
-font-family:inherit;flex-shrink:0}
 
 /* ============================================================
    ГРАФИКИ И РЕКОРДЫ
@@ -646,7 +680,107 @@ border-bottom:1px solid var(--border);display:flex;gap:var(--s2);align-items:cen
    <button class="wo-nav">›</button></div>
  </div>
 
+
+ <h2>Таймер отдыха</h2>
+ <p class="note">Свёрнут — пилюля в правом нижнем углу этой страницы, попробуй. Тап по ▶ запускает сразу. Тап по времени разворачивает полосу с пресетами и сворачивает обратно; если ничего не нажать, свернётся сама через шесть секунд. Отсчёт кончился — пик, три секунды на «0:00», потом снова пилюля.</p>
+ <p class="note">В приложении она видна только на «Дневнике». На «Прогрессе», «Кардио», «Весе», «Итогах» и «Ещё» её нет: отдыхать там не от чего. В режиме тренировки тоже нет — там свой таймер внизу экрана.</p>
+ <div class="u-row" style="flex-wrap:wrap">
+  <button class="btn" onclick="startTimer(10)">Запустить на 10 с</button>
+  <button class="btn btn-outline" onclick="stopTimer()">Сбросить</button>
+ </div>
+
  <h2>Что осталось за кадром</h2>
  <p class="note">Стайлгайд — временный файл, в репозиторий его класть не обязательно. Он собран из настоящего блока &lt;style&gt; в index.html, так что расходиться с приложением не будет, пока ты его пересобираешь.</p>
 </div>
+<div class="timer-fixed" id="timer-fixed" style="display:flex">
+  <button class="timer-face" id="tface" onclick="timerFace()" aria-label="Настроить отдых">
+    <span class="timer-ico" aria-hidden="true">⏱</span>
+    <span id="tdisplay" class="timer-display">1:30</span>
+  </button>
+  <div class="timer-presets">
+    <button class="tp-btn" id="tp60" onclick="setPreset(60)">60с</button>
+    <button class="tp-btn" id="tp75" onclick="setPreset(75)">75с</button>
+    <button class="tp-btn sel" id="tp90" onclick="setPreset(90)">90с</button>
+    <button class="tp-btn" id="tp180" onclick="setPreset(180)">3м</button>
+  </div>
+  <button class="timer-start" id="tbtn" onclick="timerToggle()">Старт</button>
+</div>
+<script>
+let timer={iv:null,rem:90,preset:90,running:false,endAt:0};
+let activePage='diary',tCollapse=null,currentUser={};
+// ===== ВИД ТАЙМЕРА =====
+// В покое таймер свёрнут в пилюлю, во время отсчёта разворачивается в полосу.
+// Виден только на «Дневнике» и только вне режима тренировки — там свой таймер.
+function timerBox(){return document.getElementById('timer-fixed');}
+function setTimerOpen(on){
+  const b=timerBox();if(!b)return;
+  b.classList.toggle('open',!!on);
+  document.body.classList.toggle('timer-open',!!on);
+  clearTimeout(tCollapse);tCollapse=null;
+  // развернули руками и не запустили — свернётся само, чтобы не занимать экран
+  if(on&&!timer.running)tCollapse=setTimeout(()=>setTimerOpen(false),6000);
+  reserveForTimer();
+}
+// Пресеты переносятся на вторую строку на узких экранах, а пилюля и полоса
+// сильно разной высоты. Поэтому резерв не задаётся числом, а измеряется:
+// расстояние от верха таймера до низа экрана уже включает безопасную зону.
+function reserveForTimer(){
+  const b=timerBox();
+  if(!b||b.style.display==='none'){document.body.style.paddingBottom='';return;}
+  requestAnimationFrame(()=>{
+    if(b.style.display==='none')return;
+    const gap=window.innerHeight-b.getBoundingClientRect().top;
+    if(gap>0&&gap<window.innerHeight/2)document.body.style.paddingBottom=(gap+12)+'px';
+  });
+}
+// Тап по времени разворачивает полосу с пресетами. Во время отсчёта она и так открыта.
+window.timerFace=function(){
+  if(timer.running)return;
+  setTimerOpen(!timerBox().classList.contains('open'));
+};
+// Единственная точка, которая решает, показывать таймер вообще
+function syncTimer(){
+  const woOpen=document.getElementById('wo')?.classList.contains('show');
+  const on=!!currentUser&&activePage==='diary'&&!woOpen;
+  const b=timerBox();if(b)b.style.display=on?'flex':'none';
+  document.body.classList.toggle('has-timer',on);
+  setTimerOpen(on&&timer.running);
+  reserveForTimer();
+}
+window.syncTimer=syncTimer;
+
+window.setPreset=function(s){timer.preset=s;if(!timer.running){timer.rem=s;renderTimerUI();setTimerOpen(true);}[60,75,90,180].forEach(t=>{const b=document.getElementById('tp'+t);if(b)b.className='tp-btn'+(t===s?' sel':'');});};
+window.timerToggle=function(){if(timer.running)stopTimer();else startTimer(timer.preset);};
+// Остаток считается от метки окончания, поэтому фоновая заморозка setInterval не сбивает счёт
+function startTimer(s){
+  if(timer.iv)clearInterval(timer.iv);
+  timer.preset=s;timer.rem=s;timer.running=true;
+  timer.endAt=Date.now()+s*1000;
+  setTimerOpen(true);
+  renderTimerUI();
+  timer.iv=setInterval(tickTimer,250);
+}
+function tickTimer(){
+  if(!timer.running)return;
+  const was=timer.rem;
+  timer.rem=Math.max(0,Math.ceil((timer.endAt-Date.now())/1000));
+  if(timer.rem<=0){
+    timer.running=false;
+    if(timer.iv)clearInterval(timer.iv);
+    timer.iv=null;
+    if(was>0)beep();
+    // подержать «0:00» на виду, потом свернуться и сбросить на пресет
+    clearTimeout(tCollapse);
+    tCollapse=setTimeout(stopTimer,3000);
+  }
+  renderTimerUI();
+}
+function stopTimer(){if(timer.iv)clearInterval(timer.iv);timer.iv=null;timer.running=false;timer.rem=timer.preset;timer.endAt=0;setTimerOpen(false);renderTimerUI();}
+// Вернулись в приложение — сразу пересчитать, не дожидаясь тика
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')tickTimer();});
+function beep(){try{const a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=880;g.gain.setValueAtTime(0.3,a.currentTime);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.6);o.start();o.stop(a.currentTime+0.6);}catch(e){}}
+function renderTimerUI(){const m=Math.floor(timer.rem/60),s=String(timer.rem%60).padStart(2,'0');const el=document.getElementById('tdisplay');if(el){el.textContent=`${m}:${s}`;el.className='timer-display'+(timer.running?' running':(!timer.rem?' finished':''));}const b=document.getElementById('tbtn');if(b)b.textContent=timer.running?'Стоп':'Старт';const wt=document.getElementById('wo-time');if(wt){wt.textContent=`${m}:${s}`;wt.className='wo-time'+(timer.running?' running':(!timer.rem?' finished':''));}const wb=document.getElementById('wo-tbtn');if(wb)wb.textContent=timer.running?'Стоп':'Старт';}
+window.startTimer=startTimer;window.stopTimer=stopTimer;
+document.body.classList.add('has-timer');setTimerOpen(false);
+</script>
 </body></html>
