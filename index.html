@@ -984,6 +984,47 @@ function e1rm(kg,reps){
 }
 function exE1rm(ex){return e1rm(ex.kg,repsOf(ex));}
 
+// ===== ПРОГРЕССИЯ ВСПОМОГАТЕЛЬНЫХ УПРАЖНЕНИЙ =====
+// Правило одно на любое упражнение, даже добавленное завтра:
+// закрыл все подходы плана — в следующий раз вес выше; не закрыл — вес тот же.
+// Настоящая двойная прогрессия требует фактических повторов в каждом подходе,
+// а дневник хранит только отметки. Поэтому граница диапазона — план ex.sets.
+function progStep(kg){return kg<15?1:kg<50?2.5:5;}
+function planReps(ex){
+  const m=String(ex.sets||setsMap[canonName(ex.name)]||'').match(/^(\d+)\s*[x×]\s*(\d+)$/i);
+  return m?{reps:parseInt(m[1]),sets:parseInt(m[2])}:null;
+}
+// Последний раз, когда упражнение реально делалось
+function lastDoneEx(name,uptoPos){
+  const target=normName(canonName(name));
+  const end=Math.min(uptoPos===undefined?state.weeks.length:uptoPos,state.weeks.length);
+  for(let i=end-1;i>=0;i--){
+    const w=state.weeks[i];
+    if(!w.done)continue;
+    const ex=w.exercises.find(e=>normName(canonName(e.name))===target);
+    if(ex&&((ex.setsDone||[]).length||parseFloat(ex.kg)>0))return ex;
+  }
+  return null;
+}
+function getNextPlan(name,uptoPos){
+  const prev=lastDoneEx(name,uptoPos);
+  if(!prev)return null;
+  const p=planReps(prev);
+  if(!p)return null;
+  const kg=parseFloat(prev.kg)||0;
+  const closed=(prev.setsDone||[]).length>=p.sets;
+  // Свой вес (брусья, подтягивания) — растём повторами, а не килограммами
+  if(kg<=0){
+    return closed
+      ?{kg:'',sets:`${p.reps+1}×${p.sets}`,hint:`закрыто — теперь ${p.reps+1} повторов`}
+      :{kg:'',sets:`${p.reps}×${p.sets}`,hint:`добей ${p.sets}×${p.reps}`};
+  }
+  const next=Math.round((kg+progStep(kg))*10)/10;
+  return closed
+    ?{kg:next,sets:`${p.reps}×${p.sets}`,hint:`прошлый раз ${kg} закрыт — плюс ${progStep(kg)}`}
+    :{kg,sets:`${p.reps}×${p.sets}`,hint:`закрой ${p.sets}×${p.reps} — дальше ${next} кг`};
+}
+
 // ФАЗА 2 — волновая периодизация.
 // Порядок недель: лёгкая → тяжёлая → средняя → тяжёлая, затем круг заново.
 const PHASE2_START=16; // тренировка, с которой начинается Фаза 2 (сразу после восстановительной недели 13-15)
@@ -1654,6 +1695,19 @@ function renderDiary(){
     });
   }
 
+  // Все прочие упражнения — по своей прогрессии
+  const progHints={};
+  if(!isRecovery){
+    w.exercises.forEach(ex=>{
+      if(planMap[ex.name])return;               // базовые уже расписаны волной
+      const np=getNextPlan(ex.name,weekPos(w));
+      if(!np)return;
+      if(np.kg!=='')planMap[ex.name]=np.kg+' кг';
+      if(np.sets)planSetsMap[ex.name]=np.sets;
+      progHints[ex.name]=np.hint;
+    });
+  }
+
   const exHtml=w.exercises.map((ex,i)=>{
     const pr=checkPR(w.n,i);if(pr!==ex.pr){ex.pr=pr;}
     const totalSets=Math.max(5,(ex.setsDone||[]).length+1,(ex.extraSets||0)+5);
@@ -1699,6 +1753,7 @@ function renderDiary(){
             <button class="num-btn" onclick="changeKg(${w.n},${i},2.5)">+</button>
           </div>
           ${planKg?`<div class="plan-hint">план: ${planKg}</div>`:''}${exE1rm(ex)?`<span class="e1rm">≈1ПМ ${exE1rm(ex)} кг</span>`:''}
+          ${!isDone&&progHints[ex.name]?`<div style="font-size:var(--t-2xs);color:var(--text3);margin-top:4px">${progHints[ex.name]}</div>`:''}
         </div>
         <div class="field">
           <label>Повторы</label>
