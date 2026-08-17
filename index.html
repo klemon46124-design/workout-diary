@@ -671,10 +671,7 @@ color:var(--accent-ink);font-size:var(--t-sm);font-weight:700;cursor:pointer;fon
         </div>
         <button class="btn btn-red" style="width:100%" onclick="addWeight()">Записать вес</button>
         <div class="u-hint" id="weight-hint" style="text-align:center"></div>
-        <div class="goal-bar-wrap" style="margin-bottom:12px">
-          <div class="goal-bar-label"><span>Цель: 90 кг</span><span id="weight-progress-label"></span></div>
-          <div class="goal-bar"><div class="goal-bar-fill" id="weight-progress-bar" style="width:0%"></div></div>
-        </div>
+        <div class="u-hint" id="weight-progress-label" style="text-align:center;margin-bottom:12px"></div>
         <canvas id="weightChart" height="200"></canvas>
       </div>
       <div class="chart-card">
@@ -840,38 +837,38 @@ function weekDay(w){
 // Предустановленные подходы для каждого упражнения
 const setsMap={
   'Присед со штангой':'5×5','Становая тяга':'5×5','Жим лёжа':'5×5',
-  'Тяга штанги в наклоне':'12×4','Разводка гантелей стоя':'12×3',
-  'Подъём на бицепс':'12×3','Планка':'3×60с',
-  'Тяга верхнего блока':'12×4','Жим гантелей на наклонной скамье':'12×3',
-  'Обратная разводка в блоке':'12×3','Сгибания ног в тренажёре':'12×3',
-  'Разгибания на трицепс':'12×3','Подъём ног лёжа':'12×3',
-  'Румынская тяга':'12×4','Разгибания ног':'12×2',
-  'Отжимания на брусьях':'12×4','Разводка гантелей лёжа':'12×3',
-  'Тяга в хаммере одной рукой':'12×3','Тяга к подбородку':'12×3',
+  'Тяга штанги в наклоне':'15×4','Разводка гантелей стоя':'15×3',
+  'Подъём на бицепс':'15×3','Планка':'3×60с',
+  'Тяга верхнего блока':'15×4','Жим гантелей на наклонной скамье':'15×3',
+  'Обратная разводка в блоке':'15×3','Сгибания ног в тренажёре':'15×3',
+  'Разгибания на трицепс':'15×3','Подъём ног лёжа':'15×3',
+  'Румынская тяга':'15×4','Разгибания ног':'15×2',
+  'Отжимания на брусьях':'15×4','Разводка гантелей лёжа':'15×3',
+  'Тяга в хаммере одной рукой':'15×3','Тяга к подбородку':'15×3',
   'Фермерская прогулка':'3×40м',
-  'Жим ногами':'12×3','Ягодичный мостик':'12×3','Молотки на бицепс':'12×3',
+  'Жим ногами':'15×3','Ягодичный мостик':'15×3','Молотки на бицепс':'15×3',
   // Аналоги A
   'Присед в Смите':'5×5','Присед с гантелями':'5×5','Фронтальный присед':'5×5',
   'Жим гантелей лёжа':'5×5','Жим в Смите':'5×5','Отжимания с весом':'5×5',
-  'Тяга гантелей в наклоне':'12×4','Тяга в хаммере':'12×4','Тяга Т-грифа':'12×4',
-  'Подъём гантелей через стороны':'12×3','Разводка на блоке стоя':'12×3',
-  'Подъём гантелей на бицепс':'12×3','Молотки':'12×3','Подъём на блоке':'12×3',
+  'Тяга гантелей в наклоне':'15×4','Тяга в хаммере':'15×4','Тяга Т-грифа':'15×4',
+  'Подъём гантелей через стороны':'15×3','Разводка на блоке стоя':'15×3',
+  'Подъём гантелей на бицепс':'15×3','Молотки':'15×3','Подъём на блоке':'15×3',
   'Планка на локтях':'3×60с','Боковая планка':'3×60с','Планка с подъёмом ног':'3×60с',
   // Аналоги B
   'Становая в Смите':'5×5','Становая с гантелями':'5×5','Трэп-гриф становая':'5×5',
-  'Подтягивания':'12×4','Тяга гантелей за голову':'12×4',
-  'Жим штанги на наклонной':'12×3','Жим в Смите наклонной':'12×3','Отжимания с ногами на возвышении':'12×3',
-  'Разводка гантелей в наклоне':'12×3','Обратные разведения на тренажёре':'12×3',
-  'Румынская тяга с гантелями на одной ноге':'12×3','Мёртвая тяга с гантелями':'12×3',
-  'Французский жим с гантелями':'12×3','Разгибания с гантелью':'12×3',
-  'Скручивания':'12×3','Велосипед':'12×3','Подъём ног в висе':'12×3',
+  'Подтягивания':'15×4','Тяга гантелей за голову':'15×4',
+  'Жим штанги на наклонной':'15×3','Жим в Смите наклонной':'15×3','Отжимания с ногами на возвышении':'15×3',
+  'Разводка гантелей в наклоне':'15×3','Обратные разведения на тренажёре':'15×3',
+  'Румынская тяга с гантелями на одной ноге':'15×3','Мёртвая тяга с гантелями':'15×3',
+  'Французский жим с гантелями':'15×3','Разгибания с гантелью':'15×3',
+  'Скручивания':'15×3','Велосипед':'15×3','Подъём ног в висе':'15×3',
   // Аналоги C
-  'Румынская с гантелями':'12×4','Становая на прямых ногах с гантелями':'12×4',
-  'Приседания с паузой':'12×2','Приседания с гантелями':'12×2',
-  'Жим гантелей узким хватом':'12×4','Французский жим':'12×4',
-  'Кроссовер на блоке':'12×3','Разводка гантелей на наклонной':'12×3',
-  'Тяга гантели одной рукой':'12×3','Тяга нижнего блока одной рукой':'12×3',
-  'Тяга гантелей к подбородку':'12×3',
+  'Румынская с гантелями':'15×4','Становая на прямых ногах с гантелями':'15×4',
+  'Приседания с паузой':'15×2','Приседания с гантелями':'15×2',
+  'Жим гантелей узким хватом':'15×4','Французский жим':'15×4',
+  'Кроссовер на блоке':'15×3','Разводка гантелей на наклонной':'15×3',
+  'Тяга гантели одной рукой':'15×3','Тяга нижнего блока одной рукой':'15×3',
+  'Тяга гантелей к подбородку':'15×3',
   'Удержание гантелей стоя':'3×40м','Прогулка с гантелями':'3×40м',
 };
 
@@ -985,36 +982,100 @@ function e1rm(kg,reps){
 }
 function exE1rm(ex){return e1rm(ex.kg,repsOf(ex));}
 
-// ФАЗА 2 — волновая периодизация (тяжёлая → средняя → лёгкая неделя, по кругу)
+// ФАЗА 2 — волновая периодизация.
+// Порядок недель: лёгкая → тяжёлая → средняя → тяжёлая, затем круг заново.
 const PHASE2_START=16; // тренировка, с которой начинается Фаза 2 (сразу после восстановительной недели 13-15)
 const PHASE2_LIFTS=['Присед со штангой','Становая тяга','Жим лёжа'];
-const WAVE_CYCLE=[
-  {label:'Тяжёлая',pct:0.92,reps:3,setsCount:5},
-  {label:'Средняя',pct:0.82,reps:5,setsCount:5},
-  {label:'Лёгкая',pct:0.72,reps:8,setsCount:3},
-];
-// Прирост базового веса (тренировочного максимума) за каждый полный круг волны (3 недели)
-const WAVE_CYCLE_INCREMENT=2.5;
 
-function getPhase2Base(name){
-  // Тренировочный максимум = лучший вес, показанный ДО начала Фазы 2
-  let best=0;
+// Профиль отклика. Медленным волокнам — повторы, объём и короткий отдых;
+// быстрым — интенсивность, мало повторов, длинный отдых.
+// pct — доля от ОЦЕНКИ 1ПМ, не от рабочего веса. См. getPhase2Base.
+const FIBER_PROFILES={
+  slow:{label:'Медленные волокна',rest:75,wave:[
+    {label:'Объёмная',pct:0.70,reps:12,setsCount:3},
+    {label:'Тяжёлая', pct:0.85,reps:5, setsCount:5,heavy:true},
+    {label:'Средняя', pct:0.78,reps:8, setsCount:4},
+    {label:'Тяжёлая', pct:0.85,reps:5, setsCount:5,heavy:true},
+  ]},
+  mixed:{label:'Смешанный',rest:90,wave:[
+    {label:'Лёгкая', pct:0.76,reps:8,setsCount:3},
+    {label:'Тяжёлая',pct:0.92,reps:3,setsCount:5,heavy:true},
+    {label:'Средняя',pct:0.85,reps:5,setsCount:5},
+    {label:'Тяжёлая',pct:0.92,reps:3,setsCount:5,heavy:true},
+  ]},
+  fast:{label:'Быстрые волокна',rest:180,wave:[
+    {label:'Лёгкая', pct:0.80,reps:6,setsCount:3},
+    {label:'Тяжёлая',pct:0.95,reps:2,setsCount:6,heavy:true},
+    {label:'Средняя',pct:0.88,reps:4,setsCount:5},
+    {label:'Тяжёлая',pct:0.95,reps:2,setsCount:6,heavy:true},
+  ]},
+};
+function fiberProfile(){return FIBER_PROFILES[state.fiberProfile]||FIBER_PROFILES.slow;}
+
+// Прирост базы за круг, в котором обе тяжёлые недели закрыты полностью
+const WAVE_STEP={'Присед со штангой':7.5,'Становая тяга':7.5,'Жим лёжа':5};
+const WAVE_STEP_DEFAULT=5;
+const WAVE_MISS_LIMIT=2;   // столько проваленных кругов подряд до сброса
+const WAVE_DELOAD=0.95;    // насколько срезать базу при сбросе
+
+function getPhase2Base(name,uptoPos){
+  // База = оценка 1ПМ. Раньше здесь возвращался рабочий вес, и 92% от пятёрки
+  // давали тройку легче рабочего веса — «тяжёлая» неделя выходила легче лёгкой.
+  const target=normName(canonName(name));
+  const startPos=PHASE2_START-1;
+  const wave=fiberProfile().wave;
+  if(uptoPos===undefined)uptoPos=state.weeks.length;
+
+  // Стартовая база — лучшая оценка 1ПМ до Фазы 2
+  let base=0;
   state.weeks.forEach((w,pos)=>{
-    if(pos>=PHASE2_START-1)return; // позиция, а не идентификатор
-    const ex=w.exercises.find(e=>e.name===name);
-    if(ex&&parseFloat(ex.kg)>best)best=parseFloat(ex.kg);
+    if(pos>=startPos)return; // позиция, а не идентификатор
+    w.exercises.forEach(ex=>{
+      if(normName(canonName(ex.name))!==target)return;
+      const orm=exE1rm(ex);
+      if(orm>base)base=orm;
+    });
   });
-  return best;
+  if(base<=0)return 0;
+
+  // Дальше база живёт по факту: круг закрыт — растёт, провален — стоит
+  const step=WAVE_STEP[canonName(name)]||WAVE_STEP_DEFAULT;
+  let cycleOk=true,cycleTouched=false,misses=0;
+  const end=Math.min(uptoPos,state.weeks.length);
+  for(let pos=startPos;pos<end;pos++){
+    const info=getWaveInfo(pos+1);
+    if(!info)continue;
+    const w=state.weeks[pos];
+    if(info.stage.heavy&&w.done){
+      const ex=w.exercises.find(e=>normName(canonName(e.name))===target);
+      if(ex){
+        cycleTouched=true;
+        const planKg=Math.round(base*info.stage.pct/2.5)*2.5;
+        const kgOk=(parseFloat(ex.kg)||0)>=planKg;
+        const setsOk=(ex.setsDone||[]).length>=info.stage.setsCount;
+        if(!kgOk||!setsOk)cycleOk=false;
+      }
+    }
+    // Круг закончился на последней тренировке последней стадии
+    if(info.stageIdx===wave.length-1&&(pos+1)%3===0){
+      if(cycleTouched){
+        if(cycleOk){base+=step;misses=0;}
+        else if(++misses>=WAVE_MISS_LIMIT){base=Math.round(base*WAVE_DELOAD/2.5)*2.5;misses=0;}
+      }
+      cycleOk=true;cycleTouched=false;
+    }
+  }
+  return base;
 }
 
 function getWaveInfo(wn){
+  const wave=fiberProfile().wave;
   const weekGroup=Math.floor((wn-1)/3);
   const startGroup=Math.floor((PHASE2_START-1)/3);
   const offset=weekGroup-startGroup;
   if(offset<0)return null;
-  const stage=WAVE_CYCLE[offset%3];
-  const cycleNumber=Math.floor(offset/3);
-  return{stage,cycleNumber};
+  const stageIdx=offset%wave.length;
+  return{stage:wave[stageIdx],cycleNumber:Math.floor(offset/wave.length),stageIdx};
 }
 
 let state={weeks:[],active:1,dark:false};
@@ -1060,7 +1121,7 @@ function migrateIds(){
     state.active=state.weeks.length?state.weeks[state.weeks.length-1].n:1;
     changed=true;
   }
-  if(!(state.schema>=2)){state.schema=2;changed=true;}
+  if(state.schema!==2){state.schema=2;changed=true;}
   return changed;
 }
 
@@ -1149,39 +1210,19 @@ function normalizeWeights(){
   return changed;
 }
 
-// Разовая миграция (схема 3): подсобка переведена с 15 повторов на 12.
-// Повторы нигде не хранились — читались из setsMap на лету, поэтому смена
-// значения переписала бы и закрытые тренировки: тоннаж упал бы на 20%,
-// оценка 1ПМ на 6,7%. Здесь прошлое фиксируется — прежнее значение
-// прописывается в само упражнение, и дальше setsMap его уже не касается.
-function migrateReps12(){
-  if(state.schema>=3)return false;
-  // Прежнее значение восстанавливается из нынешнего: заменено было только 15 на 12,
-  // и на момент миграции ни одна запись 12 повторов иметь не могла.
-  const legacy=n=>{const v=setsMap[n];return v?v.replace(/^12×/,'15×'):'15×3';};
-  const activePos=state.weeks.findIndex(w=>w.n===state.active);
-  const cut=activePos<0?state.weeks.length:activePos;
-  const freeze=w=>w.exercises.forEach(ex=>{if(!ex.sets)ex.sets=legacy(ex.name);});
-  // Текущая и будущие получают новые 12. Завершённая тренировка замирает
-  // даже если стоит после активной — закрывать их можно не по порядку.
-  state.weeks.forEach((w,pos)=>{if(pos<cut||w.done)freeze(w);});
-  (state.trash||[]).forEach(freeze);
-  state.schema=3;
-  return true;
-}
-
 function applyLoadedState(){
   if(state.dark)document.body.classList.add('dark');
   const idsChanged=migrateIds();
-  const repsChanged=migrateReps12();
   migrateTemplates();
   const aliasChanged=applyAliases();
   const kgChanged=normalizeWeights();
   // Разовая починка: старые pr считались по номеру строки, а не по упражнению
   const prChanged=recalcAllPRs();
   const trashChanged=purgeTrash();
-  if(idsChanged||repsChanged||aliasChanged||kgChanged||prChanged||trashChanged)scheduleSave();
+  if(idsChanged||aliasChanged||kgChanged||prChanged||trashChanged)scheduleSave();
   refreshExDatalist();
+  // Отдых по умолчанию — из профиля волокон
+  if(!timer.running)setPreset(fiberProfile().rest);
   updateDarkBtn();updateSummary();renderTabs();renderDiary();
 }
 
@@ -1544,13 +1585,14 @@ function renderDiary(){
   // Фаза 2 — волновая периодизация для базовых упражнений
   const waveInfo=getWaveInfo(wNo);
   const planSetsMap={};
+  let waveBase=0;
   if(waveInfo){
-    const{stage,cycleNumber}=waveInfo;
+    const{stage}=waveInfo;
+    waveBase=getPhase2Base('Присед со штангой',weekPos(w));
     PHASE2_LIFTS.forEach(name=>{
-      const base=getPhase2Base(name);
+      const base=getPhase2Base(name,weekPos(w));
       if(base>0){
-        const effectiveBase=base+cycleNumber*WAVE_CYCLE_INCREMENT;
-        const target=Math.round(effectiveBase*stage.pct/2.5)*2.5;
+        const target=Math.round(base*stage.pct/2.5)*2.5;
         planMap[name]=target+' кг';
         planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
       }
@@ -1564,7 +1606,7 @@ function renderDiary(){
     const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.id!==w.n).pop();
     const planKg=planMap[ex.name]||'';
-    const planSets=planSetsMap[ex.name]||setsMap[ex.name]||'12×3';
+    const planSets=planSetsMap[ex.name]||setsMap[ex.name]||'15×3';
     const kgPlaceholder=planKg?planKg.replace(' кг',''):'кг';
 
     // Сравнение с прошлой тренировкой
@@ -1654,7 +1696,7 @@ function renderDiary(){
         <div class="week-meta">
           <div class="week-title">Тренировка ${wNo} · ${weekDay(w)}</div>
           <div class="week-date">${w.date||''}${extraInfo?' · '+extraInfo:''}</div>
-          ${waveInfo?`<div style="margin-top:4px"><span class="plan-hint" style="background:rgba(41,128,185,.14);color:#2980b9">🌊 ${waveInfo.stage.label} неделя${waveInfo.cycleNumber>0?' · круг '+(waveInfo.cycleNumber+1):''}</span></div>`:''}
+          ${waveInfo?`<div style="margin-top:4px"><span class="plan-hint" style="background:rgba(41,128,185,.14);color:#2980b9">🌊 ${waveInfo.stage.label} неделя${waveInfo.cycleNumber>0?' · круг '+(waveInfo.cycleNumber+1):''}${waveBase?' · база '+Math.round(waveBase)+' кг':''}</span></div>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge ${badgeCls}">${badgeTxt}</span>
@@ -1678,7 +1720,7 @@ function renderDiary(){
 
 window.toggleSet=function(wn,i,si){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;if(!ex.setsDone)ex.setsDone=[];const idx=ex.setsDone.indexOf(si);if(idx>-1)ex.setsDone.splice(idx,1);else{ex.setsDone.push(si);}scheduleSave();renderDiary();};
 window.changeKg=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];if(!ex)return;ex.kg=String(Math.min(500,Math.max(0,Math.round(((parseFloat(ex.kg)||0)+d)*10)/10)));scheduleSave();recheckPR(wn,i);renderDiary();};
-window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'12×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'12×3';scheduleSave();renderDiary();};
+window.changeSets=function(wn,i,d){const w=getWeek(wn);if(!w)return;const ex=w.exercises[i];const base=ex.sets||setsMap[ex.name]||'15×3';const m=base.match(/(\d+)[x×](\d+)/);if(m){let r=parseInt(m[1])+d;r=Math.max(1,Math.min(30,r));ex.sets=`${r}×${m[2]}`;}else ex.sets=setsMap[ex.name]||'15×3';scheduleSave();renderDiary();};
 window.recheckPR=function(wn,i){recalcAllPRs();scheduleSave();updateSummary();};
 window.updateEx=function(wn,i,f,v){
   const w=getWeek(wn);if(!w||!w.exercises[i])return;
@@ -1702,7 +1744,7 @@ window.updateEx=function(wn,i,f,v){
     if(t===''){ex.sets='';scheduleSave();return;}
     const m=t.match(/^(\d{1,3})\s*[x×]\s*(\d{1,2})$/i);
     if(!m||parseInt(m[1])<1||parseInt(m[2])<1){
-      alert('Формат: повторения×подходы, например 12×3');
+      alert('Формат: повторения×подходы, например 15×3');
       renderDiary();
       return;
     }
@@ -1946,7 +1988,7 @@ let wakeLock=null,woWakeOn=true,woLockOn=false,bgAudio=null;
 
 // Сколько подходов запланировано у упражнения
 function woSetsCount(ex){
-  const s=String(ex.sets||setsMap[ex.name]||'12×3');
+  const s=String(ex.sets||setsMap[ex.name]||'15×3');
   const m=s.match(/(\d+)\s*[x×]\s*(\d+)/);
   let c=3;
   if(m)c=/[сcмm]\s*$/i.test(s)?parseInt(m[1]):parseInt(m[2]); // '3×60с' и '3×40м' — первое число это подходы
@@ -2157,7 +2199,7 @@ window.openAltModal=function(wn,i){
   document.getElementById('alt-list').innerHTML=alts.map(name=>`
     <div class="alt-item" onclick="applyAlt('${name.replace(/'/g,"\\'")}')">
       <span class="alt-item-name">${name}</span>
-      <span class="alt-item-sets">${setsMap[name]||'12×3'}</span>
+      <span class="alt-item-sets">${setsMap[name]||'15×3'}</span>
     </div>`).join('');
   document.getElementById('alt-modal-bg').classList.add('show');
 };
@@ -2604,8 +2646,6 @@ function renderExport(){const el=document.getElementById('export-text');if(el)el
 
 // WEIGHT TRACKER
 let weightChartInst=null;
-const WEIGHT_GOAL=90;
-
 // Подставляем последний вес, чтобы правка была в пару тапов
 function prefillWeight(){
   const inp=document.getElementById('weight-input');if(!inp)return;
@@ -2646,15 +2686,15 @@ function renderWeight(){
   const log=[...state.weightLog].sort((a,b)=>new Date(a.date)-new Date(b.date));
   const first=log[0].kg;
   const last=log[log.length-1].kg;
-  const lost=Math.round((first-last)*10)/10;
-  const toGoal=Math.round((last-WEIGHT_GOAL)*10)/10;
-  const pct=Math.min(100,Math.round((first-last)/(first-WEIGHT_GOAL)*100));
+  const diffAll=Math.round((last-first)*10)/10;
 
-  // Progress bar
-  const pb=document.getElementById('weight-progress-bar');
   const pl=document.getElementById('weight-progress-label');
-  if(pb)pb.style.width=Math.max(0,pct)+'%';
-  if(pl)pl.textContent=`${last} кг · осталось ${toGoal>0?toGoal+' кг':'достигнуто!'}`;
+  if(pl){
+    const sign=diffAll>0?'+':'';
+    pl.textContent=log.length>1
+      ? `${last} кг · ${sign}${diffAll} кг с ${new Date(log[0].date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}`
+      : `${last} кг`;
+  }
 
   // Chart
   const ctx=document.getElementById('weightChart')?.getContext('2d');
@@ -2665,8 +2705,7 @@ function renderWeight(){
       data:{
         labels:log.map(e=>new Date(e.date).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})),
         datasets:[
-          {label:'Вес',data:log.map(e=>e.kg),borderColor:'#e94560',backgroundColor:'rgba(233,69,96,.1)',tension:0.3,pointBackgroundColor:'#e94560',pointRadius:4,fill:true},
-          {label:'Цель',data:log.map(()=>WEIGHT_GOAL),borderColor:'#27ae60',borderDash:[5,5],pointRadius:0,fill:false}
+          {label:'Вес',data:log.map(e=>e.kg),borderColor:'#e94560',backgroundColor:'rgba(233,69,96,.1)',tension:0.3,pointBackgroundColor:'#e94560',pointRadius:4,fill:true}
         ]
       },
       options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v+'кг'}},x:{}}}
