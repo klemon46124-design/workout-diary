@@ -991,51 +991,33 @@ function e1rm(kg,reps){
 }
 function exE1rm(ex){return e1rm(ex.kg,repsOf(ex));}
 
-// ФАЗА 2 — волновая периодизация (тяжёлая → средняя → лёгкая неделя, по кругу)
+// ФАЗА 2 — волна по неделям: две тяжёлые, одна средняя, и снова по кругу.
+// Схема подходов на обеих ступенях одна (5×5), меняется только вес:
+// тяжёлая растёт от прошлой тяжёлой, средняя считается долей от неё.
 const PHASE2_START=16; // тренировка, с которой начинается Фаза 2 (сразу после восстановительной недели 13-15)
+// Позиция тренировки, с которой стартует первая тяжёлая неделя круга.
+// Привязка к факту: 8-10 сентября были тяжёлыми, 14-17 — средней, значит следующая неделя тяжёлая.
+const WAVE_ANCHOR=31;
 const PHASE2_LIFTS=['Присед со штангой','Становая тяга','Жим лёжа'];
 const WAVE_CYCLE=[
-  {label:'Тяжёлая',pct:0.92,reps:3,setsCount:5},
-  {label:'Средняя',pct:0.82,reps:5,setsCount:5},
-  {label:'Лёгкая',pct:0.72,reps:8,setsCount:3},
+  {label:'Тяжёлая',heavy:true,order:1},
+  {label:'Тяжёлая',heavy:true,order:2},
+  {label:'Средняя',heavy:false,order:1},
 ];
-// Тренировочный максимум = доля от расчётного разового по свежим результатам.
-// Проценты волны (92/82/72) рассчитаны именно на ТМ, а не на рабочий вес:
-// 5×5 на 90 кг — это разовый ≈122 и ТМ ≈110, а не 90.
-const PHASE2_TM_WINDOW=5; // сколько последних подходов к упражнению берём в расчёт
-const PHASE2_TM_PCT=0.9;  // ТМ — доля от расчётного разового
-
-function getPhase2Base(name,beforePos){
-  const limit=(beforePos===undefined?state.weeks.length:beforePos);
-  const target=normName(canonName(name)); // сравнение по канону — инвариант 2
-  const orms=[];let bestKg=0;
-  state.weeks.forEach((w,pos)=>{
-    if(pos>=limit)return; // будущие тренировки на план не влияют
-    const ex=w.exercises.find(e=>normName(canonName(e.name))===target);
-    const kg=ex?parseFloat(ex.kg):NaN;
-    if(!(kg>0))return;
-    if(kg>bestKg)bestKg=kg;
-    const o=exE1rm(ex);
-    if(o>0)orms.push(o);
-  });
-  const recent=orms.slice(-PHASE2_TM_WINDOW);
-  const best=recent.length?Math.max(...recent):0;
-  if(!best)return bestKg; // схем подходов нет — откатываемся на лучший рабочий вес
-  return Math.round(best*PHASE2_TM_PCT/2.5)*2.5;
-}
-
-// Волна отключена: веса берутся из внешнего плана, а не из процентов от ТМ.
-// Вернуть — поставить true: вернутся и подсказки веса, и баннер ступени.
-const WAVE_ENABLED=false;
+const WAVE_MID_PCT=0.85; // средняя неделя — доля от веса тяжёлой
+const WAVE_STEP=2.5;     // прибавка к тяжёлой, когда прошлая закрыта полностью
+const WAVE_DEFAULT_SETS='5×5';
+const WAVE_ENABLED=true; // false — убрать подсказки веса и баннер ступени
 
 function getWaveInfo(wn){
   if(!WAVE_ENABLED)return null;
   const weekGroup=Math.floor((wn-1)/3);
-  const startGroup=Math.floor((PHASE2_START-1)/3);
-  const offset=weekGroup-startGroup;
-  if(offset<0)return null;
-  const stage=WAVE_CYCLE[offset%3];
-  const cycleNumber=Math.floor(offset/3);
+  if(weekGroup<Math.floor((PHASE2_START-1)/3))return null; // до Фазы 2 ступеней нет
+  const offset=weekGroup-Math.floor((WAVE_ANCHOR-1)/3);
+  const len=WAVE_CYCLE.length;
+  // Круг считается и назад от привязки, поэтому остаток приводим к положительному
+  const stage=WAVE_CYCLE[((offset%len)+len)%len];
+  const cycleNumber=Math.floor(offset/len);
   return{stage,cycleNumber};
 }
 
@@ -1045,29 +1027,62 @@ function isPhase2Lift(name){
   return PHASE2_LIFTS.some(n=>normName(canonName(n))===t);
 }
 
-// Ступень волны для сравнения задаётся числом повторов: 5×5 — одна работа, 8×4 — другая.
-// Берём фактические повторы, а пока их не вписали — плановые из волны.
-function stageReps(ex,wn){
-  const m=String(ex.sets||'').match(/^(\d+)/);
-  if(m)return parseInt(m[1]);
-  const wi=getWaveInfo(wn); // поле пустое — ориентируемся на план волны, он же в подсказке
-  return wi?wi.stage.reps:repsOf(ex);
+function roundStep(kg){return Math.round(kg/WAVE_STEP)*WAVE_STEP;}
+
+// Все ли подходы закрыты: по этому признаку решаем, пора ли прибавлять вес
+function setsAllDone(ex){
+  const m=String(ex.sets||'').match(/^\d+\s*[×x]\s*(\d+)/);
+  const planned=m?parseInt(m[1]):0;
+  const done=(ex.setsDone||[]).length+(ex.extraSets||0);
+  return planned>0&&done>=planned;
+}
+
+// Последняя тяжёлая неделя с этим упражнением — от неё считаются оба веса
+function getLastHeavy(name,beforePos){
+  const limit=(beforePos===undefined?state.weeks.length:beforePos);
+  const target=normName(canonName(name));
+  for(let k=Math.min(limit,state.weeks.length)-1;k>=0;k--){
+    const wi=getWaveInfo(k+1);
+    if(!wi||!wi.stage.heavy)continue;
+    const ex=state.weeks[k].exercises.find(e=>normName(canonName(e.name))===target);
+    const kg=ex?parseFloat(ex.kg):NaN;
+    if(kg>0)return{kg,n:k+1,sets:ex.sets||WAVE_DEFAULT_SETS,full:setsAllDone(ex)};
+  }
+  return null;
+}
+
+// План на ступень: тяжёлая = прошлая тяжёлая (+2.5, если закрыта), средняя = доля от неё
+function getWavePlan(name,wn,stage){
+  const pos=weekPosByN(wn);
+  const last=getLastHeavy(name,pos<0?undefined:pos);
+  if(!last)return null;
+  const kg=stage.heavy
+    ? roundStep(last.kg+(last.full?WAVE_STEP:0))
+    : roundStep(last.kg*WAVE_MID_PCT);
+  return{kg,sets:last.sets||WAVE_DEFAULT_SETS,from:last};
 }
 
 // «Прошлый раз» для базовых упражнений ищется внутри своей ступени:
-// тяжёлая сравнивается с тяжёлой, лёгкая с лёгкой.
-// Иначе рядом с 5×5 тяжёлой недели встаёт 8×4 лёгкой и разница врёт.
-// Ищем по позиции в массиве, а не по идентификатору: раньше — значит левее.
+// тяжёлая сравнивается с тяжёлой, средняя со средней. Обе тяжёлые недели круга
+// считаются одной ступенью — между ними и видно прибавку.
+// Вне Фазы 2 ступеней нет, там сверяем по числу повторов: 5×5 с 5×5, 8×4 с 8×4.
 function getPrevSameStage(ex,wn){
   const pos=weekPosByN(wn);if(pos<0)return null;
-  const reps=stageReps(ex,pos+1);if(!reps)return null;
+  const cur=getWaveInfo(pos+1);
   const target=normName(canonName(ex.name));
+  const reps=repsOf(ex);
   for(let k=pos-1;k>=0;k--){
     const oex=state.weeks[k].exercises.find(e=>normName(canonName(e.name))===target);
     if(!oex)continue;
     const kg=parseFloat(oex.kg);
-    if(!(kg>0)||repsOf(oex)!==reps)continue;
-    return{kg,n:k+1,reps,sets:oex.sets||`${reps}×?`};
+    if(!(kg>0))continue;
+    if(cur){
+      const wi=getWaveInfo(k+1);
+      if(!wi||wi.stage.label!==cur.stage.label)continue;
+      return{kg,n:k+1,label:cur.stage.label,sets:oex.sets||''};
+    }
+    if(!reps||repsOf(oex)!==reps)continue;
+    return{kg,n:k+1,sets:oex.sets||`${reps}×?`};
   }
   return null;
 }
@@ -1580,12 +1595,11 @@ function renderDiary(){
   if(waveInfo){
     const{stage}=waveInfo;
     PHASE2_LIFTS.forEach(name=>{
-      // ТМ уже пересчитывается по фактам, отдельная надбавка за круг только задвоила бы рост
-      const base=getPhase2Base(name,myPos);
-      if(base>0){
-        const target=Math.round(base*stage.pct/2.5)*2.5;
-        planMap[name]=target+' кг';
-        planSetsMap[name]=`${stage.reps}×${stage.setsCount}`;
+      // Отсчёт идёт от последней тяжёлой недели, а не от расчётного максимума
+      const plan=getWavePlan(name,w.n,stage);
+      if(plan){
+        planMap[name]=plan.kg+' кг';
+        planSetsMap[name]=plan.sets;
       }
     });
   }
@@ -1597,14 +1611,15 @@ function renderDiary(){
     const addSetBtn=`<button class="set-btn" style="background:transparent;border-style:dashed;color:var(--red);border-color:var(--red)" onclick="addSet(${w.n},${i})">+</button>`;
     // h.n — позиция+1, myPos — индекс открытой тренировки: берём только то, что было раньше неё
     const hist=getHistory(ex.name);const lastH=hist.filter(h=>h.n<=myPos).pop();
-    // На волне базовые упражнения сравниваем со своей ступенью, остальные — с прошлым разом
-    // Сравнение по схеме живёт отдельно от волны: 5×5 сверяется с 5×5 и при выключенной волне
+    // Базовые упражнения сравниваем со своей ступенью недели, остальные — с прошлым разом
     const onWave=isPhase2Lift(ex.name);
     const stagePrev=onWave?getPrevSameStage(ex,w.n):null;
     const prevKg=stagePrev?stagePrev.kg:(lastH?lastH.kg:null);
-    const prevLabel=stagePrev?`Прошлый ${stagePrev.sets}`
-      :`Прошлый${lastH&&lastH.sets?' '+lastH.sets:' раз'}`;
-    // Разницу показываем, только если схема совпадает
+    // На ступени подписываем неделей, вне Фазы 2 — схемой подходов
+    const prevLabel=stagePrev
+      ? (stagePrev.label?`Прошлая ${stagePrev.label.toLowerCase()}`:`Прошлый ${stagePrev.sets}`)
+      : `Прошлый${lastH&&lastH.sets?' '+lastH.sets:' раз'}`;
+    // Разницу показываем, только если ступени совпали
     const canDiff=prevKg!==null&&(stagePrev||!onWave);
     const planKg=planMap[ex.name]||'';
     const planSets=planSetsMap[ex.name]||setsMap[ex.name]||'15×3';
@@ -1621,7 +1636,7 @@ function renderDiary(){
         <span style="color:${diffColor};font-weight:600">${diffStr}</span>
       </div>`;
     }else if(prevKg!==null){
-      compareHtml=`<div style="padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:var(--t-2xs);color:var(--text3)">${prevLabel}: ${prevKg} кг${onWave&&ex.kg?' · другая схема, не сравниваю':''}</div>`;
+      compareHtml=`<div style="padding:5px 0;border-top:1px solid var(--border);margin-top:6px;font-size:var(--t-2xs);color:var(--text3)">${prevLabel}: ${prevKg} кг${onWave&&ex.kg?' · ступень другая, не сравниваю':''}</div>`;
     }
 
     return `<div class="ex-row">
@@ -1697,7 +1712,7 @@ function renderDiary(){
         <div class="week-meta">
           <div class="week-title">Тренировка ${wNo} · ${weekDay(w)}</div>
           <div class="week-date">${w.date||''}${extraInfo?' · '+extraInfo:''}</div>
-          ${waveInfo?`<div style="margin-top:4px"><span class="plan-hint" style="background:rgba(41,128,185,.14);color:#2980b9">🌊 ${waveInfo.stage.label} неделя${waveInfo.cycleNumber>0?' · круг '+(waveInfo.cycleNumber+1):''}</span></div>`:''}
+          ${waveInfo?`<div style="margin-top:4px"><span class="plan-hint" style="background:rgba(41,128,185,.14);color:#2980b9">🌊 ${waveInfo.stage.label} неделя${waveInfo.stage.heavy?' '+waveInfo.stage.order+' из 2':''}</span></div>`:''}
         </div>
         <div style="display:flex;align-items:center;gap:6px">
           <span class="badge ${badgeCls}">${badgeTxt}</span>
@@ -2787,7 +2802,7 @@ window.addEventListener('offline',()=>{setSyncStatus('📴',false);});
 if(!navigator.onLine)setSyncStatus('📴',false);
 
 // Метка сборки: меняется вместе с файлом, чтобы не гадать, какая версия крутится на телефоне
-const BUILD='2026-09-18 · волна выключена';
+const BUILD='2026-09-18 · волна 2+1';
 async function renderBuild(){
   const el=document.getElementById('build-info');if(!el)return;
   let cacheTxt='нет (обычная вкладка)';
